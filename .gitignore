@@ -206,3 +206,5 @@ chromatic-build.log
 .svelte-kit
 
 # End of https://www.gitignore.io/api/node,nextjs,typescript,visualstudiocode
+
+/src/generated/prisma

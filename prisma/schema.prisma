@@ -1,0 +1,79 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Modelo de Usuario
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  password     String   // Hash de la contraseña
+  name         String?
+  username     String?  @unique
+  avatar       String?
+  bio          String?
+  website      String?
+  location     String?
+  isSubscribed Boolean  @default(false) // Si está suscrito al club
+  isActive     Boolean  @default(true)  // Si la cuenta está activa
+  lastLogin    DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relaciones
+  roleId       String
+  role         Role     @relation(fields: [roleId], references: [id])
+
+  @@map("users")
+}
+
+// Modelo de Rol
+model Role {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relaciones
+  users       User[]
+  permissions RolePermission[]
+
+  @@map("roles")
+}
+
+// Modelo de Permiso
+model Permission {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  resource    String   // Recurso al que aplica (posts, users, etc.)
+  action      String   // Acción (create, read, update, delete)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relaciones
+  roles       RolePermission[]
+
+  @@unique([resource, action])
+  @@map("permissions")
+}
+
+// Tabla de relación Role-Permission
+model RolePermission {
+  roleId       String
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permissionId String
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
+}
+

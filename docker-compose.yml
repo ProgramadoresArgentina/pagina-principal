@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: programadores-argentina-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: programadores_argentina
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - app-network
+
+  adminer:
+    image: adminer:4.8.1
+    container_name: programadores-argentina-adminer
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    networks:
+      - app-network
+    depends_on:
+      - postgres
+
+volumes:
+  postgres_data:
+
+networks:
+  app-network:
+    driver: bridge

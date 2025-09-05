@@ -1,10 +1,51 @@
 "use client";
-import { JSX } from "react";
-import { useAnimationInit } from "../hooks/useAnimationInit";
+import { JSX, useEffect } from "react";
 
 export default function PublicGroups(): JSX.Element {
-  // Usar el hook personalizado para inicializar animaciones
-  useAnimationInit('.tp-service-item', 300);
+  useEffect(() => {
+    // Inicializar animaciones cuando el componente se monte
+    const initAnimations = () => {
+      if (typeof window !== 'undefined') {
+        const checkAndInit = () => {
+          if (window.jQuery && window.jQuery.fn) {
+            try {
+              // Reinicializar animaciones de servicio
+              if (window.jQuery.fn.tpServicePin) {
+                window.jQuery('.tp-service-pin').tpServicePin();
+              }
+              
+              // Forzar reinicialización de animaciones
+              const serviceItems = document.querySelectorAll('.tp-service-item');
+              serviceItems.forEach((item, index) => {
+                // Remover y agregar clases para forzar reinicialización
+                item.classList.remove('tp_fade_anim');
+                setTimeout(() => {
+                  item.classList.add('tp_fade_anim');
+                }, index * 100);
+              });
+              
+              // Disparar eventos para activar animaciones
+              setTimeout(() => {
+                window.dispatchEvent(new Event('scroll'));
+                window.dispatchEvent(new Event('resize'));
+              }, 200);
+              
+            } catch (error) {
+              console.log('Animations will be initialized by main scripts');
+            }
+          } else {
+            // Si jQuery no está listo, intentar de nuevo
+            setTimeout(checkAndInit, 100);
+          }
+        };
+
+        // Esperar un poco para que los scripts se carguen
+        setTimeout(checkAndInit, 300);
+      }
+    };
+
+    initAnimations();
+  }, []);
 
   return (
     <div id="down" className="tp-service-area pt-120">
@@ -17,7 +58,7 @@ export default function PublicGroups(): JSX.Element {
           </div>
         </div>
         <div className="tp-service-pin">
-          <div className="tp-service-item tp-service-panel">
+          <div className="tp-service-item tp-service-panel tp_fade_anim" data-animation="fadeInUp" data-delay="0.1s">
             <div className="row">
               <div className="col-xxl-3 col-xl-2 col-lg-1 col-md-1">
                 <div className="tp-service-number">
@@ -55,7 +96,7 @@ export default function PublicGroups(): JSX.Element {
               </div>
             </div>
           </div>
-          <div className="tp-service-item tp-service-panel">
+          <div className="tp-service-item tp-service-panel tp_fade_anim" data-animation="fadeInUp" data-delay="0.2s">
             <div className="row">
               <div className="col-xxl-3 col-xl-2 col-lg-1 col-md-1">
                 <div className="tp-service-number">
@@ -93,7 +134,7 @@ export default function PublicGroups(): JSX.Element {
               </div>
             </div>
           </div>
-          <div className="tp-service-item tp-service-panel">
+          <div className="tp-service-item tp-service-panel tp_fade_anim" data-animation="fadeInUp" data-delay="0.3s">
             <div className="row">
               <div className="col-xxl-3 col-xl-2 col-lg-1 col-md-1">
                 <div className="tp-service-number">

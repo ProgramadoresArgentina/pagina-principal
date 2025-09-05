@@ -18,7 +18,7 @@ export const useAnimationInit = (selector: string, delay: number = 200) => {
                 if (classList.contains(className)) {
                   classList.remove(className);
                   // Forzar reflow
-                  element.offsetHeight;
+                  (element as HTMLElement).offsetHeight;
                   classList.add(className);
                 }
               });

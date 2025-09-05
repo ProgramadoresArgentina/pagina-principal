@@ -6,17 +6,39 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:migrate": "prisma migrate dev",
+    "db:studio": "prisma studio",
+    "db:seed": "tsx prisma/seed.ts",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f",
+    "minio:up": "docker-compose -f docker-compose.minio.yml up -d",
+    "minio:down": "docker-compose -f docker-compose.minio.yml down",
+    "minio:upload": "node scripts/upload-to-minio.js"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.883.0",
+    "@prisma/client": "^6.15.0",
+    "bcryptjs": "^3.0.2",
+    "gray-matter": "^4.0.3",
+    "jsonwebtoken": "^9.0.2",
     "next": "14.2.4",
+    "prisma": "^6.15.0",
     "react": "^18",
-    "react-dom": "^18"
+    "react-dom": "^18",
+    "remark": "^15.0.1",
+    "remark-html": "^16.0.1"
   },
   "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "24.3.1",
     "@types/react": "19.1.12",
     "eslint": "^8",
-    "eslint-config-next": "14.2.4"
+    "eslint-config-next": "14.2.4",
+    "tsx": "^4.20.5"
   }
 }

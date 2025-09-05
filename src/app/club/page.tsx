@@ -203,7 +203,7 @@ export default function Club(): JSX.Element {
                     <div className="col-xl-12">
                       <div className="it-benifit-title-box mb-55">
                         <span className="tp-section-subtitle-platform platform-text-black mb-20 tp-split-text tp-split-right">Beneficios</span>
-                        <h4 className="tp-section-title-platform platform-text-black mb-20 tp-split-text tp-split-right">Más que una suscripción: un club de crecimiento y oportunidades</h4>
+                        <h4 className="tp-section-title-platform platform-text-black mb-20 tp-split-text tp-split-right">Un espacio de crecimiento y oportunidades</h4>
                       </div>
                     </div>
                   </div>

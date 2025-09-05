@@ -8,19 +8,29 @@ import Footer from "./components/Footer";
 import StructuredData from "./components/StructuredData";
 
 export const metadata: Metadata = {
-  title: "Programadores Argentina - Comunidad de Desarrolladores | +60.000 Miembros",
-  description: "Únete a la comunidad más grande de programadores de Argentina. +60.000 desarrolladores, artículos técnicos, oportunidades laborales, networking y crecimiento profesional en tecnología.",
+  title: "Programadores Argentina - La Comunidad Tech Más Grande de Argentina | +60.000 Miembros",
+  description: "Únete a la comunidad más grande de programadores de Argentina. +60.000 desarrolladores, artículos técnicos exclusivos, oportunidades laborales premium, networking profesional y crecimiento en tecnología. Conecta con CEOs, CTOs y líderes tech.",
   keywords: [
     "programadores argentina",
     "desarrolladores argentina", 
     "comunidad tech argentina",
     "programación argentina",
     "desarrollo software argentina",
-    "networking programadores",
-    "oportunidades laborales IT",
-    "comunidad desarrolladores",
+    "networking programadores argentina",
+    "oportunidades laborales IT argentina",
+    "comunidad desarrolladores argentina",
     "tech argentina",
-    "programadores comunidad"
+    "programadores comunidad argentina",
+    "desarrolladores web argentina",
+    "programadores mobile argentina",
+    "desarrollo backend argentina",
+    "desarrollo frontend argentina",
+    "inteligencia artificial argentina",
+    "ciberseguridad argentina",
+    "data science argentina",
+    "startups argentina",
+    "emprendedores tech argentina",
+    "mentorías programación argentina"
   ],
   authors: [{ name: "Programadores Argentina" }],
   creator: "Programadores Argentina",
@@ -35,16 +45,16 @@ export const metadata: Metadata = {
     canonical: "/",
   },
   openGraph: {
-    title: "Programadores Argentina - Comunidad de Desarrolladores",
-    description: "Únete a la comunidad más grande de programadores de Argentina. +60.000 desarrolladores, artículos técnicos, oportunidades laborales y networking.",
+    title: "Programadores Argentina - La Comunidad Tech Más Grande de Argentina",
+    description: "Únete a la comunidad más grande de programadores de Argentina. +60.000 desarrolladores, artículos técnicos exclusivos, oportunidades laborales premium y networking profesional.",
     url: "https://programadoresargentina.com",
     siteName: "Programadores Argentina",
     images: [
       {
-        url: "/assets/images/LogoProgramadoresArgentina.webp",
+        url: "/assets/images/og-home-programadores-argentina.jpg",
         width: 1200,
         height: 630,
-        alt: "Programadores Argentina - Comunidad de Desarrolladores",
+        alt: "Programadores Argentina - Comunidad de Desarrolladores +60.000 Miembros",
       },
     ],
     locale: "es_AR",
@@ -52,10 +62,11 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Programadores Argentina - Comunidad de Desarrolladores",
-    description: "Únete a la comunidad más grande de programadores de Argentina. +60.000 desarrolladores, artículos técnicos y oportunidades laborales.",
-    images: ["/assets/images/LogoProgramadoresArgentina.webp"],
+    title: "Programadores Argentina - La Comunidad Tech Más Grande de Argentina",
+    description: "Únete a la comunidad más grande de programadores de Argentina. +60.000 desarrolladores, artículos técnicos exclusivos y oportunidades laborales premium.",
+    images: ["/assets/images/og-home-programadores-argentina.jpg"],
     creator: "@programadores_argentina",
+    site: "@programadores_argentina",
   },
   robots: {
     index: true,
@@ -68,8 +79,14 @@ export const metadata: Metadata = {
       "max-snippet": -1,
     },
   },
-  verification: {
-    google: "tu-google-verification-code",
+  category: "technology",
+  classification: "Comunidad de Desarrolladores",
+  other: {
+    "og:image:width": "1200",
+    "og:image:height": "630",
+    "og:image:type": "image/jpeg",
+    "article:author": "Programadores Argentina",
+    "article:publisher": "https://programadoresargentina.com",
   },
 };
 
@@ -78,11 +95,34 @@ export default function Home(): JSX.Element {
     <>
       <StructuredData 
         type="Organization" 
-        data={{}} 
+        data={{
+          name: "Programadores Argentina",
+          description: "La comunidad más grande de programadores de Argentina con +60.000 miembros",
+          url: "https://programadoresargentina.com",
+          logo: "https://programadoresargentina.com/assets/images/logo.png",
+          sameAs: [
+            "https://linkedin.com/company/programadores-argentina",
+            "https://instagram.com/programadores_argentina"
+          ],
+          contactPoint: {
+            "@type": "ContactPoint",
+            contactType: "customer service",
+            email: "contacto@programadoresargentina.com"
+          }
+        }} 
       />
       <StructuredData 
         type="WebSite" 
-        data={{}} 
+        data={{
+          name: "Programadores Argentina",
+          description: "Comunidad de desarrolladores más grande de Argentina",
+          url: "https://programadoresargentina.com",
+          potentialAction: {
+            "@type": "SearchAction",
+            target: "https://programadoresargentina.com/articulos?search={search_term_string}",
+            "query-input": "required name=search_term_string"
+          }
+        }} 
       />
       <BackToTop />
       <Header />
@@ -106,8 +146,8 @@ export default function Home(): JSX.Element {
                 <div className="row justify-content-center">
                   <div className="col-xl-12">
                     <div className="pp-service-2-title-box">
-                      <h3 className="ar-about-us-4-title tp-char-animation display-1">Comunidad<br />
-                        Programadores<br />Argentina <img className="tp_fade_anim" style={{ borderRadius: '5px', marginBottom: '10px', marginLeft: '10px' }} data-delay="2.5" data-fade-from="top" data-ease="bounce" src="/assets/images/argentina-flag.webp" alt="Bandera Argentina" width="58" height="42" /></h3>
+                      <h1 className="ar-about-us-4-title tp-char-animation display-1">Comunidad<br />
+                        Programadores<br />Argentina <img className="tp_fade_anim" style={{ borderRadius: '5px', marginBottom: '10px', marginLeft: '10px' }} data-delay="2.5" data-fade-from="top" data-ease="bounce" src="/assets/images/argentina-flag.webp" alt="Bandera Argentina" width="58" height="42" /></h1>
                     </div>
                   </div>
                 </div><div className="it-hero-btn-box d-flex align-items-center flex-wrap">
@@ -130,10 +170,10 @@ export default function Home(): JSX.Element {
                     </a>
                   </div>
                   <div className="tp_fade_anim" data-delay=".7" data-fade-from="top" data-ease="bounce">
-                    <a className="tp-btn-black-radius btn-blue-bg btn-border d-inline-flex align-items-center justify-content-between" href="contact-us-dark.html">
+                    <a className="tp-btn-black-radius btn-blue-bg btn-border d-inline-flex align-items-center justify-content-between" href="/articulos">
                       <span>
-                        <span className="text-1">Contactarnos</span>
-                        <span className="text-2">Contactar</span>
+                        <span className="text-1">Ver Artículos</span>
+                        <span className="text-2">Leer</span>
                       </span>
                       <i>
                         <span>
@@ -248,10 +288,10 @@ export default function Home(): JSX.Element {
                   </div>
                   <div className="col-lg-9">
                     <div className="pp-about-heading pb-55">
-                      <h3 className="tp-section-title-teko fs-80 tp_fade_anim" style={{ translate: 'none', rotate: 'none', scale: 'none', transform: 'translate(0px, 0px)', opacity: 1 }}>
+                      <h2 className="tp-section-title-teko fs-80 tp_fade_anim" style={{ translate: 'none', rotate: 'none', scale: 'none', transform: 'translate(0px, 0px)', opacity: 1 }}>
                         Un <span>Espacio de Conexión</span> <br />
                         con profesionales de la región
-                      </h3>
+                      </h2>
                     </div>
                     <div className="pp-about-wrap">
                       <div className="pp-about-content tp_text_anim">
@@ -269,7 +309,7 @@ export default function Home(): JSX.Element {
               <div className="container-fluid p-0">
                 <div className="tp-video-thumb-wrap">
                   <div className="tp-video-thumb d-none d-xl-block">
-                    <img src="/assets/images/pic-3.webp" alt="" height="500" />
+                    <img src="/assets/images/pic-3.webp" alt="Desarrolladores trabajando en Argentina" height="500" />
                   </div>
                   <div className="tp-video-thumb mb-25">
                     <video loop muted autoPlay playsInline>
@@ -277,16 +317,16 @@ export default function Home(): JSX.Element {
                     </video>
                   </div>
                   <div className="tp-video-thumb d-none d-md-flex justify-content-center align-items-center mb-25">
-                    <img src="/assets/images/pc-programadoresargentina.webp" alt="" style={{ height: '300px', objectFit: 'contain' }} />
+                    <img src="/assets/images/pc-programadoresargentina.webp" alt="Programadores Argentina - Comunidad Tech" style={{ height: '300px', objectFit: 'contain' }} />
                   </div>
                   <div className="tp-video-thumb d-none d-md-flex justify-content-center align-items-center mb-25">
-                    <img src="/assets/images/juguito-programadoresargentina.webp" alt="" style={{ height: '300px', objectFit: 'contain' }} />
+                    <img src="/assets/images/juguito-programadoresargentina.webp" alt="Comunidad de Desarrolladores Argentina" style={{ height: '300px', objectFit: 'contain' }} />
                   </div>
                   <div className="tp-video-thumb d-none d-xl-block">
-                    <img src="/assets/images/pic-2.webp" alt="" />
+                    <img src="/assets/images/pic-2.webp" alt="Networking de programadores argentinos" />
                   </div>
                   <div className="tp-video-thumb d-none d-xl-block mb-25">
-                    <img src="/assets/images/pic-1.webp" alt="" />
+                    <img src="/assets/images/pic-1.webp" alt="Oportunidades laborales para desarrolladores" />
                   </div>
                 </div>
               </div>

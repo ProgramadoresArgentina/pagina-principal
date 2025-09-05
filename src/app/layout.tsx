@@ -1,6 +1,7 @@
 import Script from 'next/script';
 import type { Metadata } from 'next';
 import ClientLayout from './components/ClientLayout';
+import { AuthProvider } from '@/contexts/AuthContext';
 
 export const metadata: Metadata = {
   title: 'Comunidad Programadores Argentina',
@@ -43,7 +44,9 @@ export default function RootLayout({
           </button>
         </div>
 
-        <ClientLayout>{children}</ClientLayout>
+        <AuthProvider>
+          <ClientLayout>{children}</ClientLayout>
+        </AuthProvider>
 
         <Script src="/assets/js/vendor/jquery.js" strategy="beforeInteractive" />
         <Script src="/assets/js/bootstrap-bundle.js" />

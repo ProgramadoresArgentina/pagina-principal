@@ -1,0 +1,521 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Estilos para contenido bloqueado */
+.locked-content {
+  position: relative;
+}
+
+.tp-blog-locked-content {
+  position: relative;
+  background: rgba(14, 15, 17, 0.95);
+  border-radius: 12px;
+  padding: 60px 40px;
+  margin: 40px 0;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.tp-blog-locked-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(14, 15, 17, 0.9) 0%, rgba(20, 21, 23, 0.9) 100%);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+}
+
+.tp-blog-locked-info {
+  position: relative;
+  z-index: 2;
+}
+
+.tp-blog-locked-icon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 80px;
+  height: 80px;
+  margin: 0 auto;
+  background: rgba(208, 255, 113, 0.1);
+  border-radius: 50%;
+  border: 2px solid rgba(208, 255, 113, 0.3);
+}
+
+.tp-blog-locked-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: #ffffff;
+  margin-bottom: 16px;
+}
+
+.tp-blog-locked-description {
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.6;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.tp-blog-locked-actions {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+/* Estilos para el contenido markdown */
+.markdown-content {
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.7;
+}
+
+.markdown-content h1,
+.markdown-content h2,
+.markdown-content h3,
+.markdown-content h4,
+.markdown-content h5,
+.markdown-content h6 {
+  color: #ffffff;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+.markdown-content h1 {
+  font-size: 2.5rem;
+}
+
+.markdown-content h2 {
+  font-size: 2rem;
+}
+
+.markdown-content h3 {
+  font-size: 1.5rem;
+}
+
+.markdown-content h4 {
+  font-size: 1.25rem;
+}
+
+.markdown-content p {
+  margin-bottom: 1.5rem;
+  font-size: 16px;
+}
+
+.markdown-content ul,
+.markdown-content ol {
+  margin-bottom: 1.5rem;
+  padding-left: 2rem;
+}
+
+.markdown-content li {
+  margin-bottom: 0.5rem;
+}
+
+.markdown-content strong {
+  color: #D0FF71;
+  font-weight: 600;
+}
+
+.markdown-content em {
+  color: rgba(255, 255, 255, 0.8);
+  font-style: italic;
+}
+
+.markdown-content code {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+  color: #D0FF71;
+}
+
+.markdown-content pre {
+  background: rgba(0, 0, 0, 0.3);
+  padding: 1rem;
+  border-radius: 8px;
+  overflow-x: auto;
+  margin-bottom: 1.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.markdown-content pre code {
+  background: none;
+  padding: 0;
+  color: #ffffff;
+}
+
+/* Estilos para contenido Markdown en modo oscuro */
+.markdown-content {
+  color: #ffffff;
+  line-height: 1.7;
+  font-size: 16px;
+}
+
+/* Títulos */
+.markdown-content h1 {
+  color: #ffffff;
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin: 2rem 0 1.5rem 0;
+  line-height: 1.2;
+  border-bottom: 2px solid rgba(208, 255, 113, 0.3);
+  padding-bottom: 0.5rem;
+}
+
+.markdown-content h2 {
+  color: #ffffff;
+  font-size: 2rem;
+  font-weight: 600;
+  margin: 1.8rem 0 1.2rem 0;
+  line-height: 1.3;
+  border-bottom: 1px solid rgba(208, 255, 113, 0.2);
+  padding-bottom: 0.3rem;
+}
+
+.markdown-content h3 {
+  color: #ffffff;
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 1.5rem 0 1rem 0;
+  line-height: 1.4;
+}
+
+.markdown-content h4 {
+  color: #ffffff;
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 1.2rem 0 0.8rem 0;
+  line-height: 1.4;
+}
+
+.markdown-content h5 {
+  color: #ffffff;
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 1rem 0 0.6rem 0;
+  line-height: 1.4;
+}
+
+.markdown-content h6 {
+  color: #ffffff;
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0.8rem 0 0.5rem 0;
+  line-height: 1.4;
+}
+
+/* Párrafos */
+.markdown-content p {
+  color: rgba(255, 255, 255, 0.9);
+  margin: 1rem 0;
+  line-height: 1.7;
+}
+
+/* Listas */
+.markdown-content ul,
+.markdown-content ol {
+  color: rgba(255, 255, 255, 0.9);
+  margin: 1rem 0;
+  padding-left: 2rem;
+}
+
+.markdown-content li {
+  color: rgba(255, 255, 255, 0.9);
+  margin: 0.5rem 0;
+  line-height: 1.6;
+}
+
+.markdown-content ul li {
+  list-style-type: disc;
+}
+
+.markdown-content ol li {
+  list-style-type: decimal;
+}
+
+.markdown-content ul ul,
+.markdown-content ol ol,
+.markdown-content ul ol,
+.markdown-content ol ul {
+  margin: 0.5rem 0;
+}
+
+/* Código */
+.markdown-content code {
+  background: rgba(208, 255, 113, 0.1);
+  color: #D0FF71;
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.9em;
+  border: 1px solid rgba(208, 255, 113, 0.2);
+}
+
+.markdown-content pre {
+  background: rgba(14, 15, 17, 0.8);
+  color: #ffffff;
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin: 1.5rem 0;
+  overflow-x: auto;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+}
+
+.markdown-content pre code {
+  background: transparent;
+  color: #ffffff;
+  padding: 0;
+  border: none;
+  font-size: 0.9em;
+  line-height: 1.5;
+}
+
+/* Citas */
+.markdown-content blockquote {
+  border-left: 4px solid #D0FF71;
+  padding: 1rem 1.5rem;
+  margin: 1.5rem 0;
+  background: rgba(208, 255, 113, 0.05);
+  border-radius: 0 8px 8px 0;
+  color: rgba(255, 255, 255, 0.8);
+  font-style: italic;
+  position: relative;
+}
+
+.markdown-content blockquote::before {
+  content: '"';
+  font-size: 3rem;
+  color: rgba(208, 255, 113, 0.3);
+  position: absolute;
+  top: -0.5rem;
+  left: 0.5rem;
+  font-family: serif;
+}
+
+/* Enlaces */
+.markdown-content a {
+  color: #D0FF71;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(208, 255, 113, 0.3);
+  transition: all 0.3s ease;
+  padding-bottom: 1px;
+}
+
+.markdown-content a:hover {
+  color: #ffffff;
+  border-bottom-color: #D0FF71;
+  background: rgba(208, 255, 113, 0.1);
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  margin: 0 -0.4rem;
+}
+
+/* Imágenes */
+.markdown-content img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  margin: 1.5rem 0;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Tablas */
+.markdown-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5rem 0;
+  background: rgba(14, 15, 17, 0.5);
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.markdown-content th,
+.markdown-content td {
+  padding: 1rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.markdown-content th {
+  background: rgba(208, 255, 113, 0.1);
+  font-weight: 600;
+  color: #ffffff;
+  border-bottom: 2px solid rgba(208, 255, 113, 0.3);
+}
+
+.markdown-content tr:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+/* Líneas horizontales */
+.markdown-content hr {
+  border: none;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(208, 255, 113, 0.3), transparent);
+  margin: 2.5rem 0;
+  border-radius: 1px;
+}
+
+/* Texto fuerte y enfatizado */
+.markdown-content strong {
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.markdown-content em {
+  color: rgba(255, 255, 255, 0.8);
+  font-style: italic;
+}
+
+/* Texto tachado */
+.markdown-content del {
+  color: rgba(255, 255, 255, 0.5);
+  text-decoration: line-through;
+}
+
+/* Texto marcado */
+.markdown-content mark {
+  background: rgba(208, 255, 113, 0.2);
+  color: #ffffff;
+  padding: 0.1rem 0.3rem;
+  border-radius: 3px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .markdown-content {
+    font-size: 14px;
+  }
+  
+  .markdown-content h1 {
+    font-size: 2rem;
+  }
+  
+  .markdown-content h2 {
+    font-size: 1.5rem;
+  }
+  
+  .markdown-content h3 {
+    font-size: 1.25rem;
+  }
+  
+  .markdown-content pre {
+    padding: 1rem;
+    font-size: 0.8em;
+  }
+  
+  .markdown-content table {
+    font-size: 0.9em;
+  }
+  
+  .markdown-content th,
+  .markdown-content td {
+    padding: 0.75rem 0.5rem;
+  }
+}
+
+/* Estilos para paginación */
+.tp-pagination-wrap {
+  padding: 60px 0 40px 0;
+}
+
+.tp-pagination ul {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.tp-pagination-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 50px;
+  height: 50px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.7);
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.tp-pagination-btn:hover {
+  background: rgba(208, 255, 113, 0.1);
+  border-color: rgba(208, 255, 113, 0.3);
+  color: #D0FF71;
+  transform: translateY(-2px);
+}
+
+.tp-pagination-btn.active {
+  background: #D0FF71;
+  border-color: #D0FF71;
+  color: #0E0F11;
+  font-weight: 600;
+}
+
+.tp-pagination-btn.active:hover {
+  background: #B8E85A;
+  border-color: #B8E85A;
+  color: #0E0F11;
+  transform: translateY(-2px);
+}
+
+.tp-pagination-dots {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 50px;
+  height: 50px;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 18px;
+  font-weight: 600;
+}
+
+/* Responsive pagination */
+@media (max-width: 768px) {
+  .tp-pagination-btn {
+    width: 40px;
+    height: 40px;
+    font-size: 14px;
+  }
+  
+  .tp-pagination-dots {
+    width: 40px;
+    height: 40px;
+    font-size: 16px;
+  }
+  
+  .tp-pagination ul {
+    gap: 4px;
+  }
+}
+
+@media (max-width: 480px) {
+  .tp-pagination-btn {
+    width: 35px;
+    height: 35px;
+    font-size: 12px;
+  }
+  
+  .tp-pagination-dots {
+    width: 35px;
+    height: 35px;
+    font-size: 14px;
+  }
+}
