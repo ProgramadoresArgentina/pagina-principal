@@ -47,6 +47,27 @@ async function main() {
         description: 'Permite eliminar usuarios',
       },
     }),
+    // Permisos de chat
+    prisma.permission.upsert({
+      where: { resource_action: { resource: 'chat', action: 'moderate' } },
+      update: {},
+      create: {
+        name: 'Moderar Chat',
+        resource: 'chat',
+        action: 'moderate',
+        description: 'Permite moderar el chat global',
+      },
+    }),
+    prisma.permission.upsert({
+      where: { resource_action: { resource: 'chat', action: 'delete' } },
+      update: {},
+      create: {
+        name: 'Eliminar Mensajes',
+        resource: 'chat',
+        action: 'delete',
+        description: 'Permite eliminar mensajes del chat',
+      },
+    }),
   ])
 
   console.log('✅ Permisos creados:', permissions.length)
@@ -96,9 +117,9 @@ async function main() {
     // Miembro del Club
     { roleName: 'Miembro del Club', permissions: [] },
     // Moderador
-    { roleName: 'Moderador', permissions: [] },
+    { roleName: 'Moderador', permissions: ['chat:moderate', 'chat:delete'] },
     // Administrador
-    { roleName: 'Administrador', permissions: ['users:create', 'users:read', 'users:update', 'users:delete'] },
+    { roleName: 'Administrador', permissions: ['users:create', 'users:read', 'users:update', 'users:delete', 'chat:moderate', 'chat:delete'] },
   ]
 
   for (const rolePermission of rolePermissions) {
@@ -182,6 +203,22 @@ async function main() {
   ])
 
   console.log('✅ Usuarios creados:', users.length)
+
+  // Crear chat global
+  let globalChat = await prisma.chat.findFirst({
+    where: { name: 'Chat Global' }
+  })
+
+  if (!globalChat) {
+    globalChat = await prisma.chat.create({
+      data: {
+        name: 'Chat Global',
+        isActive: true,
+      },
+    })
+  }
+
+  console.log('✅ Chat global creado:', globalChat.name)
 
   console.log('🎉 Seed completado exitosamente!')
 }

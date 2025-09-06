@@ -30,6 +30,11 @@ model User {
   // Relaciones
   roleId       String
   role         Role     @relation(fields: [roleId], references: [id])
+  
+  // Chat relations
+  chatMessages ChatMessage[]
+  chatBans     ChatBan[] @relation("ChatBanUser")
+  chatBansModerated ChatBan[] @relation("ChatBanModerator")
 
   @@map("users")
 }
@@ -75,5 +80,62 @@ model RolePermission {
 
   @@id([roleId, permissionId])
   @@map("role_permissions")
+}
+
+// Modelo de Chat Global
+model Chat {
+  id        String   @id @default(cuid())
+  name      String   @default("Chat Global")
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relaciones
+  messages ChatMessage[]
+  bans     ChatBan[]
+
+  @@map("chats")
+}
+
+// Modelo de Mensaje de Chat
+model ChatMessage {
+  id        String   @id @default(cuid())
+  content   String
+  isDeleted Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relaciones
+  chatId    String
+  chat      Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  userId    String?  // Null para usuarios anónimos
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  
+  // Para usuarios anónimos
+  anonymousName String? // "anonimo-123"
+  userIp        String? // Para tracking y bans
+
+  @@map("chat_messages")
+}
+
+// Modelo de Ban de Chat
+model ChatBan {
+  id        String   @id @default(cuid())
+  reason    String?
+  expiresAt DateTime? // Null = ban permanente
+  createdAt DateTime @default(now())
+
+  // Relaciones
+  chatId    String
+  chat      Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  userId    String?  // Null si es ban por IP
+  user      User?    @relation("ChatBanUser", fields: [userId], references: [id], onDelete: SetNull)
+  bannedBy  String   // ID del moderador/admin que aplicó el ban
+  bannedByUser User  @relation("ChatBanModerator", fields: [bannedBy], references: [id])
+  
+  // Para bans por IP
+  bannedIp  String?
+
+  @@map("chat_bans")
 }
 
