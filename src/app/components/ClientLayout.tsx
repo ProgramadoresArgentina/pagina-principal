@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import ChatWidget from "./ChatWidget";
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   useEffect(() => {
@@ -27,5 +28,10 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
     }
   }, []);
 
-  return <>{children}</>;
+  return (
+    <>
+      {children}
+      <ChatWidget />
+    </>
+  );
 }
