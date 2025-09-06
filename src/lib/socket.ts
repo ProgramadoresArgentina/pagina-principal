@@ -47,28 +47,32 @@ export const SocketHandler = (req: any, res: NextApiResponseServerIO) => {
         try {
           if (data.token) {
             const decoded = verifyToken(data.token)
-            const user = await prisma.user.findUnique({
-              where: { id: decoded.userId },
-              select: {
-                id: true,
-                name: true,
-                username: true,
-                avatar: true,
-                role: {
-                  select: {
-                    name: true
+            if (decoded) {
+              const user = await prisma.user.findUnique({
+                where: { id: decoded.userId },
+                select: {
+                  id: true,
+                  name: true,
+                  username: true,
+                  avatar: true,
+                  role: {
+                    select: {
+                      name: true
+                    }
                   }
                 }
-              }
-            })
+              })
 
-            if (user) {
-              socket.data.user = user
-              socket.data.isAuthenticated = true
-              socket.emit('authenticated', { user })
-              console.log('User authenticated:', user.name || user.username)
+              if (user) {
+                socket.data.user = user
+                socket.data.isAuthenticated = true
+                socket.emit('authenticated', { user })
+                console.log('User authenticated:', user.name || user.username)
+              } else {
+                socket.emit('auth_error', { message: 'Usuario no encontrado' })
+              }
             } else {
-              socket.emit('auth_error', { message: 'Usuario no encontrado' })
+              socket.emit('auth_error', { message: 'Token inválido' })
             }
           } else {
             // Usuario anónimo

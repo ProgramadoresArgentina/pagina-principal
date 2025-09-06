@@ -83,7 +83,7 @@ export default function Club(): JSX.Element {
                 <div className="row">
                   <div className="col-xl-6">
                     <div className="it-about-title-box z-index-2">
-                      <h4 className="tp-section-title-platform platform-text-black fs-84 mb-30 tp-split-text tp-split-right" style={{ perspective: '400px' }}>
+                      <h4 className="tp-section-title-platform platform-text-black fs-84 mb-30 pt-30 tp-split-text tp-split-right" style={{ perspective: '400px' }}>
                         <div className="tp-split-line" style={{ display: 'block', textAlign: 'start', position: 'relative' }}>
                           <div style={{ position: 'relative', display: 'inline-block' }}>
                             <div style={{ position: 'relative', display: 'inline-block', translate: 'none', rotate: 'none', scale: 'none', transform: 'translate(0px, 0px)', opacity: 1 }}>C</div>

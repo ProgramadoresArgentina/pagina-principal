@@ -6,16 +6,36 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const limit = parseInt(searchParams.get('limit') || '50')
-    const offset = parseInt(searchParams.get('offset') || '0')
+    const cursor = searchParams.get('cursor') // ID del último mensaje cargado
+    const direction = searchParams.get('direction') || 'older' // 'older' o 'newer'
+
+    // Construir where clause
+    const whereClause: any = {
+      isDeleted: false,
+      chat: {
+        name: 'Chat Global'
+      }
+    }
+
+    // Si hay cursor, agregar condición para paginación
+    if (cursor) {
+      const cursorMessage = await prisma.chatMessage.findUnique({
+        where: { id: cursor },
+        select: { createdAt: true }
+      })
+
+      if (cursorMessage) {
+        if (direction === 'older') {
+          whereClause.createdAt = { lt: cursorMessage.createdAt }
+        } else {
+          whereClause.createdAt = { gt: cursorMessage.createdAt }
+        }
+      }
+    }
 
     // Obtener mensajes del chat global
     const messages = await prisma.chatMessage.findMany({
-      where: {
-        isDeleted: false,
-        chat: {
-          name: 'Chat Global'
-        }
-      },
+      where: whereClause,
       include: {
         user: {
           select: {
@@ -34,13 +54,21 @@ export async function GET(request: NextRequest) {
       orderBy: {
         createdAt: 'desc'
       },
-      take: limit,
-      skip: offset
+      take: limit
     })
+
+    // Determinar si hay más mensajes
+    const hasMore = messages.length === limit
+    const nextCursor = hasMore && messages.length > 0 ? messages[0].id : null
 
     return NextResponse.json({
       success: true,
-      messages: messages.reverse() // Mostrar del más antiguo al más nuevo
+      messages: messages.reverse(), // Mostrar del más antiguo al más nuevo
+      pagination: {
+        hasMore,
+        nextCursor,
+        direction
+      }
     })
   } catch (error) {
     console.error('Error fetching chat messages:', error)
@@ -72,27 +100,29 @@ export async function POST(request: NextRequest) {
 
     // Verificar autenticación
     const authHeader = request.headers.get('authorization')
-    let user = null
-    let anonymousName = null
+    let user: any = null
+    let anonymousName: string | null = null
 
     if (authHeader && authHeader.startsWith('Bearer ')) {
       const token = authHeader.substring(7)
       try {
         const decoded = verifyToken(token)
-        user = await prisma.user.findUnique({
-          where: { id: decoded.userId },
-          select: {
-            id: true,
-            name: true,
-            username: true,
-            avatar: true,
-            role: {
-              select: {
-                name: true
+        if (decoded) {
+          user = await prisma.user.findUnique({
+            where: { id: decoded.userId },
+            select: {
+              id: true,
+              name: true,
+              username: true,
+              avatar: true,
+              role: {
+                select: {
+                  name: true
+                }
               }
             }
-          }
-        })
+          })
+        }
       } catch (error) {
         // Token inválido, continuar como usuario anónimo
       }

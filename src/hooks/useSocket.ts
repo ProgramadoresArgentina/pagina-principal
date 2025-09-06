@@ -43,7 +43,7 @@ export function useSocket(): UseSocketReturn {
       ? process.env.NEXT_PUBLIC_APP_URL || 'https://programadoresargentina.com'
       : 'http://localhost:3000', {
       path: '/api/socketio',
-      autoConnect: false
+      autoConnect: true
     })
 
     socketInstance.on('connect', () => {
@@ -51,6 +51,7 @@ export function useSocket(): UseSocketReturn {
       setIsConnected(true)
       
       // Autenticar el socket
+      console.log('Emitting authenticate with token:', token ? 'present' : 'null')
       socketInstance.emit('authenticate', { 
         token: token || null 
       })
@@ -62,13 +63,19 @@ export function useSocket(): UseSocketReturn {
     })
 
     socketInstance.on('authenticated', (data) => {
+      console.log('Socket authenticated:', data)
       setIsAuthenticated(true)
       if (data.anonymousName) {
         setAnonymousName(data.anonymousName)
+      } else if (!token) {
+        // Generar nombre anónimo si no hay token y no se recibió uno del servidor
+        const randomNumber = Math.floor(Math.random() * 9999) + 1
+        setAnonymousName(`anonimo-${randomNumber}`)
       }
       // Unirse al chat después de autenticarse
       socketInstance.emit('join_chat')
     })
+
 
     socketInstance.on('auth_error', (data) => {
       console.error('Auth error:', data.message)

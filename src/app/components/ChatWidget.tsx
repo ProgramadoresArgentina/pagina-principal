@@ -1,10 +1,11 @@
 'use client'
 
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { useSocket } from '@/hooks/useSocket'
 import { useAuth } from '@/contexts/AuthContext'
 import ChatMessage from './ChatMessage'
 import ChatModeration from './ChatModeration'
+import DateDivider from './DateDivider'
 
 interface ChatInfo {
   messageCount: number
@@ -27,7 +28,11 @@ export default function ChatWidget() {
   const [showModeration, setShowModeration] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [messages, setMessages] = useState<any[]>([])
+  const [isLoadingMore, setIsLoadingMore] = useState(false)
+  const [hasMoreMessages, setHasMoreMessages] = useState(true)
+  const [nextCursor, setNextCursor] = useState<string | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const messagesContainerRef = useRef<HTMLDivElement>(null)
   
   const { user, token, isAuthenticated } = useAuth()
   const { 
@@ -43,6 +48,75 @@ export default function ChatWidget() {
   // Scroll automático al final de los mensajes
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }
+
+  // Función para cargar más mensajes antiguos
+  const loadMoreMessages = useCallback(async () => {
+    if (isLoadingMore || !hasMoreMessages || !nextCursor) return
+
+    setIsLoadingMore(true)
+    try {
+      const response = await fetch(`/api/chat/messages?limit=50&cursor=${nextCursor}&direction=older`)
+      const data = await response.json()
+      
+      if (data.success) {
+        const newMessages = data.messages
+        setMessages(prev => [...newMessages, ...prev])
+        setHasMoreMessages(data.pagination.hasMore)
+        setNextCursor(data.pagination.nextCursor)
+      }
+    } catch (error) {
+      console.error('Error loading more messages:', error)
+    } finally {
+      setIsLoadingMore(false)
+    }
+  }, [isLoadingMore, hasMoreMessages, nextCursor])
+
+  // Función para detectar scroll hacia arriba
+  const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
+    const { scrollTop } = e.currentTarget
+    if (scrollTop === 0 && hasMoreMessages && !isLoadingMore) {
+      loadMoreMessages()
+    }
+  }, [hasMoreMessages, isLoadingMore, loadMoreMessages])
+
+  // Función para agrupar mensajes por fecha
+  const groupMessagesByDate = (messages: any[]) => {
+    const grouped: { [key: string]: any[] } = {}
+    
+    messages.forEach(message => {
+      const date = new Date(message.createdAt)
+      const dateKey = date.toDateString()
+      
+      if (!grouped[dateKey]) {
+        grouped[dateKey] = []
+      }
+      grouped[dateKey].push(message)
+    })
+    
+    return grouped
+  }
+
+  // Función para renderizar mensajes con divisores de fecha
+  const renderMessagesWithDividers = () => {
+    const groupedMessages = groupMessagesByDate(messages)
+    const sortedDates = Object.keys(groupedMessages).sort((a, b) => 
+      new Date(a).getTime() - new Date(b).getTime()
+    )
+    
+    return sortedDates.map(dateKey => (
+      <React.Fragment key={dateKey}>
+        <DateDivider date={new Date(dateKey)} />
+        {groupedMessages[dateKey].map((msg) => (
+          <ChatMessage
+            key={msg.id}
+            message={msg}
+            onDelete={chatInfo?.isModerator ? handleDeleteMessage : undefined}
+            canModerate={chatInfo?.isModerator}
+          />
+        ))}
+      </React.Fragment>
+    ))
   }
 
   useEffect(() => {
@@ -71,6 +145,8 @@ export default function ChatWidget() {
         const data = await response.json()
         if (data.success) {
           setMessages(data.messages)
+          setHasMoreMessages(data.pagination.hasMore)
+          setNextCursor(data.pagination.nextCursor)
         }
       } catch (error) {
         console.error('Error fetching messages:', error)
@@ -99,8 +175,11 @@ export default function ChatWidget() {
     e.preventDefault()
     if (!message.trim() || !isConnected) return
 
-    if (!isAuthenticated && !socketAuthenticated) {
-      alert('Debes estar logueado para enviar mensajes')
+    console.log('Auth status:', { isAuthenticated, socketAuthenticated, isConnected })
+    
+    // Permitir envío de mensajes siempre que esté conectado
+    if (!isConnected) {
+      alert('No estás conectado al chat')
       return
     }
 
@@ -232,10 +311,10 @@ export default function ChatWidget() {
           {/* Header del chat */}
           <div className="bg-primary text-white p-3 d-flex align-items-center justify-content-between">
             <div>
-              <h6 className="mb-0">Chat Global</h6>
+              <h6 className="mb-0 text-white">Chat General</h6>
               <small>
                 {isConnected ? 'Conectado' : 'Desconectado'} • 
-                {chatInfo?.onlineUsers || 0} usuarios
+                {/* {chatInfo?.onlineUsers || 0} usuarios */}
               </small>
             </div>
             <div className="d-flex gap-2">
@@ -266,52 +345,95 @@ export default function ChatWidget() {
 
           {/* Reglas del chat */}
           {showRules && (
-            <div className="p-3 bg-light border-bottom">
-              <h6>Reglas del Chat</h6>
-              <ul className="mb-0" style={{ fontSize: '12px' }}>
+            <div className="p-3 bg-white border-bottom shadow-sm" style={{ maxHeight: '300px', overflowY: 'auto', zIndex: 10, position: 'relative' }}>
+              <div className="d-flex justify-content-between align-items-center mb-2">
+                <h6 className="mb-0 text-dark">📋 Reglas del Chat</h6>
+                <button
+                  className="btn btn-sm btn-outline-secondary"
+                  onClick={() => setShowRules(false)}
+                >
+                  <i className="fas fa-times"></i>
+                </button>
+              </div>
+              <div style={{ fontSize: '12px', lineHeight: '1.4' }}>
                 {chatInfo?.rules.map((rule, index) => (
-                  <li key={index}>{rule}</li>
+                  <div key={index} className="mb-1">
+                    {rule.startsWith('**') ? (
+                      <strong style={{ color: '#0d6efd' }}>{rule.replace(/\*\*/g, '')}</strong>
+                    ) : rule.startsWith('•') ? (
+                      <span style={{ marginLeft: '10px' }}>{rule}</span>
+                    ) : rule === '' ? (
+                      <br />
+                    ) : (
+                      <span>{rule}</span>
+                    )}
+                  </div>
                 ))}
-              </ul>
+              </div>
             </div>
           )}
 
           {/* Área de mensajes */}
           <div 
+            ref={messagesContainerRef}
             className="flex-grow-1 overflow-auto p-3"
-            style={{ maxHeight: '400px' }}
+            style={{ 
+              maxHeight: window.innerWidth <= 768 ? 'calc(100vh - 200px)' : '400px',
+              minHeight: window.innerWidth <= 768 ? 'calc(100vh - 200px)' : '200px'
+            }}
+            onScroll={handleScroll}
           >
             {isLoading ? (
-              <div className="text-center">
-                <div className="spinner-border spinner-border-sm" role="status">
+              <div 
+                className="text-center d-flex flex-column justify-content-center align-items-center"
+                style={{ 
+                  height: window.innerWidth <= 768 ? 'calc(100vh - 300px)' : '300px',
+                  minHeight: '200px'
+                }}
+              >
+                <div className="spinner-border mb-3" role="status">
                   <span className="visually-hidden">Cargando...</span>
                 </div>
-                <p className="mt-2 mb-0">Cargando mensajes...</p>
+                <h5 className="mb-2">Cargando chat...</h5>
+                <p className="mb-0">Conectando con otros usuarios</p>
               </div>
             ) : messages.length === 0 ? (
-              <div className="text-center text-muted">
-                <i className="fas fa-comments fa-2x mb-2"></i>
-                <p>No hay mensajes aún. ¡Sé el primero en escribir!</p>
+              <div 
+                className="text-center text-muted d-flex flex-column justify-content-center align-items-center"
+                style={{ 
+                  height: window.innerWidth <= 768 ? 'calc(100vh - 300px)' : '300px',
+                  minHeight: '200px'
+                }}
+              >
+                <i className="fas fa-comments fa-3x mb-3"></i>
+                <h5 className="mb-2">¡Bienvenido al chat!</h5>
+                <p className="mb-0">No hay mensajes aún. ¡Sé el primero en escribir!</p>
               </div>
             ) : (
-              messages.map((msg) => (
-                <ChatMessage
-                  key={msg.id}
-                  message={msg}
-                  onDelete={chatInfo?.isModerator ? handleDeleteMessage : undefined}
-                  canModerate={chatInfo?.isModerator}
-                />
-              ))
+              <>
+                {/* Indicador de carga más mensajes */}
+                {isLoadingMore && (
+                  <div className="text-center py-2">
+                    <div className="spinner-border spinner-border-sm" role="status">
+                      <span className="visually-hidden">Cargando más mensajes...</span>
+                    </div>
+                    <span className="ms-2 text-muted">Cargando mensajes anteriores...</span>
+                  </div>
+                )}
+                
+                {/* Mensajes con divisores de fecha */}
+                {renderMessagesWithDividers()}
+              </>
             )}
             <div ref={messagesEndRef} />
           </div>
 
           {/* Área de entrada */}
           <div className="p-3 border-top">
-            {!isAuthenticated && !socketAuthenticated ? (
+            {!isConnected ? (
               <div className="alert alert-warning mb-0" style={{ fontSize: '12px' }}>
                 <i className="fas fa-info-circle me-1"></i>
-                Debes estar logueado para enviar mensajes
+                Conectando al chat...
               </div>
             ) : (
               <form onSubmit={handleSendMessage}>
@@ -319,7 +441,7 @@ export default function ChatWidget() {
                   <input
                     type="text"
                     className="form-control"
-                    placeholder={`Escribe un mensaje como ${getDisplayName()}...`}
+                    placeholder={`Escribe un mensaje${user ? ` como ${getDisplayName()}` : ' (aparecerás como anónimo)'}...`}
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
                     maxLength={1000}

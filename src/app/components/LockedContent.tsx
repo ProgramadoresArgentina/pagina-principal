@@ -51,8 +51,8 @@ export default function LockedContent({ children, isPublic, excerpt, title }: Lo
             </p>
                          <div className="tp-blog-locked-actions">
                {!isAuthenticated && (
-                 <a 
-                   href={`/ingresar?redirect=${encodeURIComponent(pathname)}`} 
+                  <a 
+                    href={`/ingresar?redirect=${encodeURIComponent(pathname || '/')}`}
                    className="tp-btn-black btn-green-light-bg"
                  >
                   <span className="tp-btn-black-filter-blur">

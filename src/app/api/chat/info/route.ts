@@ -5,34 +5,36 @@ import { verifyToken } from '@/lib/auth'
 export async function GET(request: NextRequest) {
   try {
     const authHeader = request.headers.get('authorization')
-    let user = null
+    let user: any = null
     let isModerator = false
 
     if (authHeader && authHeader.startsWith('Bearer ')) {
       const token = authHeader.substring(7)
       try {
         const decoded = verifyToken(token)
-        user = await prisma.user.findUnique({
-          where: { id: decoded.userId },
-          include: {
-            role: {
-              include: {
-                permissions: {
-                  include: {
-                    permission: true
+        if (decoded) {
+          user = await prisma.user.findUnique({
+            where: { id: decoded.userId },
+            include: {
+              role: {
+                include: {
+                  permissions: {
+                    include: {
+                      permission: true
+                    }
                   }
                 }
               }
             }
-          }
-        })
+          })
 
-        if (user) {
-          isModerator = user.role.name === 'admin' || user.role.name === 'moderator' ||
-            user.role.permissions.some(rp => 
-              rp.permission.resource === 'chat' && 
-              (rp.permission.action === 'moderate' || rp.permission.action === 'delete')
-            )
+          if (user) {
+            isModerator = user.role.name === 'admin' || user.role.name === 'moderator' ||
+              user.role.permissions.some(rp => 
+                rp.permission.resource === 'chat' && 
+                (rp.permission.action === 'moderate' || rp.permission.action === 'delete')
+              )
+          }
         }
       } catch (error) {
         // Token inválido, continuar sin usuario
@@ -58,16 +60,35 @@ export async function GET(request: NextRequest) {
     })
 
     const chatRules = [
-      "1. Respeta a todos los usuarios del chat",
-      "2. No envíes spam o mensajes repetitivos",
-      "3. No compartas contenido inapropiado o ofensivo",
-      "4. No hagas publicidad no solicitada",
-      "5. Mantén las conversaciones en español",
-      "6. Los moderadores pueden eliminar mensajes y banear usuarios",
-      "7. No es necesario estar suscrito para participar, solo estar logueado",
-      "8. Los usuarios anónimos aparecerán como 'anonimo-[número]'",
-      "9. Los links se detectan automáticamente y son clickeables",
-      "10. Los moderadores y admins pueden banear por IP"
+      "🎯 **BIENVENIDO AL CHAT DE PROGRAMADORES ARGENTINA**",
+      "",
+      "📋 **REGLAS GENERALES:**",
+      "• Respeta a todos los usuarios del chat",
+      "• Mantén las conversaciones en español",
+      "• No envíes spam, mensajes repetitivos o flood",
+      "• No compartas contenido inapropiado, ofensivo o NSFW",
+      "• No hagas publicidad no solicitada o promoción de servicios",
+      "",
+      "💻 **REGLAS TÉCNICAS:**",
+      "• Comparte código usando bloques de código (```)",
+      "• Haz preguntas técnicas claras y específicas",
+      "• Ayuda a otros desarrolladores cuando puedas",
+      "• No compartas información personal o sensible",
+      "• Los links se detectan automáticamente",
+      "",
+      "👥 **PARTICIPACIÓN:**",
+      "• No necesitas estar suscrito para participar",
+      "• Los usuarios anónimos aparecen como 'anonimo-[número]'",
+      "• Los usuarios registrados aparecen con su nombre",
+      "• Máximo 1000 caracteres por mensaje",
+      "",
+      "⚖️ **MODERACIÓN:**",
+      "• Los moderadores pueden eliminar mensajes",
+      "• Se pueden aplicar bans temporales o permanentes",
+      "• Los admins pueden banear por IP",
+      "• Reporta comportamientos inapropiados",
+      "",
+      "🚀 **¡Disfruta conversando con la comunidad!**"
     ]
 
     return NextResponse.json({

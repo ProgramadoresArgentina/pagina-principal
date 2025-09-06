@@ -205,14 +205,18 @@ async function main() {
   console.log('✅ Usuarios creados:', users.length)
 
   // Crear chat global
-  const globalChat = await prisma.chat.upsert({
-    where: { name: 'Chat Global' },
-    update: {},
-    create: {
-      name: 'Chat Global',
-      isActive: true,
-    },
+  let globalChat = await prisma.chat.findFirst({
+    where: { name: 'Chat Global' }
   })
+
+  if (!globalChat) {
+    globalChat = await prisma.chat.create({
+      data: {
+        name: 'Chat Global',
+        isActive: true,
+      },
+    })
+  }
 
   console.log('✅ Chat global creado:', globalChat.name)
 

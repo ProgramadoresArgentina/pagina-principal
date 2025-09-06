@@ -15,6 +15,13 @@ export async function POST(request: NextRequest) {
     const token = authHeader.substring(7)
     const decoded = verifyToken(token)
 
+    if (!decoded) {
+      return NextResponse.json(
+        { success: false, error: 'Token inválido' },
+        { status: 401 }
+      )
+    }
+
     // Verificar que el usuario sea moderador o admin
     const user = await prisma.user.findUnique({
       where: { id: decoded.userId },
@@ -127,7 +134,7 @@ export async function POST(request: NextRequest) {
       }
 
       // Calcular fecha de expiración
-      let expiresAt = null
+      let expiresAt: Date | null = null
       if (duration && duration > 0) {
         expiresAt = new Date(Date.now() + duration * 60 * 1000) // duration en minutos
       }
@@ -172,7 +179,7 @@ export async function POST(request: NextRequest) {
       }
 
       // Calcular fecha de expiración
-      let expiresAt = null
+      let expiresAt: Date | null = null
       if (duration && duration > 0) {
         expiresAt = new Date(Date.now() + duration * 60 * 1000) // duration en minutos
       }
