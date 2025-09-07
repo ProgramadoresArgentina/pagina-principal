@@ -54,10 +54,6 @@ export default function MobileHeader(): JSX.Element {
             </div>
           </div>
           <div className="tp-offcanvas-main">
-            <div className="tp-offcanvas-content d-none d-xl-block">
-              <h3 className="tp-offcanvas-title">Hello There!</h3>
-              <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, </p>
-            </div>
             <div className="tp-offcanvas-menu d-xl-none">
               <nav></nav>
             </div>

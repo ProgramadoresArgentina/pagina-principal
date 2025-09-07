@@ -30,38 +30,6 @@ export default function Header(): JSX.Element {
                         <a href="/articulos">Blogs y Artículos de la comunidad</a>
                       </li>
                       <li className="d-block d-md-none">
-                        {!isLoading && (
-                          <>
-                            {isAuthenticated ? (
-                              <UserDropdown />
-                            ) : (
-                              <a href="/ingresar" className="tp-btn-black btn-green-light-bg">
-                                <span className="tp-btn-black-filter-blur">
-                                  <svg width="0" height="0">
-                                    <defs>
-                                      <filter id="buttonFilter11">
-                                        <feGaussianBlur in="SourceGraphic" stdDeviation="5" result="blur"></feGaussianBlur>
-                                        <feColorMatrix in="blur" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 19 -9"></feColorMatrix>
-                                        <feComposite in="SourceGraphic" in2="buttonFilter11" operator="atop"></feComposite>
-                                        <feBlend in="SourceGraphic" in2="buttonFilter11"></feBlend>
-                                      </filter>
-                                    </defs>
-                                  </svg>
-                                </span>
-                                <span className="tp-btn-black-filter d-inline-flex align-items-center" style={{filter: "url(#buttonFilter11)"}}>
-                                  <span className="tp-btn-black-text">Ingresar</span>
-                                  <span className="tp-btn-black-circle">
-                                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                      <path d="M1 9L9 1M9 1H1M9 1V9" stroke="currentcolor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-                                    </svg>
-                                  </span>
-                                </span>
-                              </a>
-                            )}
-                          </>
-                        )}
-                      </li>
-                      <li className="d-block d-md-none">
                         <a href="/club" className="tp-btn-black btn-transparent-bg">
                               <span className="tp-btn-black-filter-blur">
                                   <svg width="0" height="0">
@@ -79,7 +47,7 @@ export default function Header(): JSX.Element {
                                   <span className="tp-btn-black-text">Unirse al Club</span>
                                   <span className="tp-btn-black-circle">
                                       <svg width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                          <path d="M1 9L9 1M9 1H1M9 1V9" stroke="currentcolor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                                          <path d="M1 9L9 1M9 1H1M9 1V9" stroke="currentcolor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
                                       </svg>
                                   </span>
                               </span>
@@ -89,7 +57,41 @@ export default function Header(): JSX.Element {
                   </nav>
                 </div>
                 <div className="tp-header-10-right d-flex align-items-center">
-                  {/* Botón de autenticación */}
+                  {/* Botón de autenticación para mobile */}
+                  <div className="tp-header-11-btn-box d-block d-md-none ml-20">
+                    {!isLoading && (
+                      <>
+                        {isAuthenticated ? (
+                          <UserDropdown />
+                        ) : (
+                          <a href="/ingresar" className="tp-btn-black btn-green-light-bg">
+                              <span className="tp-btn-black-filter-blur">
+                                  <svg width="0" height="0">
+                                      <defs>
+                                          <filter id="buttonFilter11">
+                                              <feGaussianBlur in="SourceGraphic" stdDeviation="5" result="blur"></feGaussianBlur>
+                                              <feColorMatrix in="blur" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 19 -9"></feColorMatrix>
+                                              <feComposite in="SourceGraphic" in2="buttonFilter11" operator="atop"></feComposite>
+                                              <feBlend in="SourceGraphic" in2="buttonFilter11"></feBlend>
+                                          </filter>
+                                      </defs>
+                                  </svg>
+                              </span>
+                              <span className="tp-btn-black-filter d-inline-flex align-items-center" style={{filter: "url(#buttonFilter11)"}}>
+                                  <span className="tp-btn-black-text">Ingresar</span>
+                                  <span className="tp-btn-black-circle">
+                                      <svg width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                          <path d="M1 9L9 1M9 1H1M9 1V9" stroke="currentcolor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
+                                      </svg>
+                                  </span>
+                              </span>
+                          </a>
+                        )}
+                      </>
+                    )}
+                  </div>
+                  
+                  {/* Botón de autenticación para desktop */}
                   <div className="tp-header-11-btn-box d-none d-md-block ml-20">
                     {!isLoading && (
                       <>
@@ -113,7 +115,7 @@ export default function Header(): JSX.Element {
                                   <span className="tp-btn-black-text">Ingresar</span>
                                   <span className="tp-btn-black-circle">
                                       <svg width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                          <path d="M1 9L9 1M9 1H1M9 1V9" stroke="currentcolor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                                          <path d="M1 9L9 1M9 1H1M9 1V9" stroke="currentcolor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
                                       </svg>
                                   </span>
                               </span>

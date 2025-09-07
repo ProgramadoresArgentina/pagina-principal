@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 
 interface LoginFormProps {
@@ -16,7 +15,6 @@ export default function LoginForm({ onSuccess, redirectTo = '/' }: LoginFormProp
   const [error, setError] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const { login } = useAuth()
-  const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -29,7 +27,7 @@ export default function LoginForm({ onSuccess, redirectTo = '/' }: LoginFormProp
       if (onSuccess) {
         onSuccess()
       } else {
-        router.push(redirectTo)
+        window.location.href = redirectTo
       }
     } else {
       setError(result.error || 'Error al iniciar sesión')

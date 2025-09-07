@@ -8,7 +8,7 @@ import Footer from "./components/Footer";
 import StructuredData from "./components/StructuredData";
 
 export const metadata: Metadata = {
-  title: "Programadores Argentina - La Comunidad Tech Más Grande de Argentina | +60.000 Miembros",
+  title: "Programadores Argentina - Comunidad de Desarrolladores | +60.000 Miembros",
   description: "Únete a la comunidad más grande de programadores de Argentina. +60.000 desarrolladores, artículos técnicos exclusivos, oportunidades laborales premium, networking profesional y crecimiento en tecnología. Conecta con CEOs, CTOs y líderes tech.",
   keywords: [
     "programadores argentina",
@@ -45,7 +45,7 @@ export const metadata: Metadata = {
     canonical: "/",
   },
   openGraph: {
-    title: "Programadores Argentina - La Comunidad Tech Más Grande de Argentina",
+    title: "Programadores Argentina",
     description: "Únete a la comunidad más grande de programadores de Argentina. +60.000 desarrolladores, artículos técnicos exclusivos, oportunidades laborales premium y networking profesional.",
     url: "https://programadoresargentina.com",
     siteName: "Programadores Argentina",
@@ -62,7 +62,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Programadores Argentina - La Comunidad Tech Más Grande de Argentina",
+    title: "Programadores Argentina",
     description: "Únete a la comunidad más grande de programadores de Argentina. +60.000 desarrolladores, artículos técnicos exclusivos y oportunidades laborales premium.",
     images: ["/assets/images/og-home-programadores-argentina.jpg"],
     creator: "@programadores_argentina",
