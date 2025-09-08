@@ -38,6 +38,30 @@ export function useSocket(): UseSocketReturn {
   const [anonymousName, setAnonymousName] = useState<string>()
   const { user, token } = useAuth()
 
+  // Función para obtener o generar nombre anónimo persistente
+  const getOrCreateAnonymousName = (): string => {
+    if (typeof window === 'undefined') return ''
+    
+    const storedName = localStorage.getItem('chat_anonymous_name')
+    if (storedName) {
+      return storedName
+    }
+    
+    // Generar nuevo nombre anónimo
+    const randomNumber = Math.floor(Math.random() * 9999) + 1
+    const newName = `anonimo-${randomNumber}`
+    localStorage.setItem('chat_anonymous_name', newName)
+    return newName
+  }
+
+  // Inicializar nombre anónimo al cargar el componente
+  useEffect(() => {
+    if (!token && typeof window !== 'undefined') {
+      const persistentName = getOrCreateAnonymousName()
+      setAnonymousName(persistentName)
+    }
+  }, [token])
+
   useEffect(() => {
     const socketInstance = io(process.env.NODE_ENV === 'production' 
       ? process.env.NEXT_PUBLIC_APP_URL || 'https://programadoresargentina.com'
@@ -67,10 +91,14 @@ export function useSocket(): UseSocketReturn {
       setIsAuthenticated(true)
       if (data.anonymousName) {
         setAnonymousName(data.anonymousName)
+        // Guardar el nombre anónimo del servidor en localStorage
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('chat_anonymous_name', data.anonymousName)
+        }
       } else if (!token) {
-        // Generar nombre anónimo si no hay token y no se recibió uno del servidor
-        const randomNumber = Math.floor(Math.random() * 9999) + 1
-        setAnonymousName(`anonimo-${randomNumber}`)
+        // Usar nombre anónimo persistente
+        const persistentName = getOrCreateAnonymousName()
+        setAnonymousName(persistentName)
       }
       // Unirse al chat después de autenticarse
       socketInstance.emit('join_chat')

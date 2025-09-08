@@ -258,23 +258,42 @@ export default function ChatWidget() {
           className="position-fixed"
           style={{ 
             bottom: '100px', 
-            right: '100px', 
+            right: '70px', 
             zIndex: 1000 
           }}
         >
           <button
-            className="btn btn-primary rounded-circle shadow-lg"
+            className="btn btn-success rounded-circle shadow-lg"
             onClick={() => setIsOpen(true)}
+            title="Chatea con la comunidad!"
             style={{ 
               width: '60px', 
               height: '60px',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center'
+              justifyContent: 'center',
+              position: 'relative'
             }}
           >
             <i className="fas fa-comments fa-lg"></i>
           </button>
+          
+          {/* Texto invitación */}
+          <div 
+            className="position-absolute text-center"
+            style={{
+              bottom: '70px',
+              right: '-20px',
+              width: '100px',
+              fontSize: '14px',
+              color: '#28a745',
+              fontWeight: '600',
+              textShadow: '0 1px 2px rgba(0,0,0,0.1)',
+              pointerEvents: 'none'
+            }}
+          >
+            Chatea con la comunidad!
+          </div>
           
           {/* Indicador de conexión */}
           <div 
@@ -309,7 +328,7 @@ export default function ChatWidget() {
           }}
         >
           {/* Header del chat */}
-          <div className="bg-primary text-white p-3 d-flex align-items-center justify-content-between">
+          <div className="bg-success text-white p-3 d-flex align-items-center justify-content-between">
             <div>
               <h6 className="mb-0 text-white">Chat General</h6>
               <small>
@@ -448,7 +467,7 @@ export default function ChatWidget() {
                     disabled={!isConnected}
                   />
                   <button
-                    className="btn btn-primary"
+                    className="btn btn-success"
                     type="submit"
                     disabled={!message.trim() || !isConnected}
                   >

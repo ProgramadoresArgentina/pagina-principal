@@ -929,7 +929,7 @@ input[type=color] {
 /*----------------------------------------*/
 .back-to-top-wrapper {
   position: fixed;
-  right: 50px;
+  right: 170px;
   bottom: 0;
   height: 44px;
   width: 44px;
@@ -942,14 +942,14 @@ input[type=color] {
 }
 @media (max-width: 767px) {
   .back-to-top-wrapper {
-    right: 20px;
-    bottom: 20px;
+    right: 100px;
+    bottom: 100px;
   }
 }
 .back-to-top-wrapper.back-to-top-btn-show {
   visibility: visible;
   opacity: 1;
-  bottom: 50px;
+  bottom: 100px;
 }
 
 .back-to-top-btn {
