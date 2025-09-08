@@ -4,8 +4,8 @@ import BackToTop from "../components/BackToTop";
 import Header from "../components/Header";
 import MobileHeader from "../components/MobileHeader";
 import Footer from "../components/Footer";
-import BlogGrid from "../components/BlogGrid";
-import { getAllPosts } from "@/lib/blog";
+import InfiniteScrollBlog from "../components/InfiniteScrollBlog";
+import { getPublicPaginatedPosts } from "@/lib/blog";
 
 
 export const metadata: Metadata = {
@@ -111,7 +111,7 @@ function formatDate(dateString: string): string {
 }
 
 export default async function Articulos(): Promise<JSX.Element> {
-  const posts = await getAllPosts();
+  const paginatedData = await getPublicPaginatedPosts(1);
 
   return (
     <>
@@ -198,7 +198,11 @@ export default async function Articulos(): Promise<JSX.Element> {
             {/* breadcurmb area end */}
 
             {/* blog masonry area start */}
-            <BlogGrid posts={posts} />
+            <InfiniteScrollBlog 
+              initialPosts={paginatedData.posts}
+              initialHasNextPage={paginatedData.hasNextPage}
+              initialCurrentPage={paginatedData.currentPage}
+            />
             {/* blog masonry area end */}
           </main>
 

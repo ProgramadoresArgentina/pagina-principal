@@ -159,17 +159,8 @@ export default async function BlogPostPage({ params }: BlogPostPageProps): Promi
                       <article className="postbox-details-item item-border mb-20">
                         <div className="postbox-details-info-wrap">
                           <div className="d-flex align-items-center justify-content-between mb-20">
-                            <div className="postbox-tag postbox-details-tag">
-                            <span>
-                              <i>
-                                <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                  <path d="M4.39101 4.39135H4.39936M13.6089 8.73899L8.74578 13.6021C8.61979 13.7283 8.47018 13.8283 8.3055 13.8966C8.14082 13.9649 7.9643 14 7.78603 14C7.60777 14 7.43124 13.9649 7.26656 13.8966C7.10188 13.8283 6.95228 13.7283 6.82629 13.6021L1 7.78264V1H7.78264L13.6089 6.82629C13.8616 7.08045 14.0034 7.42427 14.0034 7.78264C14.0034 8.14102 13.8616 8.48483 13.6089 8.73899Z" stroke="white" strokeOpacity="0.6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                </svg>
-                              </i>
-                              {post.category}
-                            </span>
-                            </div>
-                            <a href="/articulos" className="tp-btn-black btn-green-light-bg">
+                            
+                          <a href="/articulos" className="tp-btn-black btn-green-light-bg">
                               <span className="tp-btn-black-filter-blur">
                                 <svg width="0" height="0">
                                   <defs>
@@ -183,16 +174,26 @@ export default async function BlogPostPage({ params }: BlogPostPageProps): Promi
                                 </svg>
                               </span>
                               <span className="tp-btn-black-filter d-inline-flex align-items-center" style={{filter: "url(#buttonFilterBack)"}}>
-                                <span className="tp-btn-black-text">
-                                  ← Volver
-                                </span>
                                 <span className="tp-btn-black-circle">
                                   <svg width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M1 9L9 1M9 1H1M9 1V9" stroke="currentcolor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
+                                    <path d="M9 1L1 1M1 1V9M1 1L1 9" stroke="currentcolor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
                                   </svg>
+                                </span>
+                                <span className="tp-btn-black-text">
+                                  Volver
                                 </span>
                               </span>
                             </a>
+                            <div className="postbox-tag postbox-details-tag">
+                            <span>
+                              <i>
+                                <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                  <path d="M4.39101 4.39135H4.39936M13.6089 8.73899L8.74578 13.6021C8.61979 13.7283 8.47018 13.8283 8.3055 13.8966C8.14082 13.9649 7.9643 14 7.78603 14C7.60777 14 7.43124 13.9649 7.26656 13.8966C7.10188 13.8283 6.95228 13.7283 6.82629 13.6021L1 7.78264V1H7.78264L13.6089 6.82629C13.8616 7.08045 14.0034 7.42427 14.0034 7.78264C14.0034 8.14102 13.8616 8.48483 13.6089 8.73899Z" stroke="white" strokeOpacity="0.6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                </svg>
+                              </i>
+                              {post.category}
+                            </span>
+                            </div>
                           </div>
                           <h4 className="postbox-title fs-54">{post.title}</h4>
                           <div className="postbox-details-meta d-flex align-items-center">

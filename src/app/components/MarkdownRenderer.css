@@ -259,12 +259,34 @@
   margin: 2rem 0;
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition: transform 0.3s ease, box-shadow 0.3s ease, opacity 0.3s ease;
+  cursor: pointer;
 }
 
 .markdown-content img:hover {
   transform: translateY(-2px);
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+  opacity: 0.9;
+}
+
+/* Indicador visual de que la imagen es clickeable */
+.markdown-content img::after {
+  content: "🔍";
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.markdown-content img:hover::after {
+  opacity: 1;
 }
 
 /* Tablas */
@@ -277,6 +299,71 @@
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* Estilos para Infinite Scroll */
+.tp-blog-loading {
+  margin: 3rem 0;
+}
+
+.tp-blog-loading-content {
+  padding: 2rem;
+  background: rgba(14, 15, 17, 0.6);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.tp-blog-spinner {
+  margin-bottom: 1rem;
+}
+
+.tp-blog-loading-text {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 1.1rem;
+  margin: 0;
+  font-weight: 500;
+}
+
+.tp-blog-error {
+  padding: 2rem;
+  background: rgba(220, 53, 69, 0.1);
+  border-radius: 12px;
+  border: 1px solid rgba(220, 53, 69, 0.3);
+  box-shadow: 0 4px 20px rgba(220, 53, 69, 0.1);
+}
+
+.tp-blog-end {
+  padding: 2rem;
+  background: rgba(14, 15, 17, 0.6);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.tp-blog-end p {
+  font-size: 1.1rem;
+  margin: 0;
+  font-weight: 500;
+}
+
+/* Spinner personalizado */
+.spinner-border {
+  width: 3rem;
+  height: 3rem;
+  border-width: 0.3em;
+}
+
+.spinner-border.text-primary {
+  color: #D0FF71 !important;
+  border-color: #D0FF71;
+  border-right-color: transparent;
+}
+
+/* Animación para el spinner del modal */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 .markdown-content th,

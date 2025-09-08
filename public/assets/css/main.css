@@ -7498,6 +7498,7 @@ body.tp-magic-cursor #magic-cursor {
   display: inline-block;
 }
 .postbox-details-tag span:last-child::after {
+  display: none !important;
   position: absolute;
   content: "";
   top: 8px;
@@ -7566,7 +7567,7 @@ body.tp-magic-cursor #magic-cursor {
 }
 .postbox-details-text p {
   font-weight: 500;
-  font-size: 26px;
+  font-size: 18px;
   line-height: 1.6;
   color: rgba(255, 255, 255, 0.7);
 }

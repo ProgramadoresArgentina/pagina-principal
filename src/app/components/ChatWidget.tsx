@@ -257,8 +257,8 @@ export default function ChatWidget() {
         <div 
           className="position-fixed"
           style={{ 
-            bottom: '20px', 
-            right: '20px', 
+            bottom: '100px', 
+            right: '100px', 
             zIndex: 1000 
           }}
         >

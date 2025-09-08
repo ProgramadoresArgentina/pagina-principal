@@ -27,8 +27,9 @@ const s3Client = new S3Client({
   },
 });
 
-const BUCKET_NAME = process.env.MINIO_BUCKET_NAME || 'programadores-argentina-blog';
-const BLOG_PREFIX = ''; // Prefijo para los archivos de blog en MinIO
+const BUCKET_NAME = process.env.MINIO_BUCKET_NAME || 'articulos';
+const BLOG_PREFIX = ''; // Sin prefijo, las carpetas están en la raíz
+const POSTS_PER_PAGE = 10; // Número de artículos por página
 
 // Función auxiliar para obtener el contenido de un archivo desde MinIO
 async function getMinIOObjectContent(key: string): Promise<string> {
@@ -47,9 +48,40 @@ async function getMinIOObjectContent(key: string): Promise<string> {
   }
 }
 
+// Función auxiliar para extraer el número de orden de una carpeta
+function extractOrderNumber(folderName: string): number {
+  const match = folderName.match(/^(\d+)-/);
+  return match ? parseInt(match[1], 10) : 0;
+}
+
+// Función auxiliar para generar URL de imagen desde MinIO
+function getMinIOImageUrl(imagePath: string, folderName: string): string {
+  if (!imagePath) return '/assets/images/articulos/default.webp';
+  
+  // Si ya es una URL completa, devolverla tal como está
+  if (imagePath.startsWith('http') || imagePath.startsWith('/assets/')) {
+    return imagePath;
+  }
+  
+  // Si es una ruta relativa, construir la URL de MinIO
+  const minioEndpoint = process.env.MINIO_ENDPOINT || 'http://localhost:9000';
+  const bucketName = process.env.MINIO_BUCKET_NAME || 'programadores-argentina-blog';
+  
+  // Construir la ruta completa: folderName/imagePath
+  const fullPath = `${folderName}/${imagePath}`;
+  
+  return `${minioEndpoint}/${bucketName}/${fullPath}`;
+}
+
 // Función auxiliar para procesar el contenido markdown
-function processMarkdownContent(fileContents: string, slug: string, lastModified?: Date): BlogPost {
+function processMarkdownContent(fileContents: string, folderName: string, lastModified?: Date): BlogPost {
   const { data, content } = matter(fileContents);
+
+  // Procesar el contenido para convertir rutas de imágenes relativas a URLs de MinIO
+  const processedContent = processImagePaths(content, folderName);
+
+  // Extraer el slug del nombre de la carpeta (sin el número)
+  const slug = folderName.replace(/^\d+-/, '');
 
   return {
     slug,
@@ -57,67 +89,104 @@ function processMarkdownContent(fileContents: string, slug: string, lastModified
     description: data.description || '',
     date: data.date || '',
     author: data.author || 'Programadores Argentina',
-    authorImage: data.authorImage || '/assets/images/perfiles/juansemastrangelo.jpg',
+    authorImage: data.authorImage || '/assets/images/perfiles/club-programadores-argentina.png',
     category: data.category || 'General',
-    image: data.image || '/assets/images/articulos/default.webp',
+    image: getMinIOImageUrl(data.image || 'hero-image.webp', folderName),
     isPublic: data.isPublic !== false, // Por defecto es público
-    excerpt: data.excerpt || content.substring(0, 200) + '...',
-    content,
+    excerpt: data.excerpt || processedContent.substring(0, 200) + '...',
+    content: processedContent,
     lastModified,
   };
 }
 
-export async function getAllPosts(): Promise<BlogPost[]> {
+// Función auxiliar para procesar rutas de imágenes en el contenido markdown
+function processImagePaths(content: string, folderName: string): string {
+  // Patrón para encontrar imágenes markdown: ![alt](path)
+  const imagePattern = /!\[([^\]]*)\]\(([^)]+)\)/g;
+  
+  return content.replace(imagePattern, (match, alt, imagePath) => {
+    // Si la imagen ya es una URL completa o una ruta de assets, no procesarla
+    if (imagePath.startsWith('http') || imagePath.startsWith('/assets/')) {
+      return match;
+    }
+    
+    // Si es una ruta relativa, construir la URL de MinIO
+    const minioEndpoint = process.env.MINIO_ENDPOINT || 'http://localhost:9000';
+    const bucketName = process.env.MINIO_BUCKET_NAME || 'programadores-argentina-blog';
+    
+    // Construir la ruta completa: folderName/imagePath
+    const fullPath = `${folderName}/${imagePath}`;
+    const minioUrl = `${minioEndpoint}/${bucketName}/${fullPath}`;
+    
+    return `![${alt}](${minioUrl})`;
+  });
+}
+
+// Función auxiliar para obtener carpetas de artículos
+async function getArticleFolders(): Promise<string[]> {
   try {
     const command = new ListObjectsV2Command({
       Bucket: BUCKET_NAME,
-      Prefix: BLOG_PREFIX,
+      Delimiter: '/',
     });
 
     const response = await s3Client.send(command);
-    const objects = response.Contents || [];
+    const folders = response.CommonPrefixes || [];
 
-    // Filtrar solo archivos .md
-    const markdownFiles = objects.filter(obj => 
-      obj.Key?.endsWith('.md') && obj.Key !== BLOG_PREFIX
-    );
+    // Filtrar solo carpetas que empiecen con número (formato: 1-nombre-carpeta)
+    const articleFolders = folders
+      .map(prefix => prefix.Prefix?.replace('/', ''))
+      .filter((folder): folder is string => 
+        folder !== undefined && /^\d+-/.test(folder)
+      );
 
-    // Procesar cada archivo
+    return articleFolders;
+  } catch (error) {
+    console.error('Error getting article folders from MinIO:', error);
+    return [];
+  }
+}
+
+export async function getAllPosts(): Promise<BlogPost[]> {
+  try {
+    const folders = await getArticleFolders();
+    
+    // Procesar cada carpeta
     const allPostsData = await Promise.all(
-      markdownFiles.map(async (obj) => {
-        if (!obj.Key) return null;
+      folders.map(async (folderName) => {
+        // Buscar article.md o article.md.md
+        let articleKey = `${folderName}/article.md`;
+        let fileContents = await getMinIOObjectContent(articleKey);
         
-        const slug = obj.Key.replace(BLOG_PREFIX, '').replace(/\.md$/, '');
-        const fileContents = await getMinIOObjectContent(obj.Key);
+        // Si no encuentra article.md, intentar con article.md.md
+        if (!fileContents) {
+          articleKey = `${folderName}/article.md.md`;
+          fileContents = await getMinIOObjectContent(articleKey);
+        }
         
         if (!fileContents) return null;
         
-        // Usar la fecha de modificación del archivo (último cargado)
-        const lastModified = obj.LastModified;
+        // Obtener información del archivo para la fecha de modificación
+        const listCommand = new ListObjectsV2Command({
+          Bucket: BUCKET_NAME,
+          Prefix: articleKey,
+        });
         
-        return processMarkdownContent(fileContents, slug, lastModified);
+        const listResponse = await s3Client.send(listCommand);
+        const object = listResponse.Contents?.find(obj => obj.Key === articleKey);
+        const lastModified = object?.LastModified;
+        
+        return processMarkdownContent(fileContents, folderName, lastModified);
       })
     );
 
-    // Filtrar posts nulos y ordenar por fecha de modificación (último cargado primero)
+    // Filtrar posts nulos y ordenar por número de carpeta (mayor a menor)
     return allPostsData
       .filter((post): post is BlogPost => post !== null)
       .sort((a, b) => {
-        // Si ambos tienen lastModified, ordenar por esa fecha
-        if (a.lastModified && b.lastModified) {
-          return b.lastModified.getTime() - a.lastModified.getTime();
-        }
-        
-        // Si solo uno tiene lastModified, priorizar el que lo tiene
-        if (a.lastModified && !b.lastModified) {
-          return -1;
-        }
-        if (!a.lastModified && b.lastModified) {
-          return 1;
-        }
-        
-        // Si ninguno tiene lastModified, usar la fecha del frontmatter como fallback
-        return new Date(b.date).getTime() - new Date(a.date).getTime();
+        const orderA = extractOrderNumber(a.slug);
+        const orderB = extractOrderNumber(b.slug);
+        return orderB - orderA; // Mayor número primero (más reciente)
       });
   } catch (error) {
     console.error('Error reading blog posts from MinIO:', error);
@@ -127,28 +196,45 @@ export async function getAllPosts(): Promise<BlogPost[]> {
 
 export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
   try {
-    const key = `${BLOG_PREFIX}${slug}.md`;
+    const folders = await getArticleFolders();
     
-    // Primero obtener la información del objeto para tener la fecha de modificación
-    const listCommand = new ListObjectsV2Command({
-      Bucket: BUCKET_NAME,
-      Prefix: key,
-    });
+    // Buscar la carpeta que coincida con el slug (sin el número)
+    const matchingFolder = folders.find(folder => 
+      folder.replace(/^\d+-/, '') === slug
+    );
     
-    const listResponse = await s3Client.send(listCommand);
-    const object = listResponse.Contents?.find(obj => obj.Key === key);
-    
-    if (!object) {
+    if (!matchingFolder) {
       return null;
     }
     
-    const fileContents = await getMinIOObjectContent(key);
+    // Buscar article.md o article.md.md
+    let articleKey = `${matchingFolder}/article.md`;
+    let fileContents = await getMinIOObjectContent(articleKey);
+    
+    // Si no encuentra article.md, intentar con article.md.md
+    if (!fileContents) {
+      articleKey = `${matchingFolder}/article.md.md`;
+      fileContents = await getMinIOObjectContent(articleKey);
+    }
     
     if (!fileContents) {
       return null;
     }
+    
+    // Obtener información del archivo para la fecha de modificación
+    const listCommand = new ListObjectsV2Command({
+      Bucket: BUCKET_NAME,
+      Prefix: articleKey,
+    });
+    
+    const listResponse = await s3Client.send(listCommand);
+    const object = listResponse.Contents?.find(obj => obj.Key === articleKey);
+    
+    if (!object) {
+      return null;
+    }
 
-    return processMarkdownContent(fileContents, slug, object.LastModified);
+    return processMarkdownContent(fileContents, matchingFolder, object.LastModified);
   } catch (error) {
     console.error('Error reading blog post from MinIO:', error);
     return null;
@@ -157,9 +243,84 @@ export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
 
 export async function getPublicPosts(): Promise<BlogPost[]> {
   const allPosts = await getAllPosts();
-  return allPosts.filter(post => post.isPublic);
+  // Temporalmente mostrar todos los posts, independientemente de isPublic
+  return allPosts;
 }
 
 export async function getSubscriberPosts(): Promise<BlogPost[]> {
   return await getAllPosts();
+}
+
+// Interfaz para la respuesta paginada
+export interface PaginatedPosts {
+  posts: BlogPost[];
+  totalPosts: number;
+  currentPage: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+}
+
+// Función para obtener posts paginados
+export async function getPaginatedPosts(page: number = 1): Promise<PaginatedPosts> {
+  try {
+    const allPosts = await getAllPosts();
+    const totalPosts = allPosts.length;
+    const totalPages = Math.ceil(totalPosts / POSTS_PER_PAGE);
+    
+    const startIndex = (page - 1) * POSTS_PER_PAGE;
+    const endIndex = startIndex + POSTS_PER_PAGE;
+    const posts = allPosts.slice(startIndex, endIndex);
+    
+    return {
+      posts,
+      totalPosts,
+      currentPage: page,
+      totalPages,
+      hasNextPage: page < totalPages,
+      hasPreviousPage: page > 1,
+    };
+  } catch (error) {
+    console.error('Error getting paginated posts:', error);
+    return {
+      posts: [],
+      totalPosts: 0,
+      currentPage: 1,
+      totalPages: 0,
+      hasNextPage: false,
+      hasPreviousPage: false,
+    };
+  }
+}
+
+// Función para obtener posts públicos paginados
+export async function getPublicPaginatedPosts(page: number = 1): Promise<PaginatedPosts> {
+  try {
+    const allPosts = await getPublicPosts();
+    const totalPosts = allPosts.length;
+    const totalPages = Math.ceil(totalPosts / POSTS_PER_PAGE);
+    
+    const startIndex = (page - 1) * POSTS_PER_PAGE;
+    const endIndex = startIndex + POSTS_PER_PAGE;
+    const posts = allPosts.slice(startIndex, endIndex);
+    
+    return {
+      posts,
+      totalPosts,
+      currentPage: page,
+      totalPages,
+      hasNextPage: page < totalPages,
+      hasPreviousPage: page > 1,
+    };
+  } catch (error) {
+    console.error('Error getting public paginated posts:', error);
+    return {
+      posts: [],
+      totalPosts: 0,
+      currentPage: 1,
+      totalPages: 0,
+      hasNextPage: false,
+      hasPreviousPage: false,
+    };
+  }
 }
