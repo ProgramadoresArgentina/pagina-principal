@@ -61,8 +61,28 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
     "tecnología argentina"
   ];
 
-  // URL de imagen con fallback
-  const imageUrl = post.image || "/assets/images/articulos-default-og.jpg";
+  // URL de imagen con fallback y validación para SEO
+  const getValidImageUrl = (imageUrl: string | undefined) => {
+    // Si no hay imagen, usar fallback
+    if (!imageUrl) {
+      return "https://programadoresargentina.com/assets/images/logo.png";
+    }
+    
+    // Si es una URL de MinIO, asegurar que sea accesible públicamente
+    if (imageUrl.includes('minio-') || imageUrl.includes('sslip.io')) {
+      return imageUrl;
+    }
+    
+    // Si es una ruta relativa, convertir a URL absoluta
+    if (imageUrl.startsWith('/')) {
+      return `https://programadoresargentina.com${imageUrl}`;
+    }
+    
+    // Si ya es una URL completa, usarla tal como está
+    return imageUrl;
+  };
+
+  const imageUrl = getValidImageUrl(post.image);
 
   return {
     title: `${post.title} | Programadores Argentina`,
@@ -86,6 +106,7 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
           width: 1200,
           height: 630,
           alt: `${post.title} - Artículo de ${post.author} en Programadores Argentina`,
+          type: "image/jpeg",
         },
       ],
       locale: "es_AR",
@@ -114,6 +135,15 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
         "max-image-preview": "large",
         "max-snippet": -1,
       },
+    },
+    // Metadatos adicionales para LinkedIn y otras redes sociales
+    other: {
+      "og:image:secure_url": imageUrl,
+      "og:image:width": "1200",
+      "og:image:height": "630",
+      "article:author": post.author,
+      "article:section": post.category,
+      "article:tag": post.category,
     },
   };
 }
