@@ -257,8 +257,8 @@ export default function ChatWidget() {
         <div 
           className="position-fixed"
           style={{ 
-            bottom: '100px', 
-            right: '70px', 
+            bottom: '50px', 
+            right: '30px', 
             zIndex: 1000 
           }}
         >
@@ -280,7 +280,7 @@ export default function ChatWidget() {
           
           {/* Texto invitación */}
           <div 
-            className="position-absolute text-center"
+            className="position-absolute text-center d-none d-md-block"
             style={{
               bottom: '70px',
               right: '-20px',
