@@ -1,11 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { validateAdminApiKey } from '@/lib/admin'
 
 // GET /api/users/[id] - Obtener un usuario por ID
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  // Validar API key de administrador
+  if (!validateAdminApiKey(request)) {
+    return NextResponse.json({ error: 'Acceso no autorizado' }, { status: 401 });
+  }
+  
   try {
     const { id } = params
 
@@ -52,6 +58,11 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  // Validar API key de administrador
+  if (!validateAdminApiKey(request)) {
+    return NextResponse.json({ error: 'Acceso no autorizado' }, { status: 401 });
+  }
+  
   try {
     const { id } = params
     const body = await request.json()
@@ -158,6 +169,11 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  // Validar API key de administrador
+  if (!validateAdminApiKey(request)) {
+    return NextResponse.json({ error: 'Acceso no autorizado' }, { status: 401 });
+  }
+  
   try {
     const { id } = params
 

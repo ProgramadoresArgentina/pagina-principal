@@ -1,9 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
+import { validateAdminApiKey } from '@/lib/admin'
 
 // GET /api/users - Obtener todos los usuarios
 export async function GET(request: NextRequest) {
+  // Validar API key de administrador
+  if (!validateAdminApiKey(request)) {
+    return NextResponse.json({ error: 'Acceso no autorizado' }, { status: 401 });
+  }
+  
   try {
     const { searchParams } = new URL(request.url)
     const page = parseInt(searchParams.get('page') || '1')
@@ -59,6 +65,11 @@ export async function GET(request: NextRequest) {
 
 // POST /api/users - Crear un nuevo usuario
 export async function POST(request: NextRequest) {
+  // Validar API key de administrador
+  if (!validateAdminApiKey(request)) {
+    return NextResponse.json({ error: 'Acceso no autorizado' }, { status: 401 });
+  }
+  
   try {
     const body = await request.json()
     const { email, name, username, avatar, bio, website, location, password, roleId } = body

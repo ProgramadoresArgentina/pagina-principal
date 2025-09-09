@@ -75,7 +75,19 @@ function getMinIOImageUrl(imagePath: string, folderName: string): string {
 
 // Función auxiliar para procesar el contenido markdown
 function processMarkdownContent(fileContents: string, folderName: string, lastModified?: Date): BlogPost {
-  const { data, content } = matter(fileContents);
+  // Limpieza más agresiva del contenido
+  let cleanedContent = fileContents.trim();
+  
+  // Si no empieza con ---, buscar el primer --- y remover todo lo anterior
+  if (!cleanedContent.startsWith('---')) {
+    const firstDashIndex = cleanedContent.indexOf('---');
+    if (firstDashIndex !== -1) {
+      cleanedContent = cleanedContent.substring(firstDashIndex);
+    }
+  }
+  
+  const { data, content } = matter(cleanedContent);
+
 
   // Procesar el contenido para convertir rutas de imágenes relativas a URLs de MinIO
   const processedContent = processImagePaths(content, folderName);

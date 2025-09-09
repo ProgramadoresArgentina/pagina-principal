@@ -4,6 +4,7 @@ import BackToTop from "../components/BackToTop";
 import Header from "../components/Header";
 import MobileHeader from "../components/MobileHeader";
 import Footer from "../components/Footer";
+import SubscriptionHandler from "../components/SubscriptionHandler";
 
 export const metadata: Metadata = {
   title: "Club Programadores Argentina - Comunidad Exclusiva | Suscripción $4000/mes",
@@ -69,6 +70,7 @@ export default function Club(): JSX.Element {
       <BackToTop />
       <Header />
       <MobileHeader />
+      <SubscriptionHandler />
 
       <div id="smooth-wrapper">
         <div id="smooth-content">
@@ -79,7 +81,44 @@ export default function Club(): JSX.Element {
                 <img data-speed="1.1" className="it-about-shape-1 d-none d-xxl-block" src="/assets/img/home-11/about/about-shape-1.png" alt="" style={{ translate: 'none', rotate: 'none', scale: 'none', transform: 'translate(0px, 55.9091px)', willChange: 'transform' }} data-lag="0" />
                 <img data-speed=".9" className="it-about-shape-2" src="/assets/img/home-11/about/about-shape-2.png" alt="" style={{ translate: 'none', rotate: 'none', scale: 'none', transform: 'translate(0px, 9.00044px)', willChange: 'transform' }} data-lag="0" />
               </div>
+              
+              
               <div className="container container-1230">
+                
+              {/* Mensaje de confirmación después de suscripción - Full width arriba del título */}
+              <div className="subscription-confirmation" style={{ 
+                background: 'linear-gradient(135deg, #1a1b1e 0%, #2d2e32 100%)', 
+                border: '1px solid #D0FF71', 
+                borderRadius: '0px', 
+                padding: '30px 20px', 
+                margin: '0',
+                display: 'none',
+                width: '100%',
+                position: 'relative',
+                zIndex: 10
+              }}>
+                <div className="container container-1230">
+                  <div className="confirmation-content text-center">
+                    <div className="confirmation-icon mb-20">
+                      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ color: '#D0FF71' }}>
+                        <path d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </div>
+                    <h4 className="confirmation-title mb-15" style={{ color: '#D0FF71', fontSize: '24px', fontWeight: '600' }}>
+                      ¡Suscripción Exitosa!
+                    </h4>
+                    <p className="confirmation-message mb-20" style={{ color: '#ffffff', fontSize: '18px', lineHeight: '1.6' }}>
+                      Te estaremos contactando al email de MercadoPago en las próximas 24 horas con toda la información para acceder al Club.
+                    </p>
+                    <p className="confirmation-contact" style={{ color: '#D0FF71', fontSize: '16px', fontWeight: '500' }}>
+                      ¿Tienes alguna consulta? Escríbenos a: 
+                      <a href="mailto:programadoresargentina@gmail.com" style={{ color: '#D0FF71', textDecoration: 'underline', marginLeft: '5px' }}>
+                        programadoresargentina@gmail.com
+                      </a>
+                    </p>
+                  </div>
+                </div>
+              </div>
                 <div className="row">
                   <div className="col-xl-6">
                     <div className="it-about-title-box z-index-2">
@@ -130,7 +169,7 @@ export default function Club(): JSX.Element {
                         </p>
                       </div>
                       <div className="tp_fade_anim" data-fade-from="top" data-ease="bounce" style={{ translate: 'none', rotate: 'none', scale: 'none', transform: 'translate(0px, 0px)', opacity: 1 }}>
-                        <a className="tp-btn-black-radius btn-blue-bg d-inline-flex align-items-center justify-content-between mr-15" href="https://www.mercadopago.com.ar/subscriptions/checkout?preapproval_plan_id=2c93808497f5faa7019800406b1d03db" data-name="MP-payButton">
+                        <a className="tp-btn-black-radius btn-blue-bg d-inline-flex align-items-center justify-content-between mr-15" href="https://www.mercadopago.com.ar/subscriptions/checkout?preapproval_plan_id=2c93808497f5faa7019800406b1d03db&success_url=https://programadoresargentina.com/club?success=true&failure_url=https://programadoresargentina.com/club?success=false" data-name="MP-payButton">
                           <span>
                             <span className="text-1">Suscribirse por $4000 /mes</span>
                             <span className="text-2">Suscribirme</span>
@@ -147,6 +186,7 @@ export default function Club(): JSX.Element {
                           </i>
                         </a>
                       </div>
+                      
                       
                       <script type="text/javascript" dangerouslySetInnerHTML={{
                         __html: `
