@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useRouter, usePathname } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 
 interface LockedContentProps {
   children: React.ReactNode;
@@ -13,7 +13,6 @@ interface LockedContentProps {
 
 export default function LockedContent({ children, isPublic, excerpt, title }: LockedContentProps) {
   const { user, isAuthenticated } = useAuth();
-  const router = useRouter();
   const pathname = usePathname();
 
   // Si el artículo es público, mostrar todo el contenido

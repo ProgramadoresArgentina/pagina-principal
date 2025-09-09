@@ -8,6 +8,7 @@ import Footer from "../../components/Footer";
 import StructuredData from "../../components/StructuredData";
 import LockedContent from "../../components/LockedContent";
 import MarkdownRenderer from "../../components/MarkdownRenderer";
+import TableOfContents from "../../components/TableOfContents";
 import { getPostBySlug, getAllPosts } from "@/lib/blog";
 
 // Función para formatear fechas de manera concisa
@@ -246,23 +247,28 @@ export default async function BlogPostPage({ params }: BlogPostPageProps): Promi
                           </div>
                         </div>
                       </article>
-                      <div className="col-12 col-md-10 col-lg-8 mx-auto">
                       
+                      <div className="col-12 col-md-10 col-lg-8 mx-auto">
                       {post.image && (
                         <div className="postbox-details-thumb mb-25">
                           <img className="w-100" style={{ borderRadius: '14px', maxHeight: '300px', objectFit: 'cover' }} src={post.image} alt={post.title} />
                         </div>
                       )}
+                      {/* Tabla de Contenidos */}
+                      <TableOfContents content={post.content} />
 
                         <LockedContent 
                             isPublic={post.isPublic}
                             excerpt={post.excerpt}
                             title={post.title}
                         >
+                        
+                
                             <div className="postbox-details-text mb-45">
                             <MarkdownRenderer content={post.content} />
                             </div>
                         </LockedContent>
+                        
                       </div>
                     </div>
                   </div>

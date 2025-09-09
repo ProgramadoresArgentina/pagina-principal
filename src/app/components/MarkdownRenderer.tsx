@@ -21,9 +21,10 @@ export default function MarkdownRenderer({ content }: MarkdownRendererProps) {
           .use(remarkHtml, { sanitize: false })
           .process(content);
         
-        // Procesar el HTML para mejorar las imágenes
+        // Procesar el HTML para mejorar las imágenes y títulos
         const enhancedHtml = enhanceImages(processedContent.toString());
-        setHtmlContent(enhancedHtml);
+        const htmlWithIds = addIdsToHeadings(enhancedHtml);
+        setHtmlContent(htmlWithIds);
       } catch (error) {
         console.error('Error processing markdown:', error);
         setHtmlContent(content);
@@ -71,6 +72,19 @@ export default function MarkdownRenderer({ content }: MarkdownRendererProps) {
       ].join(' ');
       
       return `<img${enhancedAttrs}src="${src}">`;
+    });
+  };
+
+  // Función para agregar IDs a los títulos
+  const addIdsToHeadings = (html: string): string => {
+    return html.replace(/<(h[1-6])([^>]*)>([^<]*)<\/\1>/g, (match, tag, attrs, text) => {
+      const id = text
+        .toLowerCase()
+        .replace(/[^a-z0-9\s]/g, '')
+        .replace(/\s+/g, '-')
+        .trim();
+      
+      return `<${tag}${attrs} id="${id}">${text}</${tag}>`;
     });
   };
 
