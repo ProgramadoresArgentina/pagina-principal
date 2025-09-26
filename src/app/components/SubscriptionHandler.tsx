@@ -13,7 +13,7 @@ export default function SubscriptionHandler() {
       
       // Mostrar mensaje de confirmación si la suscripción fue exitosa
       if (success === 'true' || status === 'approved') {
-        const confirmationDiv = document.querySelector('.subscription-confirmation');
+        const confirmationDiv = document.querySelector('.subscription-confirmation') as HTMLElement;
         if (confirmationDiv) {
           confirmationDiv.style.display = 'block';
           confirmationDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -31,7 +31,7 @@ export default function SubscriptionHandler() {
     // También escuchar eventos de MercadoPago si están disponibles
     const handleMessage = (event: MessageEvent) => {
       if (event.data && event.data.type === 'mp_subscription_success') {
-        const confirmationDiv = document.querySelector('.subscription-confirmation');
+        const confirmationDiv = document.querySelector('.subscription-confirmation') as HTMLElement;
         if (confirmationDiv) {
           confirmationDiv.style.display = 'block';
           confirmationDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
