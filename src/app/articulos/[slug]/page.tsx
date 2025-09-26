@@ -83,6 +83,11 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
     return imageUrl;
   };
 
+  // Función para obtener una imagen de fallback robusta
+  const getFallbackImage = () => {
+    return "https://programadoresargentina.com/assets/images/logo-club.png";
+  };
+
   const imageUrl = getValidImageUrl(post.image);
 
   return {
@@ -109,6 +114,13 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
           alt: `${post.title} - Artículo de ${post.author} en Programadores Argentina`,
           type: "image/jpeg",
         },
+        {
+          url: getFallbackImage(),
+          width: 1200,
+          height: 630,
+          alt: "Programadores Argentina - Comunidad IT argentina",
+          type: "image/png",
+        },
       ],
       locale: "es_AR",
       type: "article",
@@ -122,7 +134,7 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
       card: "summary_large_image",
       title: `${post.title} | Programadores Argentina`,
       description: seoDescription,
-      images: [imageUrl],
+      images: [imageUrl, getFallbackImage()],
       creator: "@programadores_argentina",
       site: "@programadores_argentina",
     },
@@ -137,14 +149,25 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
         "max-snippet": -1,
       },
     },
-    // Metadatos adicionales para LinkedIn y otras redes sociales
+    // Metadatos adicionales para LinkedIn, WhatsApp y otras redes sociales
     other: {
       "og:image:secure_url": imageUrl,
       "og:image:width": "1200",
       "og:image:height": "630",
+      "og:image:alt": `${post.title} - Artículo de ${post.author} en Programadores Argentina`,
+      "og:image:type": "image/jpeg",
+      "og:locale": "es_AR",
+      "og:site_name": "Programadores Argentina",
+      "og:type": "article",
       "article:author": post.author,
       "article:section": post.category,
       "article:tag": post.category,
+      "article:published_time": post.date,
+      "article:modified_time": post.date,
+      "twitter:image:alt": `${post.title} - Artículo de ${post.author} en Programadores Argentina`,
+      "whatsapp:image": imageUrl,
+      "whatsapp:title": `${post.title} | Programadores Argentina`,
+      "whatsapp:description": seoDescription,
     },
   };
 }
