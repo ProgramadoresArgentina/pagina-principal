@@ -216,12 +216,6 @@ export default function Club(): JSX.Element {
                             <div className="it-about-thumb-inner mb-50">
                               <img className="m-0" data-speed=".9" src="/assets/images/logo-club.png" alt="" style={{ width: '100%' }} />
                             </div>
-                            <div className="it-about-info-wrap">
-                              <div className="it-about-info-item d-inline-flex align-items-center" data-parallax='{"x": 50, "smoothness": 30}' style={{ transform: 'translate3d(31.132px, 0px, 0px) rotateX(0deg) rotateY(0deg) rotateZ(0deg) scaleX(1) scaleY(1) scaleZ(1)', WebkitTransform: 'translate3d(31.132px, 0px, 0px) rotateX(0deg) rotateY(0deg) rotateZ(0deg) scaleX(1) scaleY(1) scaleZ(1)' }}>
-                                <i><span>🚀</span></i>
-                                <p>Si querés dar el próximo paso, este es el lugar!</p>
-                              </div>
-                            </div>
                           </div>
                         </div>
                       </div>

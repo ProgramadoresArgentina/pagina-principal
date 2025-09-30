@@ -6,6 +6,7 @@ import './TableOfContents.css';
 
 interface TableOfContentsProps {
   content?: string;
+  isPublic?: boolean;
 }
 
 interface TocItem {
@@ -15,14 +16,14 @@ interface TocItem {
   element: HTMLElement | null;
 }
 
-export default function TableOfContents({ content }: TableOfContentsProps) {
+export default function TableOfContents({ content, isPublic = true }: TableOfContentsProps) {
   const { user, isAuthenticated } = useAuth();
   const [tocItems, setTocItems] = useState<TocItem[]>([]);
   const [activeId, setActiveId] = useState<string>('');
   const [isClient, setIsClient] = useState(false);
 
-  // Determinar si el contenido está bloqueado basado en la suscripción del usuario
-  const isLocked = !isAuthenticated || !user?.isSubscribed;
+  // Determinar si el contenido está bloqueado basado en la suscripción del usuario y si el artículo es público
+  const isLocked = !isPublic && (!isAuthenticated || !user?.isSubscribed);
 
   // Solo renderizar en el cliente
   useEffect(() => {

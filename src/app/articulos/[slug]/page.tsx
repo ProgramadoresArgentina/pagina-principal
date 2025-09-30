@@ -278,7 +278,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps): Promi
                         </div>
                       )}
                       {/* Tabla de Contenidos */}
-                      <TableOfContents content={post.content} />
+                      <TableOfContents content={post.content} isPublic={post.isPublic} />
 
                         <LockedContent 
                             isPublic={post.isPublic}

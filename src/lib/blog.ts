@@ -196,8 +196,13 @@ export async function getAllPosts(): Promise<BlogPost[]> {
     return allPostsData
       .filter((post): post is BlogPost => post !== null)
       .sort((a, b) => {
-        const orderA = extractOrderNumber(a.slug);
-        const orderB = extractOrderNumber(b.slug);
+        // Usar el nombre de la carpeta original para extraer el número de orden
+        const folderA = folders.find(folder => folder.replace(/^\d+-/, '') === a.slug);
+        const folderB = folders.find(folder => folder.replace(/^\d+-/, '') === b.slug);
+        
+        const orderA = folderA ? extractOrderNumber(folderA) : 0;
+        const orderB = folderB ? extractOrderNumber(folderB) : 0;
+        
         return orderB - orderA; // Mayor número primero (más reciente)
       });
   } catch (error) {

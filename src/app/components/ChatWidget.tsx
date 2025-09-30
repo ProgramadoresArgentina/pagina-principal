@@ -47,7 +47,9 @@ export default function ChatWidget() {
 
   // Scroll automático al final de los mensajes
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+    setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+    }, 50)
   }
 
   // Función para cargar más mensajes antiguos
@@ -119,9 +121,24 @@ export default function ChatWidget() {
     ))
   }
 
+  // Scroll automático cuando llegan mensajes del socket
   useEffect(() => {
     scrollToBottom()
   }, [socketMessages])
+
+  // Scroll automático cuando se cargan mensajes iniciales
+  useEffect(() => {
+    if (messages.length > 0 && !isLoading) {
+      scrollToBottom()
+    }
+  }, [messages, isLoading])
+
+  // Scroll automático cuando se abre el chat
+  useEffect(() => {
+    if (isOpen && messages.length > 0) {
+      scrollToBottom()
+    }
+  }, [isOpen, messages.length])
 
   // Cargar información del chat y mensajes iniciales
   useEffect(() => {
@@ -187,6 +204,8 @@ export default function ChatWidget() {
       if (socket && isConnected) {
         sendMessage(message)
         setMessage('')
+        // Scroll automático después de enviar mensaje
+        setTimeout(() => scrollToBottom(), 100)
       } else {
         // Fallback a API REST si socket no está disponible
         const response = await fetch('/api/chat/messages', {
@@ -202,6 +221,8 @@ export default function ChatWidget() {
         if (data.success) {
           setMessages(prev => [...prev, data.message])
           setMessage('')
+          // Scroll automático después de enviar mensaje
+          setTimeout(() => scrollToBottom(), 100)
         } else {
           alert(data.error || 'Error al enviar mensaje')
         }
