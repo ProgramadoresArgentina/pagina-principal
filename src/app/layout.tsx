@@ -98,6 +98,18 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
         <Script src="/assets/js/distortion-img.js" type="module" />
         <Script src="/assets/js/skew-slider/index.js" type="module" />
         <Script src="/assets/js/img-revel/index.js" type="module" />
+        
+        {/* Google Analytics 4 */}
+        <Script src="https://www.googletagmanager.com/gtag/js?id=G-90V0GHL08C" />
+        <Script id="gtm-script" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+
+            gtag('config', 'G-90V0GHL08C');
+          `}
+        </Script>
       </body>
     </html>
   );
