@@ -35,6 +35,9 @@ model User {
   chatMessages ChatMessage[]
   chatBans     ChatBan[] @relation("ChatBanUser")
   chatBansModerated ChatBan[] @relation("ChatBanModerator")
+  
+  // Book reading progress
+  bookProgress BookProgress[]
 
   @@map("users")
 }
@@ -137,5 +140,28 @@ model ChatBan {
   bannedIp  String?
 
   @@map("chat_bans")
+}
+
+// Modelo de Progreso de Lectura de Libros
+model BookProgress {
+  id          String   @id @default(cuid())
+  userId      String
+  bookTitle   String   // Título del libro
+  bookFilename String  // Nombre del archivo PDF
+  currentPage Int      @default(1) // Página actual
+  totalPages  Int?     // Total de páginas (opcional)
+  progress    Float    @default(0) // Porcentaje de progreso (0-100)
+  lastReadAt  DateTime @default(now()) // Última vez que leyó
+  timeSpent   Int      @default(0) // Tiempo total en segundos
+  isCompleted Boolean  @default(false) // Si completó el libro
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relaciones
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Índices únicos
+  @@unique([userId, bookFilename])
+  @@map("book_progress")
 }
 

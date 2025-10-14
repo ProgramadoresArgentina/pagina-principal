@@ -150,19 +150,6 @@ export default async function Articulos(): Promise<JSX.Element> {
       </div>
       {/* search area end */}
 
-      {/* offcanvas area start */}
-      <div className="tp-offcanvas-area">
-        <div className="tp-offcanvas-wrapper">
-          <div className="tp-offcanvas-close">
-            <button className="tp-offcanvas-close-btn">
-              <i className="fal fa-times"></i>
-            </button>
-          </div>
-          <div className="tp-offcanvas-content">
-            <div className="tp-mobile-menu"></div>
-          </div>
-        </div>
-      </div>
       <div className="body-overlay"></div>
       {/* offcanvas area end */}
     
