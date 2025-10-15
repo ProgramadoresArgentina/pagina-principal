@@ -69,7 +69,7 @@ export async function getBooks(): Promise<Book[]> {
 }
 
 // Función para obtener un libro específico
-export async function getBook(filename: string): Promise<Book | null> {
+export async function getBook(filename: string, userId?: string): Promise<Book | null> {
   try {
     // Primero obtener todos los libros y buscar el específico
     const books = await getBooks();
@@ -77,6 +77,22 @@ export async function getBook(filename: string): Promise<Book | null> {
     
     if (!book) {
       return null;
+    }
+
+    // Si se proporciona userId, obtener el progreso del usuario
+    if (userId) {
+      const progress = await getBookProgress(userId, filename);
+      if (progress) {
+        book.progress = {
+          id: progress.id,
+          currentPage: progress.currentPage,
+          totalPages: progress.totalPages,
+          progress: progress.progress,
+          isCompleted: progress.isCompleted,
+          lastReadAt: progress.lastReadAt,
+          timeSpent: progress.timeSpent,
+        };
+      }
     }
 
     return book;

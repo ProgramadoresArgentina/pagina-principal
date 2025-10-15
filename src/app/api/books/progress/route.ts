@@ -7,26 +7,19 @@ export async function POST(request: NextRequest) {
     // Verificar autenticación
     const token = request.headers.get('authorization')?.replace('Bearer ', '');
     if (!token) {
-      return NextResponse.json(
-        { error: 'Token de autorización requerido' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Token de autorización requerido' }, { status: 401 });
     }
 
     const decoded = verifyToken(token);
-    if (!decoded) {
-      return NextResponse.json(
-        { error: 'Token inválido' },
-        { status: 401 }
-      );
+    if (!decoded || !decoded.userId) {
+      return NextResponse.json({ error: 'Token inválido' }, { status: 401 });
     }
 
-    const { bookTitle, bookFilename, currentPage, totalPages, timeSpent } = await request.json();
+    const { bookTitle, bookFilename, currentPage, totalPages } = await request.json();
 
-    // Validar datos requeridos
-    if (!bookTitle || !bookFilename || currentPage === undefined) {
+    if (!bookTitle || !bookFilename || !currentPage) {
       return NextResponse.json(
-        { error: 'Datos requeridos: bookTitle, bookFilename, currentPage' },
+        { error: 'Faltan campos requeridos: bookTitle, bookFilename, currentPage' },
         { status: 400 }
       );
     }
@@ -37,8 +30,7 @@ export async function POST(request: NextRequest) {
       bookTitle,
       bookFilename,
       currentPage,
-      totalPages,
-      timeSpent
+      totalPages
     );
 
     if (!progress) {
@@ -48,9 +40,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    return NextResponse.json({ progress });
+    return NextResponse.json({
+      success: true,
+      progress: {
+        id: progress.id,
+        currentPage: progress.currentPage,
+        totalPages: progress.totalPages,
+        progress: progress.progress,
+        isCompleted: progress.isCompleted,
+        lastReadAt: progress.lastReadAt,
+        timeSpent: progress.timeSpent,
+      },
+    });
   } catch (error) {
-    console.error('Error in book progress API:', error);
+    console.error('Error updating book progress:', error);
     return NextResponse.json(
       { error: 'Error interno del servidor' },
       { status: 500 }
@@ -63,18 +66,12 @@ export async function GET(request: NextRequest) {
     // Verificar autenticación
     const token = request.headers.get('authorization')?.replace('Bearer ', '');
     if (!token) {
-      return NextResponse.json(
-        { error: 'Token de autorización requerido' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Token de autorización requerido' }, { status: 401 });
     }
 
     const decoded = verifyToken(token);
-    if (!decoded) {
-      return NextResponse.json(
-        { error: 'Token inválido' },
-        { status: 401 }
-      );
+    if (!decoded || !decoded.userId) {
+      return NextResponse.json({ error: 'Token inválido' }, { status: 401 });
     }
 
     const { searchParams } = new URL(request.url);
@@ -90,9 +87,27 @@ export async function GET(request: NextRequest) {
     // Obtener progreso
     const progress = await getBookProgress(decoded.userId, bookFilename);
 
-    return NextResponse.json({ progress });
+    if (!progress) {
+      return NextResponse.json({
+        success: true,
+        progress: null,
+      });
+    }
+
+    return NextResponse.json({
+      success: true,
+      progress: {
+        id: progress.id,
+        currentPage: progress.currentPage,
+        totalPages: progress.totalPages,
+        progress: progress.progress,
+        isCompleted: progress.isCompleted,
+        lastReadAt: progress.lastReadAt,
+        timeSpent: progress.timeSpent,
+      },
+    });
   } catch (error) {
-    console.error('Error in book progress GET API:', error);
+    console.error('Error getting book progress:', error);
     return NextResponse.json(
       { error: 'Error interno del servidor' },
       { status: 500 }

@@ -3,6 +3,7 @@ import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getBook } from "@/lib/books";
 import BookViewer from "./components/BookViewer";
+import BookPageClient from "./components/BookPageClient";
 
 interface BookPageProps {
   params: {
@@ -90,7 +91,7 @@ export default async function BookPage({ params }: BookPageProps): Promise<JSX.E
 
   return (
     <>
-      <BookViewer book={book} />
+      <BookPageClient book={book} />
     </>
   );
 }
