@@ -3,6 +3,7 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { usePathname } from 'next/navigation';
 import { Book } from '@/lib/books';
+import PDFViewer from '@/app/components/PDFViewer';
 
 interface BookViewerProps {
   book: Book;
@@ -15,11 +16,12 @@ export default function BookViewer({ book }: BookViewerProps) {
   // Si el usuario está autenticado y suscrito, mostrar el PDF
   if (isAuthenticated && user?.isSubscribed) {
     return (
-      <div className="relative w-full h-full">
-        <iframe src={book.pdfUrl} style={{ position: 'absolute', top: 0, left: 0, bottom: 0, right: 0, width: '100%', height: '100%', border: 'none', margin: 0, padding: 0, overflow: 'hidden', zIndex: 999999999999 }}>
-        Your browser doesn't support iframes
-        </iframe>
-      </div>
+      <PDFViewer 
+        book={book}
+        onProgressUpdate={(page, totalPages) => {
+          console.log(`Progreso actualizado: página ${page} de ${totalPages}`);
+        }}
+      />
     );
   }
 
