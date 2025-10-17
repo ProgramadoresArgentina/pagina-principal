@@ -21,6 +21,8 @@ model User {
   bio          String?
   website      String?
   location     String?
+  // Identificador de WhatsApp (Lead/Lista)
+  lid          String?  @unique
   isSubscribed Boolean  @default(false) // Si está suscrito al club
   isActive     Boolean  @default(true)  // Si la cuenta está activa
   lastLogin    DateTime?
@@ -30,6 +32,7 @@ model User {
   // Relaciones
   roleId       String
   role         Role     @relation(fields: [roleId], references: [id])
+  jobPreference JobPreference?
   
   // Chat relations
   chatMessages ChatMessage[]
@@ -40,6 +43,31 @@ model User {
   bookProgress BookProgress[]
 
   @@map("users")
+}
+
+// Seniority para ofertas laborales
+enum Seniority {
+  JUNIOR
+  SEMI_SENIOR
+  SENIOR
+  LEAD
+}
+
+// Preferencias laborales del usuario (1:1)
+model JobPreference {
+  id                      String     @id @default(cuid())
+  userId                  String     @unique
+  receiveJobNotifications Boolean    @default(false)
+  technologies            String[]   @default([])
+  seniority               Seniority?
+  provinces               String[]   @default([])
+  createdAt               DateTime   @default(now())
+  updatedAt               DateTime   @updatedAt
+
+  // Relaciones
+  user                    User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("job_preferences")
 }
 
 // Modelo de Rol

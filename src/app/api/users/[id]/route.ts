@@ -26,6 +26,7 @@ export async function GET(
         bio: true,
         website: true,
         location: true,
+        lid: true,
         createdAt: true,
         role: {
           select: {
@@ -66,7 +67,7 @@ export async function PUT(
   try {
     const { id } = params
     const body = await request.json()
-    const { email, name, username, avatar, bio, website, location, roleId } = body
+    const { email, name, username, avatar, bio, website, location, lid, roleId } = body
 
     // Verificar si el usuario existe
     const existingUser = await prisma.user.findUnique({
@@ -130,6 +131,7 @@ export async function PUT(
     if (bio !== undefined) updateData.bio = bio
     if (website !== undefined) updateData.website = website
     if (location !== undefined) updateData.location = location
+    if (lid !== undefined) updateData.lid = lid
     if (roleId !== undefined) updateData.roleId = roleId
 
     const user = await prisma.user.update({
@@ -144,6 +146,7 @@ export async function PUT(
         bio: true,
         website: true,
         location: true,
+        lid: true,
         createdAt: true,
         role: {
           select: {

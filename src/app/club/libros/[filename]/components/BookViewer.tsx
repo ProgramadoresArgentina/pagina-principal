@@ -3,6 +3,38 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { usePathname } from 'next/navigation';
 import { Book } from '@/lib/books';
+import dynamic from 'next/dynamic';
+import React from 'react';
+
+type PDFReaderProps = {
+  url: string | { url: string; withCredentials?: boolean };
+  page?: number;
+  scale?: number;
+  width?: number;
+  showAllPage?: boolean;
+  onDocumentComplete?: (totalPage: number) => void;
+};
+
+type MobilePDFReaderProps = {
+  url: string | { url: string; withCredentials?: boolean };
+  page?: number;
+  scale?: 'auto' | number;
+  minScale?: number;
+  maxScale?: number;
+  isShowHeader?: boolean;
+  isShowFooter?: boolean;
+  onDocumentComplete?: (totalPage: number, title: string, otherObj: unknown) => void;
+};
+
+const PDFReader = dynamic<PDFReaderProps>(
+  () => import('react-read-pdf').then((mod) => mod.PDFReader as unknown as React.ComponentType<PDFReaderProps>),
+  { ssr: false }
+);
+
+const MobilePDFReader = dynamic<MobilePDFReaderProps>(
+  () => import('react-read-pdf').then((mod) => mod.MobilePDFReader as unknown as React.ComponentType<MobilePDFReaderProps>),
+  { ssr: false }
+);
 
 interface BookViewerProps {
   book: Book;
@@ -11,14 +43,95 @@ interface BookViewerProps {
 export default function BookViewer({ book }: BookViewerProps) {
   const { user, isAuthenticated } = useAuth();
   const pathname = usePathname();
+  const [isMobile, setIsMobile] = React.useState(false);
+  const [desktopWidth, setDesktopWidth] = React.useState<number | undefined>(undefined);
 
-  // Si el usuario está autenticado y suscrito, mostrar el PDF
+  React.useEffect(() => {
+    const checkMobile = () => {
+      if (typeof window === 'undefined') return false;
+      const mq = window.matchMedia('(max-width: 768px)');
+      return mq.matches;
+    };
+    setIsMobile(checkMobile());
+    const listener = () => setIsMobile(checkMobile());
+    if (typeof window !== 'undefined') {
+      window.addEventListener('resize', listener);
+    }
+    return () => {
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('resize', listener);
+      }
+    };
+  }, []);
+
+  React.useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const recalc = () => {
+      if (!isMobile) {
+        setDesktopWidth(Math.floor(window.innerWidth * 0.5));
+      } else {
+        setDesktopWidth(undefined);
+      }
+    };
+    recalc();
+    window.addEventListener('resize', recalc);
+    return () => window.removeEventListener('resize', recalc);
+  }, [isMobile]);
+
+  // Si el usuario está autenticado y suscrito, mostrar el PDF con react-read-pdf
   if (isAuthenticated && user?.isSubscribed) {
     return (
-      <div className="relative w-full h-full">
-        <iframe src={book.pdfUrl} style={{ position: 'absolute', top: 0, left: 0, bottom: 0, right: 0, width: '100%', height: '100%', border: 'none', margin: 0, padding: 0, overflow: 'hidden', zIndex: 999999999999 }}>
-        Your browser doesn't support iframes
-        </iframe>
+      <div
+        className="relative w-full h-full"
+        onContextMenu={(e) => e.preventDefault()}
+        onDragStart={(e) => e.preventDefault()}
+        onKeyDown={(e) => {
+          const isCmdOrCtrl = e.ctrlKey || e.metaKey;
+          const key = e.key.toLowerCase();
+          if (isCmdOrCtrl && (key === 's' || key === 'p')) {
+            e.preventDefault();
+            e.stopPropagation();
+          }
+        }}
+        style={{ userSelect: 'none', WebkitUserSelect: 'none', MozUserSelect: 'none' }}
+      >
+        {/* Ocultar cualquier toolbar/acciones de pdf.js viewer */}
+        <style jsx global>{`
+          #toolbarContainer,
+          #secondaryToolbar,
+          .toolbar,
+          .secondaryToolbar,
+          .download,
+          .openFile,
+          .print,
+          .toolbarButton#download,
+          .toolbarButton#print,
+          .toolbarButton#openFile,
+          .editorModeButtons,
+          .spreadModeButtons {
+            display: none !important;
+          }
+        `}</style>
+        {isMobile ? (
+          <div style={{ height: '100vh', width: '100vw', overflow: 'auto' }}>
+            <MobilePDFReader
+              url={book.pdfUrl}
+              scale="auto"
+              minScale={0.25}
+              maxScale={10}
+              isShowHeader={false}
+              isShowFooter={false}
+            />
+          </div>
+        ) : (
+          <div style={{ width: '50%', margin: '0 auto' }}>
+            <PDFReader
+              url={{ url: book.pdfUrl, withCredentials: true }}
+              showAllPage={true}
+              width={desktopWidth}
+            />
+          </div>
+        )}
       </div>
     );
   }

@@ -9,6 +9,7 @@ export interface AuthUser {
   email: string
   name: string | null
   username: string | null
+  lid?: string | null
   role: {
     id: string
     name: string
@@ -80,6 +81,7 @@ export async function getAuthenticatedUser(token: string): Promise<AuthUser | nu
     email: user.email,
     name: user.name,
     username: user.username,
+    lid: (user as any).lid ?? null,
     role: {
       id: user.role.id,
       name: user.role.name,

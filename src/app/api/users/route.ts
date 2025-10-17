@@ -28,6 +28,7 @@ export async function GET(request: NextRequest) {
           bio: true,
           website: true,
           location: true,
+          lid: true,
           createdAt: true,
           role: {
             select: {
@@ -72,7 +73,7 @@ export async function POST(request: NextRequest) {
   
   try {
     const body = await request.json()
-    const { email, name, username, avatar, bio, website, location, password, roleId } = body
+    const { email, name, username, avatar, bio, website, location, lid, password, roleId } = body
 
     if (!email) {
       return NextResponse.json(
@@ -146,6 +147,7 @@ export async function POST(request: NextRequest) {
         bio,
         website,
         location,
+        lid,
         roleId,
       },
       select: {
@@ -157,6 +159,7 @@ export async function POST(request: NextRequest) {
         bio: true,
         website: true,
         location: true,
+        lid: true,
         createdAt: true,
         role: {
           select: {

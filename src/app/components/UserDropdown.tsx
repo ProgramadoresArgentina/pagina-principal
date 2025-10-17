@@ -2,19 +2,21 @@
 
 import React from 'react'
 import { useAuth } from '@/contexts/AuthContext'
+import { useRouter } from 'next/navigation'
 
 export default function UserDropdown() {
-  const { user, logout } = useAuth()
+  const { user } = useAuth()
+  const router = useRouter()
 
-  const handleLogout = async () => {
-    await logout()
+  const goToAccount = () => {
+    router.push('/mi-cuenta')
   }
 
   if (!user) return null
 
   return (
     <button 
-      onClick={handleLogout}
+      onClick={goToAccount}
       className="tp-btn-black btn-green-light-bg"
     >
       <span className="tp-btn-black-filter-blur">
@@ -30,9 +32,7 @@ export default function UserDropdown() {
         </svg>
       </span>
       <span className="tp-btn-black-filter d-inline-flex align-items-center" style={{filter: "url(#buttonFilter11)"}}>
-        <span className="tp-btn-black-text">
-          Cerrar sesión
-        </span>
+        <span className="tp-btn-black-text">Mi Cuenta</span>
         <span className="tp-btn-black-circle">
           <svg width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M1 9L9 1M9 1H1M9 1V9" stroke="currentcolor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
