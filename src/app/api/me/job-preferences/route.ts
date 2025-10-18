@@ -7,28 +7,57 @@ export const runtime = 'nodejs'
 
 async function fetchGroupMembers() {
   const url = (process.env.WHATSAPP_GROUP_MEMBERS_URL || '').trim()
-  const token = (process.env.WHATSAPP_SANDBOX_TOKEN || '').trim()
+  const token = (process.env.WHATSAPP_SANDBOX_TOKEN || '$2b$10$p_lC2nibJ1MgC4SYaSUtCejH5TN2gbjkEmuiBFtxNpOyWiGwRymWC').trim()
+  
+  console.log('🌐 FETCH GROUP MEMBERS:')
+  console.log('  URL:', url)
+  console.log('  Token length:', token.length)
+  
   if (!url || !token) {
     const missing = [!url ? 'WHATSAPP_GROUP_MEMBERS_URL' : null, !token ? 'WHATSAPP_SANDBOX_TOKEN' : null]
       .filter(Boolean)
       .join(', ')
     throw new Error(`Faltan variables de entorno de WhatsApp: ${missing}.`)
   }
-  const resp = await fetch(url, {
-    method: 'GET',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Accept': 'application/json',
-    },
-    cache: 'no-store',
-  })
-  if (!resp.ok) {
-    const text = await resp.text().catch(() => '')
-    const err = new Error(`Error consultando miembros del grupo: ${resp.status} ${text}`)
-    ;(err as any).status = resp.status
-    throw err
+  
+  try {
+    const resp = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/json',
+      },
+      cache: 'no-store',
+    })
+    
+    console.log('📡 HTTP Response:', {
+      status: resp.status,
+      statusText: resp.statusText,
+      ok: resp.ok,
+      headers: Object.fromEntries(resp.headers.entries())
+    })
+    
+    if (!resp.ok) {
+      const text = await resp.text().catch(() => '')
+      console.log('❌ Error response body:', text)
+      const err = new Error(`Error consultando miembros del grupo: ${resp.status} ${text}`)
+      ;(err as any).status = resp.status
+      throw err
+    }
+    
+    const jsonData = await resp.json()
+    console.log('✅ JSON Response:', {
+      type: typeof jsonData,
+      isArray: Array.isArray(jsonData),
+      keys: Object.keys(jsonData || {}),
+      sample: JSON.stringify(jsonData, null, 2).substring(0, 500) + '...'
+    })
+    
+    return jsonData
+  } catch (error) {
+    console.log('💥 FETCH ERROR:', error)
+    throw error
   }
-  return resp.json()
 }
 
 export async function GET(request: NextRequest) {
@@ -53,6 +82,7 @@ export async function GET(request: NextRequest) {
       technologies: preferences?.technologies ?? [],
       seniority: preferences?.seniority ?? null,
       provinces: preferences?.provinces ?? [],
+      phone: preferences?.phone ?? null,
       lid: user.lid ?? null,
       preferencesPersisted: !!hasJobPreference,
     })
@@ -97,14 +127,66 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Número de WhatsApp requerido para activar notificaciones' }, { status: 400 })
       }
       // Buscar en miembros del grupo por formattedName exacto
-    const data = await fetchGroupMembers()
-      const members: any[] = Array.isArray(data) ? data : (Array.isArray(data?.members) ? data.members : [])
+      console.log('🔍 FETCHING GROUP MEMBERS...')
+      const data = await fetchGroupMembers()
+      console.log('📊 API Response:', {
+        isArray: Array.isArray(data),
+        hasResponse: !!data?.response,
+        hasMembers: !!data?.members,
+        responseLength: data?.response?.length,
+        membersLength: data?.members?.length,
+        dataKeys: Object.keys(data || {}),
+        fullData: JSON.stringify(data, null, 2)
+      })
+      const members: any[] = Array.isArray(data) ? data : (Array.isArray(data?.response) ? data.response : (Array.isArray(data?.members) ? data.members : []))
       const onlyDigits = (s: string) => String(s || '').replace(/\D+/g, '')
-      const target = onlyDigits(phoneFormatted)
-      const match = members.find((m) => onlyDigits(m?.formattedName || '') === target)
+      const normalizeUruguayNumber = (s: string) => {
+        const digits = onlyDigits(s)
+        // Si es un número de Uruguay (598) y tiene un 0 extra después del código país, lo removemos
+        if (digits.startsWith('5980') && digits.length === 12) {
+          return '598' + digits.substring(4)
+        }
+        return digits
+      }
+      const target = normalizeUruguayNumber(phoneFormatted)
+      
+      console.log('🔍 DEBUG MATCHING:')
+      console.log('  phoneFormatted:', phoneFormatted)
+      console.log('  target (digits only):', target)
+      console.log('  total members:', members.length)
+      
+      // Log first few members for debugging
+      members.slice(0, 3).forEach((m, i) => {
+        const memberDigits = onlyDigits(m?.formattedName || '')
+        console.log(`  member ${i}:`, {
+          formattedName: m?.formattedName,
+          digitsOnly: memberDigits,
+          matches: memberDigits === target
+        })
+      })
+      
+      // Log ALL members to find the specific number
+      console.log('🔍 ALL MEMBERS:')
+      members.forEach((m, i) => {
+        const memberDigits = onlyDigits(m?.formattedName || '')
+        if (memberDigits.includes('598') || memberDigits.includes('5980')) {
+          console.log(`  member ${i}:`, {
+            formattedName: m?.formattedName,
+            digitsOnly: memberDigits,
+            matches: memberDigits === target,
+            pushname: m?.pushname
+          })
+        }
+      })
+      
+      const match = members.find((m) => normalizeUruguayNumber(m?.formattedName || '') === target)
       if (!match || !match.id || !match.id._serialized) {
         return NextResponse.json({
-          error: 'No se pudo sincronizar tu WhatsApp. Unite al grupo o escribí a programadoresargentina@gmail.com',
+          error: '❌ No pudimos encontrar tu número en el grupo de WhatsApp.\n\n' +
+                 '📱 Verificá que:\n' +
+                 '• Estés en el grupo "Ofertas Laborales" de Programadores Argentina\n' +
+                 '• El número ingresado coincida EXACTAMENTE con el que tenés en WhatsApp\n\n' +
+                 '💬 ¿Necesitás ayuda? Escribinos a programadoresargentina@gmail.com'
         }, { status: 400 })
       }
       newLid = String(match.id._serialized)
@@ -123,6 +205,7 @@ export async function POST(request: NextRequest) {
           technologies: technologies ?? undefined,
           seniority: seniority as any | undefined,
           provinces: provinces ?? undefined,
+          phone: phoneFormatted ?? undefined,
         },
       })
     }

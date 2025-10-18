@@ -82,27 +82,7 @@ export default function ClubLibros(): JSX.Element {
                   <div className="col-xl-12">
                     <div className="it-about-title-box z-index-2 text-center">
                       <h4 className="tp-section-title-platform platform-text-black fs-84 mb-30 pt-30 tp-split-text tp-split-right" style={{ perspective: '400px' }}>
-                        <div className="tp-split-line" style={{ display: 'block', textAlign: 'center', position: 'relative' }}>
-                          <div style={{ position: 'relative', display: 'inline-block' }}>
-                            <div style={{ position: 'relative', display: 'inline-block', translate: 'none', rotate: 'none', scale: 'none', transform: 'translate(0px, 0px)', opacity: 1 }}>L</div>
-                            <div style={{ position: 'relative', display: 'inline-block', translate: 'none', rotate: 'none', scale: 'none', transform: 'translate(0px, 0px)', opacity: 1 }}>i</div>
-                            <div style={{ position: 'relative', display: 'inline-block', translate: 'none', rotate: 'none', scale: 'none', transform: 'translate(0px, 0px)', opacity: 1 }}>b</div>
-                            <div style={{ position: 'relative', display: 'inline-block', translate: 'none', rotate: 'none', scale: 'none', transform: 'translate(0px, 0px)', opacity: 1 }}>r</div>
-                            <div style={{ position: 'relative', display: 'inline-block', translate: 'none', rotate: 'none', scale: 'none', transform: 'translate(0px, 0px)', opacity: 1 }}>o</div>
-                            <div style={{ position: 'relative', display: 'inline-block', translate: 'none', rotate: 'none', scale: 'none', transform: 'translate(0px, 0px)', opacity: 1 }}>s</div>
-                            <div style={{ position: 'relative', display: 'inline-block', translate: 'none', rotate: 'none', scale: 'none', transform: 'translate(0px, 0px)', opacity: 1 }}> </div>
-                            <div style={{ position: 'relative', display: 'inline-block', translate: 'none', rotate: 'none', scale: 'none', transform: 'translate(0px, 0px)', opacity: 1 }}>E</div>
-                            <div style={{ position: 'relative', display: 'inline-block', translate: 'none', rotate: 'none', scale: 'none', transform: 'translate(0px, 0px)', opacity: 1 }}>x</div>
-                            <div style={{ position: 'relative', display: 'inline-block', translate: 'none', rotate: 'none', scale: 'none', transform: 'translate(0px, 0px)', opacity: 1 }}>c</div>
-                            <div style={{ position: 'relative', display: 'inline-block', translate: 'none', rotate: 'none', scale: 'none', transform: 'translate(0px, 0px)', opacity: 1 }}>l</div>
-                            <div style={{ position: 'relative', display: 'inline-block', translate: 'none', rotate: 'none', scale: 'none', transform: 'translate(0px, 0px)', opacity: 1 }}>u</div>
-                            <div style={{ position: 'relative', display: 'inline-block', translate: 'none', rotate: 'none', scale: 'none', transform: 'translate(0px, 0px)', opacity: 1 }}>s</div>
-                            <div style={{ position: 'relative', display: 'inline-block', translate: 'none', rotate: 'none', scale: 'none', transform: 'translate(0px, 0px)', opacity: 1 }}>i</div>
-                            <div style={{ position: 'relative', display: 'inline-block', translate: 'none', rotate: 'none', scale: 'none', transform: 'translate(0px, 0px)', opacity: 1 }}>v</div>
-                            <div style={{ position: 'relative', display: 'inline-block', translate: 'none', rotate: 'none', scale: 'none', transform: 'translate(0px, 0px)', opacity: 1 }}>o</div>
-                            <div style={{ position: 'relative', display: 'inline-block', translate: 'none', rotate: 'none', scale: 'none', transform: 'translate(0px, 0px)', opacity: 1 }}>s</div>
-                          </div>
-                        </div>
+                      Biblioteca Digital
                       </h4>
                       <div className="tp_text_anim">
                         <p style={{ perspective: '400px', maxWidth: '800px', margin: '0 auto' }}>
@@ -120,19 +100,7 @@ export default function ClubLibros(): JSX.Element {
             {/* books area start */}
             <div className="it-benifit-area p-relative pb-120">
               <div className="container container-1230">
-                <div className="it-benifit-bg pt-120 pb-120 z-index-1" data-bg-color="#1A1B1E">
-                  <div className="it-benifit-shape">
-                    <img className="tp-zoom-in-out" src="/assets/img/home-11/feature/benifits-shape.png" alt="" />
-                  </div>
-                  <div className="row">
-                    <div className="col-xl-12">
-                      <div className="it-benifit-title-box mb-55 text-center">
-                        <span className="tp-section-subtitle-platform platform-text-black mb-20 tp-split-text tp-split-right">Biblioteca Digital</span>
-                        <h4 className="tp-section-title-platform platform-text-black mb-20 tp-split-text tp-split-right">Explora nuestra colección</h4>
-                      </div>
-                    </div>
-                  </div>
-                  
+                <div className="it-benifit-bg pb-120 z-index-1" data-bg-color="#1A1B1E" style={{ paddingTop: '30px' }}>
                   <BooksList />
                 </div>
               </div>

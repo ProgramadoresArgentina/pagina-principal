@@ -131,9 +131,29 @@ export async function updateBookProgress(
   timeSpent?: number
 ) {
   try {
+    // Obtener el registro existente para mantener totalPages si ya existe
+    const existing = await prisma.bookProgress.findUnique({
+      where: {
+        userId_bookFilename: {
+          userId,
+          bookFilename,
+        },
+      },
+    });
+
+    // Usar totalPages existente si no se proporciona uno nuevo
+    const finalTotalPages = totalPages || existing?.totalPages || null;
+    
     // Calcular el porcentaje de progreso
-    const progress = totalPages ? (currentPage / totalPages) * 100 : 0;
-    const isCompleted = totalPages ? currentPage >= totalPages : false;
+    const progress = finalTotalPages ? (currentPage / finalTotalPages) * 100 : 0;
+    const isCompleted = finalTotalPages ? currentPage >= finalTotalPages : false;
+
+    console.log('📊 Updating progress:', {
+      currentPage,
+      totalPages: finalTotalPages,
+      progress: progress.toFixed(2) + '%',
+      isCompleted
+    });
 
     const bookProgress = await prisma.bookProgress.upsert({
       where: {
@@ -144,7 +164,7 @@ export async function updateBookProgress(
       },
       update: {
         currentPage,
-        totalPages,
+        totalPages: finalTotalPages,
         progress,
         isCompleted,
         lastReadAt: new Date(),
@@ -157,7 +177,7 @@ export async function updateBookProgress(
         bookTitle,
         bookFilename,
         currentPage,
-        totalPages,
+        totalPages: finalTotalPages,
         progress,
         isCompleted,
         timeSpent: timeSpent || 0,
@@ -179,6 +199,13 @@ export async function getBooksWithProgress(userId: string) {
       where: { userId },
     });
 
+    console.log('📖 getBooksWithProgress - userId:', userId);
+    console.log('📚 Total books:', books.length);
+    console.log('📊 Progress records found:', progressRecords.length);
+    if (progressRecords.length > 0) {
+      console.log('📄 Sample progress:', progressRecords[0]);
+    }
+
     // Combinar libros con su progreso
     const booksWithProgress = books.map(book => {
       const progress = progressRecords.find(p => p.bookFilename === book.filename);
@@ -187,6 +214,9 @@ export async function getBooksWithProgress(userId: string) {
         progress: progress || null,
       };
     });
+
+    const withProgress = booksWithProgress.filter(b => b.progress !== null);
+    console.log('✅ Books with progress attached:', withProgress.length);
 
     return booksWithProgress;
   } catch (error) {

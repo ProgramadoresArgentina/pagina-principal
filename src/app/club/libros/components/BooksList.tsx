@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Book } from '@/lib/books';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePathname } from 'next/navigation';
@@ -11,29 +11,18 @@ export default function BooksList() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, token } = useAuth();
   const pathname = usePathname();
 
-  useEffect(() => {
-    // Solo cargar libros si el usuario está autenticado y suscrito
-    if (isAuthenticated && user?.isSubscribed) {
-      fetchBooks();
-    } else {
-      setLoading(false);
-    }
-  }, [isAuthenticated, user?.isSubscribed]);
-
-  const fetchBooks = async () => {
+  const fetchBooks = useCallback(async () => {
     try {
       setLoading(true);
-      
-      // Obtener token del localStorage
-      const token = localStorage.getItem('token');
       
       const headers: HeadersInit = {
         'Content-Type': 'application/json',
       };
       
+      // Usar el token del contexto de autenticación
       if (token) {
         headers['Authorization'] = `Bearer ${token}`;
       }
@@ -46,6 +35,7 @@ export default function BooksList() {
       
       const data = await response.json();
       const booksData = data.books || [];
+      
       setBooks(booksData);
       setFilteredBooks(booksData);
     } catch (err) {
@@ -53,7 +43,11 @@ export default function BooksList() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [token]);
+
+  useEffect(() => {
+    fetchBooks();
+  }, [fetchBooks]);
 
   // Ya no necesitamos el modal, los libros se abren en páginas separadas
 
@@ -86,88 +80,7 @@ export default function BooksList() {
     setFilteredBooks(filtered);
   }, [books, searchTerm]);
 
-  // Si no está autenticado o no está suscrito, mostrar mensaje de bloqueo
-  if (!isAuthenticated || !user?.isSubscribed) {
-    return (
-      <div className="row">
-        <div className="col-12">
-          <div className="locked-content">
-            <div className="tp-blog-locked-content p-relative">
-              <div className="tp-blog-locked-overlay"></div>
-              <div className="tp-blog-locked-info text-center">
-                <div className="tp-blog-locked-icon mb-30">
-                  <svg width="50" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M6 10V8C6 5.79086 7.79086 4 10 4H14C16.2091 4 18 5.79086 18 8V10M6 10H4C2.89543 10 2 10.8954 2 12V20C2 21.1046 2.89543 22 4 22H20C21.1046 22 22 21.1046 22 20V12C22 10.8954 21.1046 10 20 10H18M6 10H18" stroke="#D0FF71" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                </div>
-                <h4 className="tp-blog-locked-title mb-20 text-white">Solo miembros del club pueden acceder a la biblioteca</h4>
-                <p className="tp-blog-locked-description mb-30 text-white">
-                  Esta biblioteca de libros técnicos es exclusiva para miembros suscritos al Club de Programadores Argentina. 
-                  Únete para acceder a nuestra colección de libros de programación, desarrollo y tecnología.
-                </p>
-                <div className="tp-blog-locked-actions">
-                  {!isAuthenticated && (
-                    <a 
-                      href={`/ingresar?redirect=${encodeURIComponent(pathname || '/')}`}
-                      className="tp-btn-black btn-green-light-bg"
-                    >
-                      <span className="tp-btn-black-filter-blur">
-                        <svg width="0" height="0">
-                          <defs>
-                            <filter id="buttonFilterLocked">
-                              <feGaussianBlur in="SourceGraphic" stdDeviation="5" result="blur"></feGaussianBlur>
-                              <feColorMatrix in="blur" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 19 -9"></feColorMatrix>
-                              <feComposite in="SourceGraphic" in2="buttonFilterLocked" operator="atop"></feComposite>
-                              <feBlend in="SourceGraphic" in2="buttonFilterLocked"></feBlend>
-                            </filter>
-                          </defs>
-                        </svg>
-                      </span>
-                      <span className="tp-btn-black-filter d-inline-flex align-items-center" style={{filter: "url(#buttonFilterLocked)"}}>
-                        <span className="tp-btn-black-text">Iniciar Sesión</span>
-                        <span className="tp-btn-black-circle">
-                          <svg width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M1 9L9 1M9 1H1M9 1V9" stroke="currentcolor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
-                          </svg>
-                        </span>
-                      </span>
-                    </a>
-                  )}
-                  {isAuthenticated && !user?.isSubscribed && (
-                    <a 
-                      href="/club"
-                      className="tp-btn-black btn-green-light-bg"
-                    >
-                      <span className="tp-btn-black-filter-blur">
-                        <svg width="0" height="0">
-                          <defs>
-                            <filter id="buttonFilterSubscribe">
-                              <feGaussianBlur in="SourceGraphic" stdDeviation="5" result="blur"></feGaussianBlur>
-                              <feColorMatrix in="blur" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 19 -9"></feColorMatrix>
-                              <feComposite in="SourceGraphic" in2="buttonFilterSubscribe" operator="atop"></feComposite>
-                              <feBlend in="SourceGraphic" in2="buttonFilterSubscribe"></feBlend>
-                            </filter>
-                          </defs>
-                        </svg>
-                      </span>
-                      <span className="tp-btn-black-filter d-inline-flex align-items-center" style={{filter: "url(#buttonFilterSubscribe)"}}>
-                        <span className="tp-btn-black-text">Suscribirse al Club</span>
-                        <span className="tp-btn-black-circle">
-                          <svg width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M1 9L9 1M9 1H1M9 1V9" stroke="currentcolor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
-                          </svg>
-                        </span>
-                      </span>
-                    </a>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // Eliminado el bloqueo - todos pueden ver la colección
 
   if (loading) {
     return (
@@ -239,6 +152,7 @@ export default function BooksList() {
                   outline: 'none',
                   transition: 'border-color 0.3s ease'
                 }}
+                className="search-input-placeholder-white"
                 onFocus={(e) => {
                   e.target.style.borderColor = '#D0FF71';
                 }}
@@ -276,6 +190,26 @@ export default function BooksList() {
 
   return (
     <>
+      {/* Estilo para placeholder blanco */}
+      <style jsx global>{`
+        .search-input-placeholder-white::placeholder {
+          color: #ffffff !important;
+          opacity: 0.7;
+        }
+        .search-input-placeholder-white::-webkit-input-placeholder {
+          color: #ffffff !important;
+          opacity: 0.7;
+        }
+        .search-input-placeholder-white::-moz-placeholder {
+          color: #ffffff !important;
+          opacity: 0.7;
+        }
+        .search-input-placeholder-white:-ms-input-placeholder {
+          color: #ffffff !important;
+          opacity: 0.7;
+        }
+      `}</style>
+      
       {/* Buscador */}
       <div className="search-container mb-4">
         <div className="search-box" style={{ position: 'relative', maxWidth: '500px', margin: '0 auto' }}>
@@ -295,6 +229,7 @@ export default function BooksList() {
               outline: 'none',
               transition: 'border-color 0.3s ease'
             }}
+            className="search-input-placeholder-white"
             onFocus={(e) => {
               e.target.style.borderColor = '#D0FF71';
             }}
@@ -333,7 +268,7 @@ export default function BooksList() {
 
       <div className="row">
         {filteredBooks.map((book, index) => (
-          <div key={book.filename} className="col-lg-4 col-md-6 mb-4">
+          <div key={book.filename} className="col-12 mb-3">
             <a 
               href={`/club/libros/${book.filename}`}
               className="book-card"
@@ -342,31 +277,40 @@ export default function BooksList() {
                 border: '1px solid #3a3b3f',
                 borderRadius: '12px',
                 padding: '20px',
-                height: '100%',
                 cursor: 'pointer',
                 transition: 'all 0.3s ease',
                 position: 'relative',
                 overflow: 'hidden',
-                display: 'block',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '20px',
                 textDecoration: 'none',
-                color: 'inherit'
+                color: 'inherit',
+                width: '100%'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-5px)';
                 e.currentTarget.style.borderColor = '#D0FF71';
-                e.currentTarget.style.boxShadow = '0 10px 30px rgba(208, 255, 113, 0.2)';
+                e.currentTarget.style.boxShadow = '0 4px 20px rgba(208, 255, 113, 0.2)';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
                 e.currentTarget.style.borderColor = '#3a3b3f';
                 e.currentTarget.style.boxShadow = 'none';
               }}
             >
-              {/* Book Icon */}
-              <div className="book-icon mb-3 text-center">
+              {/* PDF Icon a la izquierda */}
+              <div style={{
+                flexShrink: 0,
+                width: '48px',
+                height: '48px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: 'rgba(208, 255, 113, 0.1)',
+                borderRadius: '8px'
+              }}>
                 <svg 
-                  width="48" 
-                  height="48" 
+                  width="32" 
+                  height="32" 
                   viewBox="0 0 24 24" 
                   fill="none" 
                   xmlns="http://www.w3.org/2000/svg"
@@ -375,129 +319,122 @@ export default function BooksList() {
                   <path 
                     d="M4 19.5C4 18.1193 5.11929 17 6.5 17H20" 
                     stroke="currentColor" 
-                    strokeWidth="2" 
+                    strokeWidth="1.5" 
                     strokeLinecap="round" 
                     strokeLinejoin="round"
                   />
                   <path 
                     d="M6.5 2H20V22H6.5C5.11929 22 4 20.8807 4 19.5V4.5C4 3.11929 5.11929 2 6.5 2Z" 
                     stroke="currentColor" 
-                    strokeWidth="2" 
+                    strokeWidth="1.5" 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round"
+                  />
+                  <path 
+                    d="M8 7H16M8 11H16M8 15H12" 
+                    stroke="currentColor" 
+                    strokeWidth="1.5" 
                     strokeLinecap="round" 
                     strokeLinejoin="round"
                   />
                 </svg>
               </div>
 
-              {/* Book Title */}
-              <h5 
-                className="book-title mb-3"
-                style={{
-                  color: '#ffffff',
-                  fontSize: '18px',
-                  fontWeight: '600',
-                  lineHeight: '1.4',
-                  textAlign: 'center'
-                }}
-              >
-                {book.title}
-              </h5>
+              {/* Información del libro */}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <h5 
+                  className="book-title"
+                  style={{
+                    color: '#ffffff',
+                    fontSize: '18px',
+                    fontWeight: '600',
+                    lineHeight: '1.4',
+                    margin: '0 0 8px 0'
+                  }}
+                >
+                  {book.title}
+                </h5>
 
-              {/* Book Info */}
-              <div className="book-info">
-                {book.size && (
-                  <p 
-                    className="mb-2"
-                    style={{ 
-                      color: '#a0a0a0', 
-                      fontSize: '14px',
-                      textAlign: 'center'
+                {/* Información adicional en una línea */}
+                <div style={{ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }}>
+                  {book.size && (
+                    <span style={{ color: '#a0a0a0', fontSize: '13px' }}>
+                      📄 {(book.size / 1024 / 1024).toFixed(1)} MB
+                    </span>
+                  )}
+                  
+                  {/* Progress info - Solo si está logueado y hay progreso */}
+                  {isAuthenticated && book.progress && book.progress.progress > 0 && (
+                    <>
+                      <span style={{ 
+                        color: '#D0FF71', 
+                        fontSize: '13px',
+                        fontWeight: '600'
+                      }}>
+                        {book.progress.progress > 98 
+                          ? '✅ Leído' 
+                          : `${Math.round(100 - book.progress.progress)}% por leer`}
+                      </span>
+                      {book.progress.currentPage && book.progress.totalPages && (
+                        <span style={{ color: '#a0a0a0', fontSize: '12px' }}>
+                          Página {book.progress.currentPage} de {book.progress.totalPages}
+                        </span>
+                      )}
+                    </>
+                  )}
+                </div>
+
+                {/* Barra de progreso horizontal - Solo si hay progreso */}
+                {isAuthenticated && book.progress && book.progress.progress > 0 && (
+                  <div 
+                    style={{
+                      background: '#3a3b3f',
+                      borderRadius: '10px',
+                      height: '6px',
+                      overflow: 'hidden',
+                      marginTop: '12px',
+                      maxWidth: '400px'
                     }}
                   >
-                    Tamaño: {(book.size / 1024 / 1024).toFixed(1)} MB
-                  </p>
-                )}
-                
-                {/* Progress Bar */}
-                {book.progress && (
-                  <div className="mb-3">
                     <div 
                       style={{
-                        background: '#3a3b3f',
-                        borderRadius: '10px',
-                        height: '6px',
-                        overflow: 'hidden',
-                        marginBottom: '8px'
+                        background: 'linear-gradient(135deg, #D0FF71 0%, #a8d65a 100%)',
+                        height: '100%',
+                        width: `${Math.min(100, book.progress.progress)}%`,
+                        transition: 'width 0.3s ease'
                       }}
-                    >
-                      <div 
-                        style={{
-                          background: 'linear-gradient(135deg, #D0FF71 0%, #a8d65a 100%)',
-                          height: '100%',
-                          width: `${book.progress.progress}%`,
-                          transition: 'width 0.3s ease'
-                        }}
-                      />
-                    </div>
-                    <p 
-                      style={{ 
-                        color: '#D0FF71', 
-                        fontSize: '12px',
-                        textAlign: 'center',
-                        margin: 0
-                      }}
-                    >
-                      {book.progress.isCompleted ? '✅ Completado' : `${book.progress.progress.toFixed(1)}% leído`}
-                    </p>
-                    {book.progress.currentPage && book.progress.totalPages && (
-                      <p 
-                        style={{ 
-                          color: '#a0a0a0', 
-                          fontSize: '11px',
-                          textAlign: 'center',
-                          margin: '2px 0 0 0'
-                        }}
-                      >
-                        Página {book.progress.currentPage} de {book.progress.totalPages}
-                      </p>
-                    )}
+                    />
                   </div>
                 )}
-                
-                <div className="text-center">
+              </div>
+
+              {/* Badge a la derecha */}
+              {isAuthenticated && (
+                <div style={{ flexShrink: 0 }}>
                   <span 
                     className="badge"
                     style={{
-                      background: book.progress?.isCompleted 
+                      background: (book.progress?.progress ?? 0) > 98
                         ? 'linear-gradient(135deg, #4CAF50 0%, #45a049 100%)'
+                        : (book.progress?.progress ?? 0) > 0
+                        ? 'linear-gradient(135deg, #FFA500 0%, #FF8C00 100%)'
                         : 'linear-gradient(135deg, #D0FF71 0%, #a8d65a 100%)',
                       color: '#1a1b1e',
-                      padding: '6px 12px',
+                      padding: '8px 16px',
                       borderRadius: '20px',
-                      fontSize: '12px',
-                      fontWeight: '600'
+                      fontSize: '13px',
+                      fontWeight: '700',
+                      whiteSpace: 'nowrap'
                     }}
                   >
-                    {book.progress?.isCompleted ? '✅ Completado' : '📖 PDF Disponible'}
+                    {(book.progress?.progress ?? 0) > 98
+                      ? '✅ Leído' 
+                      : (book.progress?.progress ?? 0) > 0
+                      ? '📖 Continuar'
+                      : '📚 Leer'}
                   </span>
                 </div>
-              </div>
-
-              {/* Hover Effect */}
-              <div 
-                className="book-hover-effect"
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  background: 'linear-gradient(135deg, rgba(208, 255, 113, 0.1) 0%, rgba(168, 214, 90, 0.1) 100%)',
-                  opacity: 0,
-                  transition: 'opacity 0.3s ease',
-                  pointerEvents: 'none'
-                }}
-              />
+              )}
             </a>
           </div>
         ))}

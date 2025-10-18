@@ -18,18 +18,26 @@ export async function GET(request: NextRequest) {
     const token = request.headers.get('authorization')?.replace('Bearer ', '');
     let books;
     
+    console.log('📖 API /books - Token received:', token ? 'YES' : 'NO');
+    
     if (token) {
       const decoded = verifyToken(token);
+      console.log('🔐 Token decoded:', decoded ? `userId: ${decoded.userId}` : 'INVALID');
+      
       if (decoded) {
         // Obtener libros con progreso del usuario
         books = await getBooksWithProgress(decoded.userId);
+        console.log('📚 Books fetched with progress for user:', decoded.userId);
+        console.log('📊 Books with progress:', books.filter(b => b.progress).length);
       } else {
         // Token inválido, obtener solo libros sin progreso
         books = await getBooks();
+        console.log('⚠️ Invalid token - fetching books without progress');
       }
     } else {
       // Sin token, obtener solo libros sin progreso
       books = await getBooks();
+      console.log('❌ No token - fetching books without progress');
     }
     
     return NextResponse.json({ books });
