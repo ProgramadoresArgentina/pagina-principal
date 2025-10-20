@@ -4,8 +4,10 @@ import { prisma } from './prisma';
 export interface Book {
   title: string;
   filename: string;
+  category?: string;
   coverUrl?: string;
-  pdfUrl: string;
+  pdfUrl: string; // URL de la API para obtener el PDF
+  viewerUrl?: string; // URL del visor de libros
   size?: number;
   lastModified?: Date;
   progress?: {
@@ -32,6 +34,13 @@ const s3Client = new S3Client({
 
 const BOOKS_BUCKET_NAME = 'libros';
 
+// Función para buscar imagen de portada en MinIO (ya no se usa con la nueva estructura)
+async function findBookCover(category: string, bookTitle: string): Promise<string | null> {
+  // Esta función ya no se usa con la nueva estructura de carpetas
+  // Las portadas se detectan automáticamente en getBooks()
+  return null;
+}
+
 // Función para obtener la lista de libros desde MinIO
 export async function getBooks(): Promise<Book[]> {
   try {
@@ -45,23 +54,90 @@ export async function getBooks(): Promise<Book[]> {
       return [];
     }
 
-    const books: Book[] = response.Contents
-      .filter(obj => obj.Key && obj.Key.toLowerCase().endsWith('.pdf'))
-      .map(obj => {
-        const filename = obj.Key!;
-        const title = filename.replace('.pdf', '').replace(/-/g, ' ');
-        
-        return {
-          title: title.charAt(0).toUpperCase() + title.slice(1),
-          filename,
-          pdfUrl: `/api/books/${filename}`,
-          size: obj.Size,
-          lastModified: obj.LastModified,
-        };
-      })
-      .sort((a, b) => a.title.localeCompare(b.title));
+    const books: Book[] = [];
+    
+    // Agrupar archivos por estructura de carpetas
+    const bookFolders = new Map<string, { category: string; bookName: string; pdfFile?: any; coverFile?: any }>();
+    
+    for (const obj of response.Contents) {
+      if (!obj.Key) continue;
+      
+      const pathParts = obj.Key.split('/');
+      
+      // Estructura esperada: categoria/libro-nombre/book.pdf o photo.ext
+      if (pathParts.length !== 3) {
+        console.log('📁 Skipping file (wrong structure):', obj.Key);
+        continue;
+      }
+      
+      const [category, bookName, fileName] = pathParts;
+      
+      // Crear clave única para el libro
+      const bookKey = `${category}/${bookName}`;
+      
+      if (!bookFolders.has(bookKey)) {
+        bookFolders.set(bookKey, { category, bookName });
+      }
+      
+      const bookData = bookFolders.get(bookKey)!;
+      
+      // Identificar si es el PDF o la portada
+      if (fileName === 'book.pdf') {
+        bookData.pdfFile = obj;
+      } else if (fileName.toLowerCase().match(/^photo\.(webp|png|jpg|jpeg)$/)) {
+        bookData.coverFile = obj;
+      }
+    }
+    
+    // Procesar cada libro encontrado
+    for (const [bookKey, bookData] of Array.from(bookFolders.entries())) {
+      // Solo procesar si tiene el archivo PDF
+      if (!bookData.pdfFile) {
+        console.log('📚 Skipping book (no PDF):', bookKey);
+        continue;
+      }
+      
+      const { category, bookName, pdfFile, coverFile } = bookData;
+      
+      // Crear título legible desde el nombre de la carpeta
+      const title = bookName.replace(/-/g, ' ').replace(/_/g, ' ');
+      
+      console.log('📚 Processing book:', {
+        bookKey,
+        category,
+        bookName,
+        title,
+        hasPdf: !!pdfFile,
+        hasCover: !!coverFile
+      });
+      
+      // Construir URLs
+      // Para el visor de libros: /club/libros/ver?path=categoria/libro/book.pdf
+      // Para la API: /api/books/categoria/libro/book.pdf
+      const fullPath = `${bookKey}/book.pdf`;
+      const viewerUrl = `/club/libros/ver?path=${encodeURIComponent(fullPath)}`;
+      const apiUrl = `/api/books/${bookKey}/book.pdf`;
+      const coverUrl = coverFile ? `/api/books/cover/${bookKey}/${coverFile.Key.split('/').pop()}` : undefined;
+      
+      books.push({
+        title: title.charAt(0).toUpperCase() + title.slice(1),
+        filename: `${bookKey}/book.pdf`, // Para compatibilidad con el sistema existente
+        category,
+        coverUrl,
+        pdfUrl: apiUrl, // URL para obtener el PDF
+        viewerUrl, // URL del visor de libros
+        size: pdfFile.Size,
+        lastModified: pdfFile.LastModified,
+      });
+    }
 
-    return books;
+    return books.sort((a, b) => {
+      // Primero por categoría, luego por título
+      if (a.category !== b.category) {
+        return (a.category || '').localeCompare(b.category || '');
+      }
+      return a.title.localeCompare(b.title);
+    });
   } catch (error) {
     console.error('Error fetching books from MinIO:', error);
     return [];

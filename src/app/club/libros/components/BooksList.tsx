@@ -11,6 +11,8 @@ export default function BooksList() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('Todas');
+  const [categories, setCategories] = useState<string[]>([]);
   const { user, isAuthenticated, token } = useAuth();
   const pathname = usePathname();
 
@@ -38,6 +40,10 @@ export default function BooksList() {
       
       setBooks(booksData);
       setFilteredBooks(booksData);
+      
+      // Extraer categorías únicas
+      const uniqueCategories = Array.from(new Set(booksData.map((book: Book) => book.category || 'General'))) as string[];
+      setCategories(['Todas', ...uniqueCategories.sort()]);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error desconocido');
     } finally {
@@ -61,24 +67,31 @@ export default function BooksList() {
   };
 
   // Función para filtrar libros
-  const filterBooks = (books: Book[], searchTerm: string): Book[] => {
-    if (!searchTerm.trim()) {
-      return books;
-    }
-
-    const normalizedSearchTerm = normalizeText(searchTerm);
+  const filterBooks = (books: Book[], searchTerm: string, category: string): Book[] => {
+    let filtered = books;
     
-    return books.filter(book => {
-      const normalizedTitle = normalizeText(book.title);
-      return normalizedTitle.includes(normalizedSearchTerm);
-    });
+    // Filtrar por categoría
+    if (category !== 'Todas') {
+      filtered = filtered.filter(book => (book.category || 'General') === category);
+    }
+    
+    // Filtrar por término de búsqueda
+    if (searchTerm.trim()) {
+      const normalizedSearchTerm = normalizeText(searchTerm);
+      filtered = filtered.filter(book => {
+        const normalizedTitle = normalizeText(book.title);
+        return normalizedTitle.includes(normalizedSearchTerm);
+      });
+    }
+    
+    return filtered;
   };
 
-  // Efecto para filtrar libros cuando cambia el término de búsqueda
+  // Efecto para filtrar libros cuando cambia el término de búsqueda o categoría
   useEffect(() => {
-    const filtered = filterBooks(books, searchTerm);
+    const filtered = filterBooks(books, searchTerm, selectedCategory);
     setFilteredBooks(filtered);
-  }, [books, searchTerm]);
+  }, [books, searchTerm, selectedCategory]);
 
   // Eliminado el bloqueo - todos pueden ver la colección
 
@@ -129,6 +142,7 @@ export default function BooksList() {
     );
   }
 
+  // Si no hay libros filtrados y hay término de búsqueda, mostrar mensaje de no encontrados
   if (filteredBooks.length === 0 && searchTerm.trim()) {
     return (
       <div className="row">
@@ -138,19 +152,20 @@ export default function BooksList() {
             <div className="search-box" style={{ position: 'relative', maxWidth: '500px', margin: '0 auto' }}>
               <input
                 type="text"
-                placeholder="Buscar libros por título..."
+                placeholder="Buscar libros..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 style={{
                   width: '100%',
-                  padding: '12px 20px 12px 50px',
+                  padding: '14px 20px 14px 60px',
                   border: '2px solid #3a3b3f',
                   borderRadius: '25px',
                   backgroundColor: '#2d2e32',
                   color: '#ffffff',
                   fontSize: '16px',
                   outline: 'none',
-                  transition: 'border-color 0.3s ease'
+                  transition: 'border-color 0.3s ease',
+                  minHeight: '48px'
                 }}
                 className="search-input-placeholder-white"
                 onFocus={(e) => {
@@ -163,16 +178,50 @@ export default function BooksList() {
               <div 
                 style={{
                   position: 'absolute',
-                  left: '18px',
+                  left: '20px',
                   top: '50%',
                   transform: 'translateY(-50%)',
-                  color: '#a0a0a0'
+                  color: '#a0a0a0',
+                  pointerEvents: 'none'
                 }}
               >
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M21 21L16.514 16.506L21 21ZM19 10.5C19 15.194 15.194 19 10.5 19C5.806 19 2 15.194 2 10.5C2 5.806 5.806 2 10.5 2C15.194 2 19 5.806 19 10.5Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
               </div>
+              
+              {/* Botón de limpiar búsqueda */}
+              {searchTerm && (
+                <button
+                  onClick={() => setSearchTerm('')}
+                  style={{
+                    position: 'absolute',
+                    right: '20px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    background: 'none',
+                    border: 'none',
+                    color: '#a0a0a0',
+                    cursor: 'pointer',
+                    padding: '6px',
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    transition: 'color 0.3s ease'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.color = '#ffffff';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.color = '#a0a0a0';
+                  }}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </button>
+              )}
             </div>
           </div>
           
@@ -181,6 +230,108 @@ export default function BooksList() {
               <h4 className="alert-heading">No se encontraron libros</h4>
               <p>No hay libros que coincidan con tu búsqueda: <strong>"{searchTerm}"</strong></p>
               <p className="mb-0">Intenta con otros términos de búsqueda.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Si no hay libros filtrados y no hay término de búsqueda, mostrar mensaje de categoría vacía
+  if (filteredBooks.length === 0 && !searchTerm.trim()) {
+    return (
+      <div className="row">
+        <div className="col-12">
+          {/* Buscador */}
+          <div className="search-container mb-4">
+            <div className="search-box" style={{ position: 'relative', maxWidth: '500px', margin: '0 auto' }}>
+              <input
+                type="text"
+                placeholder="Buscar libros..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '14px 20px 14px 60px',
+                  border: '2px solid #3a3b3f',
+                  borderRadius: '25px',
+                  backgroundColor: '#2d2e32',
+                  color: '#ffffff',
+                  fontSize: '16px',
+                  outline: 'none',
+                  transition: 'border-color 0.3s ease',
+                  minHeight: '48px'
+                }}
+                className="search-input-placeholder-white"
+                onFocus={(e) => {
+                  e.target.style.borderColor = '#D0FF71';
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = '#3a3b3f';
+                }}
+              />
+              <div 
+                style={{
+                  position: 'absolute',
+                  left: '20px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  color: '#a0a0a0',
+                  pointerEvents: 'none'
+                }}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M21 21L16.514 16.506L21 21ZM19 10.5C19 15.194 15.194 19 10.5 19C5.806 19 2 15.194 2 10.5C2 5.806 5.806 2 10.5 2C15.194 2 19 5.806 19 10.5Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          {/* Filtros de categoría */}
+          <div className="mb-4" style={{ padding: '0 16px' }}>
+            <div className="d-flex flex-wrap gap-2 justify-content-center">
+              {categories.map((category) => (
+                <button
+                  key={category}
+                  onClick={() => setSelectedCategory(category)}
+                  style={{
+                    background: selectedCategory === category 
+                      ? 'linear-gradient(135deg, #D0FF71 0%, #a8d65a 100%)'
+                      : 'rgba(58, 59, 63, 0.5)',
+                    color: selectedCategory === category ? '#1a1b1e' : '#ffffff',
+                    border: '1px solid #3a3b3f',
+                    borderRadius: '20px',
+                    padding: '8px 16px',
+                    fontSize: '14px',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease',
+                    whiteSpace: 'nowrap'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (selectedCategory !== category) {
+                      e.currentTarget.style.background = 'rgba(208, 255, 113, 0.2)';
+                      e.currentTarget.style.borderColor = '#D0FF71';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (selectedCategory !== category) {
+                      e.currentTarget.style.background = 'rgba(58, 59, 63, 0.5)';
+                      e.currentTarget.style.borderColor = '#3a3b3f';
+                    }
+                  }}
+                >
+                  {category}
+                </button>
+              ))}
+            </div>
+          </div>
+          
+          <div className="text-center">
+            <div className="alert alert-info" role="alert">
+              <h4 className="alert-heading">Categoría vacía</h4>
+              <p>No hay libros disponibles en la categoría <strong>"{selectedCategory}"</strong>.</p>
+              <p className="mb-0">Prueba con otra categoría o busca en "Todas".</p>
             </div>
           </div>
         </div>
@@ -212,7 +363,7 @@ export default function BooksList() {
         /* Estilos mobile para la biblioteca */
         @media (max-width: 768px) {
           .book-card {
-            min-height: 180px !important;
+            min-height: 320px !important;
             padding: 12px !important;
           }
           
@@ -233,6 +384,24 @@ export default function BooksList() {
           .search-box input {
             font-size: 16px !important; /* Previene zoom en iOS */
             padding: 12px 20px 12px 45px !important;
+          }
+          
+          /* Estilos para portadas en mobile */
+          .book-cover {
+            height: 140px !important;
+            border-radius: 0 !important;
+          }
+        }
+        
+        /* Estilos para desktop */
+        @media (min-width: 769px) {
+          .book-cover {
+            height: 200px !important;
+            border-radius: 0 !important;
+          }
+          
+          .book-card {
+            min-height: 380px !important;
           }
         }
         
@@ -265,7 +434,7 @@ export default function BooksList() {
             onChange={(e) => setSearchTerm(e.target.value)}
             style={{
               width: '100%',
-              padding: '14px 20px 14px 50px',
+              padding: '14px 20px 14px 60px',
               border: '2px solid #3a3b3f',
               borderRadius: '25px',
               backgroundColor: '#2d2e32',
@@ -286,7 +455,7 @@ export default function BooksList() {
           <div 
             style={{
               position: 'absolute',
-              left: '18px',
+              left: '20px',
               top: '50%',
               transform: 'translateY(-50%)',
               color: '#a0a0a0',
@@ -304,14 +473,14 @@ export default function BooksList() {
               onClick={() => setSearchTerm('')}
               style={{
                 position: 'absolute',
-                right: '18px',
+                right: '20px',
                 top: '50%',
                 transform: 'translateY(-50%)',
                 background: 'none',
                 border: 'none',
                 color: '#a0a0a0',
                 cursor: 'pointer',
-                padding: '4px',
+                padding: '6px',
                 borderRadius: '50%',
                 display: 'flex',
                 alignItems: 'center',
@@ -333,8 +502,48 @@ export default function BooksList() {
         </div>
       </div>
 
+      {/* Filtros de categoría */}
+      <div className="mb-4" style={{ padding: '0 16px' }}>
+        <div className="d-flex flex-wrap gap-2 justify-content-center">
+          {categories.map((category) => (
+            <button
+              key={category}
+              onClick={() => setSelectedCategory(category)}
+              style={{
+                background: selectedCategory === category 
+                  ? 'linear-gradient(135deg, #D0FF71 0%, #a8d65a 100%)'
+                  : 'rgba(58, 59, 63, 0.5)',
+                color: selectedCategory === category ? '#1a1b1e' : '#ffffff',
+                border: '1px solid #3a3b3f',
+                borderRadius: '20px',
+                padding: '8px 16px',
+                fontSize: '14px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                whiteSpace: 'nowrap'
+              }}
+              onMouseEnter={(e) => {
+                if (selectedCategory !== category) {
+                  e.currentTarget.style.background = 'rgba(208, 255, 113, 0.2)';
+                  e.currentTarget.style.borderColor = '#D0FF71';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (selectedCategory !== category) {
+                  e.currentTarget.style.background = 'rgba(58, 59, 63, 0.5)';
+                  e.currentTarget.style.borderColor = '#3a3b3f';
+                }
+              }}
+            >
+              {category}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* Contador de resultados mobile-friendly */}
-      {searchTerm.trim() && (
+      {(searchTerm.trim() || selectedCategory !== 'Todas') && (
         <div className="text-center mb-3" style={{ padding: '0 16px' }}>
           <p style={{ 
             color: '#a0a0a0', 
@@ -351,6 +560,11 @@ export default function BooksList() {
                 para "{searchTerm}"
               </span>
             )}
+            {selectedCategory !== 'Todas' && (
+              <span style={{ display: 'block', fontSize: '12px', marginTop: '2px' }}>
+                en categoría "{selectedCategory}"
+              </span>
+            )}
           </p>
         </div>
       )}
@@ -360,7 +574,7 @@ export default function BooksList() {
         {filteredBooks.map((book, index) => (
           <div key={book.filename} className="col-12 col-md-6 col-lg-4 mb-4">
             <a 
-              href={`/club/libros/${book.filename}`}
+              href={book.viewerUrl || `/club/libros/ver?path=${encodeURIComponent(book.filename)}`}
               className="book-card"
               style={{
                 background: 'linear-gradient(135deg, #2d2e32 0%, #1a1b1e 100%)',
@@ -380,36 +594,68 @@ export default function BooksList() {
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.borderColor = '#D0FF71';
-                e.currentTarget.style.boxShadow = '0 4px 20px rgba(208, 255, 113, 0.2)';
-                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = '0 8px 25px rgba(208, 255, 113, 0.3)';
+                e.currentTarget.style.transform = 'translateY(-4px)';
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.borderColor = '#3a3b3f';
-                e.currentTarget.style.boxShadow = 'none';
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.3)';
                 e.currentTarget.style.transform = 'translateY(0)';
               }}
             >
-              {/* Header con icono y badge */}
-              <div style={{ 
-                display: 'flex', 
-                justifyContent: 'space-between', 
-                alignItems: 'flex-start',
-                marginBottom: '12px'
-              }}>
-                {/* PDF Icon */}
-                <div style={{
-                  flexShrink: 0,
-                  width: '40px',
-                  height: '40px',
+              {/* Portada del libro */}
+              <div 
+                className="book-cover"
+                style={{
+                  width: '100%',
+                  height: '180px',
+                  marginBottom: '16px',
+                  borderRadius: '0',
+                  overflow: 'hidden',
+                  position: 'relative',
+                  background: 'transparent',
                   display: 'flex',
                   alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+              >
+                {book.coverUrl ? (
+                  <img
+                    src={book.coverUrl}
+                    alt={book.title}
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'contain',
+                      objectPosition: 'center',
+                      transition: 'transform 0.3s ease'
+                    }}
+                    onError={(e) => {
+                      // Si la imagen falla, mostrar icono por defecto
+                      e.currentTarget.style.display = 'none';
+                      e.currentTarget.nextElementSibling?.setAttribute('style', 'display: flex');
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'scale(1.05)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'scale(1)';
+                    }}
+                  />
+                ) : null}
+                
+                {/* Icono por defecto cuando no hay portada */}
+                <div style={{
+                  display: book.coverUrl ? 'none' : 'flex',
+                  alignItems: 'center',
                   justifyContent: 'center',
-                  background: 'rgba(208, 255, 113, 0.1)',
-                  borderRadius: '8px'
+                  width: '100%',
+                  height: '100%',
+                  background: 'rgba(208, 255, 113, 0.1)'
                 }}>
                   <svg 
-                    width="24" 
-                    height="24" 
+                    width="48" 
+                    height="48" 
                     viewBox="0 0 24 24" 
                     fill="none" 
                     xmlns="http://www.w3.org/2000/svg"
@@ -438,32 +684,26 @@ export default function BooksList() {
                     />
                   </svg>
                 </div>
+              </div>
 
-                {/* Badge a la derecha */}
-                {isAuthenticated && (
-                  <span 
-                    className="badge"
-                    style={{
-                      background: (book.progress?.progress ?? 0) > 98
-                        ? 'linear-gradient(135deg, #4CAF50 0%, #45a049 100%)'
-                        : (book.progress?.progress ?? 0) > 0
-                        ? 'linear-gradient(135deg, #FFA500 0%, #FF8C00 100%)'
-                        : 'linear-gradient(135deg, #D0FF71 0%, #a8d65a 100%)',
-                      color: '#1a1b1e',
-                      padding: '6px 12px',
-                      borderRadius: '16px',
-                      fontSize: '11px',
-                      fontWeight: '700',
-                      whiteSpace: 'nowrap'
-                    }}
-                  >
-                    {(book.progress?.progress ?? 0) > 98
-                      ? '✅ Leído' 
-                      : (book.progress?.progress ?? 0) > 0
-                      ? '📖 Continuar'
-                      : '📚 Leer'}
-                  </span>
-                )}
+              {/* Header con categoría */}
+              <div style={{ 
+                display: 'flex', 
+                justifyContent: 'flex-start', 
+                alignItems: 'flex-start',
+                marginBottom: '8px'
+              }}>
+                {/* Categoría */}
+                <span style={{
+                  background: 'rgba(208, 255, 113, 0.2)',
+                  color: '#D0FF71',
+                  padding: '4px 8px',
+                  borderRadius: '12px',
+                  fontSize: '11px',
+                  fontWeight: '600'
+                }}>
+                  {book.category || 'General'}
+                </span>
               </div>
 
               {/* Título del libro */}
@@ -497,54 +737,7 @@ export default function BooksList() {
                     📄 {(book.size / 1024 / 1024).toFixed(1)} MB
                   </div>
                 )}
-                
-                {/* Progress info - Solo si está logueado y hay progreso */}
-                {isAuthenticated && book.progress && book.progress.progress > 0 && (
-                  <div style={{ 
-                    color: '#D0FF71', 
-                    fontSize: '12px',
-                    fontWeight: '600',
-                    marginBottom: '8px'
-                  }}>
-                    {book.progress.progress > 98 
-                      ? '✅ Completado' 
-                      : `${Math.round(book.progress.progress)}% leído`}
-                  </div>
-                )}
               </div>
-
-              {/* Barra de progreso - Solo si hay progreso */}
-              {isAuthenticated && book.progress && book.progress.progress > 0 && (
-                <div 
-                  style={{
-                    background: '#3a3b3f',
-                    borderRadius: '8px',
-                    height: '4px',
-                    overflow: 'hidden',
-                    marginBottom: '8px'
-                  }}
-                >
-                  <div 
-                    style={{
-                      background: 'linear-gradient(135deg, #D0FF71 0%, #a8d65a 100%)',
-                      height: '100%',
-                      width: `${Math.min(100, book.progress.progress)}%`,
-                      transition: 'width 0.3s ease'
-                    }}
-                  />
-                </div>
-              )}
-
-              {/* Información de páginas - Solo si hay progreso */}
-              {isAuthenticated && book.progress && book.progress.currentPage && book.progress.totalPages && (
-                <div style={{ 
-                  color: '#a0a0a0', 
-                  fontSize: '11px',
-                  textAlign: 'center'
-                }}>
-                  Página {book.progress.currentPage} de {book.progress.totalPages}
-                </div>
-              )}
             </a>
           </div>
         ))}

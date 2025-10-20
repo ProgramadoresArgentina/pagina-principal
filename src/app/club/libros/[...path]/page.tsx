@@ -6,7 +6,7 @@ import BookViewer from "./components/BookViewer";
 
 interface BookPageProps {
   params: {
-    filename: string;
+    path: string[];
   };
 }
 
@@ -14,9 +14,13 @@ export async function generateStaticParams() {
   try {
     const { getBooks } = await import('@/lib/books');
     const books = await getBooks();
-    return books.map((book) => ({
-      filename: book.filename,
-    }));
+    return books.map((book) => {
+      // Remover book.pdf del filename para obtener solo categoria/libro
+      const pathWithoutPdf = book.filename.replace('/book.pdf', '');
+      return {
+        path: pathWithoutPdf.split('/'),
+      };
+    });
   } catch (error) {
     console.error('Error generating static params for books:', error);
     return [];
@@ -24,7 +28,9 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: BookPageProps): Promise<Metadata> {
-  const book = await getBook(params.filename);
+  const bookKey = params.path.join('/');
+  const filename = `${bookKey}/book.pdf`;
+  const book = await getBook(filename);
 
   if (!book) {
     return {
@@ -49,12 +55,12 @@ export async function generateMetadata({ params }: BookPageProps): Promise<Metad
     publisher: "Programadores Argentina",
     metadataBase: new URL("https://programadoresargentina.com"),
     alternates: {
-      canonical: `/club/libros/${params.filename}`,
+      canonical: `/club/libros/${filename}`,
     },
     openGraph: {
       title: `${book.title} | Club Programadores Argentina`,
       description: `Lee ${book.title} en la biblioteca exclusiva del Club Programadores Argentina.`,
-      url: `https://programadoresargentina.com/club/libros/${params.filename}`,
+      url: `https://programadoresargentina.com/club/libros/${filename}`,
       siteName: "Programadores Argentina",
       images: [
         {
@@ -82,7 +88,17 @@ export async function generateMetadata({ params }: BookPageProps): Promise<Metad
 }
 
 export default async function BookPage({ params }: BookPageProps): Promise<JSX.Element> {
-  const book = await getBook(params.filename);
+  // Construir el filename agregando book.pdf al final
+  const bookKey = params.path.join('/');
+  const filename = `${bookKey}/book.pdf`;
+  
+  console.log('📚 Book viewer page:', {
+    rawPath: params.path,
+    bookKey,
+    filename
+  });
+  
+  const book = await getBook(filename);
 
   if (!book) {
     notFound();
@@ -94,3 +110,4 @@ export default async function BookPage({ params }: BookPageProps): Promise<JSX.E
     </>
   );
 }
+

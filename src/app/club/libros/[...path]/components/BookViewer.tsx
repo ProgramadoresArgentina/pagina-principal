@@ -419,3 +419,4 @@ export default function BookViewer({ book }: BookViewerProps) {
     </div>
   );
 }
+

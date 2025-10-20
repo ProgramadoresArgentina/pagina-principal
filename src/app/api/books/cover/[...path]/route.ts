@@ -4,8 +4,6 @@ import { Readable } from 'node:stream';
 
 export const runtime = 'nodejs';
 
-const BOOKS_BUCKET_NAME = 'libros';
-
 // Configuración de MinIO (compatible con S3)
 const s3Client = new S3Client({
   region: process.env.MINIO_REGION || 'us-east-1',
@@ -17,51 +15,63 @@ const s3Client = new S3Client({
   },
 });
 
+const BOOKS_BUCKET_NAME = 'libros';
+
 export async function GET(
   request: NextRequest,
-  { params }: { params: { filename: string } }
+  { params }: { params: { path: string[] } }
 ) {
   try {
-    const { filename } = params;
-    const range = request.headers.get('range') || undefined;
+    // Decodificar la URL para manejar caracteres especiales
+    const imagePath = decodeURIComponent(params.path.join('/'));
+    
+    console.log('🖼️ Serving cover:', imagePath);
+    
+    // Validar que sea una imagen
+    const imageExtensions = ['.webp', '.png', '.jpg', '.jpeg'];
+    const isImage = imageExtensions.some(ext => imagePath.toLowerCase().endsWith(ext));
+    
+    if (!isImage) {
+      return NextResponse.json(
+        { error: 'Archivo no es una imagen válida' },
+        { status: 400 }
+      );
+    }
 
     const command = new GetObjectCommand({
       Bucket: BOOKS_BUCKET_NAME,
-      Key: filename,
-      Range: range,
+      Key: imagePath,
     });
 
     const s3Response = await s3Client.send(command);
-
     const nodeReadable = s3Response.Body as unknown as Readable;
     const webStream = Readable.toWeb(nodeReadable);
 
+    // Determinar content type basado en la extensión
+    let contentType = 'image/jpeg';
+    if (imagePath.toLowerCase().endsWith('.webp')) {
+      contentType = 'image/webp';
+    } else if (imagePath.toLowerCase().endsWith('.png')) {
+      contentType = 'image/png';
+    }
+
     const headers = new Headers();
-    headers.set('Content-Type', s3Response.ContentType || 'application/pdf');
+    headers.set('Content-Type', contentType);
+    headers.set('Cache-Control', 'public, max-age=31536000'); // Cache por 1 año
     headers.set('Accept-Ranges', 'bytes');
-    headers.set('Cache-Control', 'no-store, must-revalidate');
 
     if (typeof s3Response.ContentLength === 'number') {
       headers.set('Content-Length', String(s3Response.ContentLength));
     }
 
-    if (range && s3Response.ContentRange) {
-      headers.set('Content-Range', s3Response.ContentRange);
-      return new NextResponse(webStream as unknown as BodyInit, {
-        status: 206,
-        headers,
-      });
-    }
-
-    headers.set('Content-Disposition', `inline; filename="${filename}"`);
     return new NextResponse(webStream as unknown as BodyInit, {
       status: 200,
       headers,
     });
   } catch (error) {
-    console.error('Error serving book PDF:', error);
+    console.error('Error serving book cover:', error);
     return NextResponse.json(
-      { error: 'Libro no encontrado' },
+      { error: 'Imagen no encontrada' },
       { status: 404 }
     );
   }
