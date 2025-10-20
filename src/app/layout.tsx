@@ -54,10 +54,116 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
           <div id="ball"></div>
         </div>
         <div id="preloader">
-          <div className="preloader">
-            <span></span>
-            <span></span>
+          <div className="ssh-preloader" role="status" aria-live="polite">
+            <div className="ssh-terminal" aria-label="Conectando por SSH">
+              <div className="ssh-terminal__bar">
+                <span className="dot dot--red" />
+                <span className="dot dot--yellow" />
+                <span className="dot dot--green" />
+                <span className="ssh-title">ssh usuario@programadoresargentina</span>
+              </div>
+              <div className="ssh-terminal__body">
+                <div className="line" style={{animationDelay:'0.05s'}}>$ ssh usuario@server</div>
+                <div className="line" style={{animationDelay:'0.35s'}}>Connecting to 147.93.13.112:22 ...</div>
+                <div className="line" style={{animationDelay:'0.75s'}}>Authenticating with public key ...</div>
+                <div className="line" style={{animationDelay:'1.15s'}}>Login successful.</div>
+                <div className="line" style={{animationDelay:'1.55s'}}>Starting UI services ...</div>
+                <div className="line" style={{animationDelay:'1.95s'}}>Loading assets [####_______] 35%</div>
+                <div className="line" style={{animationDelay:'2.35s'}}>Loading assets [##########__] 85%</div>
+                <div className="line" style={{animationDelay:'2.75s'}}>Launching interface ...</div>
+                <div className="cursor" />
+              </div>
+            </div>
           </div>
+          <style>{`
+            /* SSH Preloader - estilos embebidos y responsivos */
+            #preloader {
+              position: fixed;
+              inset: 0;
+              z-index: 99999;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              padding: 16px;
+              background: radial-gradient(1200px 600px at 20% 0%, #0d1117 0%, #0b0f14 40%, #0a0d12 100%);
+            }
+
+            .ssh-preloader { width: 100%; display: flex; align-items: center; justify-content: center; }
+
+            .ssh-terminal {
+              width: min(92vw, 760px);
+              border-radius: 12px;
+              overflow: hidden;
+              background: rgba(8, 12, 16, 0.85);
+              border: 1px solid rgba(208, 255, 113, 0.18);
+              box-shadow: 0 10px 40px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.03);
+              backdrop-filter: blur(6px);
+            }
+
+            .ssh-terminal__bar {
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              padding: 10px 12px;
+              background: linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%);
+              border-bottom: 1px solid rgba(255,255,255,0.08);
+            }
+
+            .dot { width: 10px; height: 10px; border-radius: 999px; display: inline-block; }
+            .dot--red { background: #ff5f56; }
+            .dot--yellow { background: #ffbd2e; }
+            .dot--green { background: #27c93f; }
+
+            .ssh-title { color: rgba(255,255,255,0.55); font-size: 12px; margin-left: 6px; user-select: none; }
+
+            .ssh-terminal__body {
+              padding: 14px 16px 18px 16px;
+              color: #D0FF71;
+              font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+              line-height: 1.65;
+              font-size: clamp(12px, 3.5vw, 14px);
+              min-height: 180px;
+            }
+
+            .line { opacity: 0; transform: translateY(4px); white-space: nowrap; overflow: hidden; }
+            .line { animation: fadeInUp 0.45s ease forwards; }
+
+            @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
+
+            .cursor {
+              width: 10px; height: 16px; margin-top: 8px;
+              background: #D0FF71; display: inline-block;
+              animation: blink 1s steps(1, end) infinite;
+            }
+
+            @keyframes blink { 50% { opacity: 0; } }
+
+            /* Efecto sutil de grilla de terminal */
+            #preloader::before {
+              content: '';
+              position: absolute; inset: 0; pointer-events: none;
+              background-image:
+                linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+              background-size: 18px 18px, 18px 18px;
+              mask-image: radial-gradient(circle at 50% 50%, rgba(0,0,0,0.6), transparent 70%);
+            }
+
+            /* Mobile tweaks */
+            @media (max-width: 480px) {
+              .ssh-terminal { border-radius: 10px; }
+              .ssh-terminal__bar { padding: 8px 10px; gap: 6px; }
+              .ssh-title { font-size: 11px; }
+              .ssh-terminal__body { padding: 12px; font-size: 12px; }
+              .cursor { width: 8px; height: 14px; }
+            }
+
+            /* Accesibilidad: reducir movimiento */
+            @media (prefers-reduced-motion: reduce) {
+              .line { animation: none; opacity: 1; transform: none; }
+              .cursor { animation: none; }
+            }
+          `}</style>
         </div>
         <div className="back-to-top-wrapper">
           <button id="back_to_top" type="button" className="back-to-top-btn">

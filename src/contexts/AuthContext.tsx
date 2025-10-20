@@ -20,6 +20,7 @@ export interface AuthUser {
     }[]
   }
   isSubscribed: boolean
+  createdAt?: string | Date
 }
 
 interface AuthContextType {

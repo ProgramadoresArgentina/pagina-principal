@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getBooks, validateBooksBucket, getBooksWithProgress } from '@/lib/books';
 import { verifyToken } from '@/lib/auth';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   try {
     // Validar que el bucket existe

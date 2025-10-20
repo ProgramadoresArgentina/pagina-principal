@@ -22,6 +22,7 @@ export interface AuthUser {
     }[]
   }
   isSubscribed: boolean
+  createdAt?: string | Date
 }
 
 export interface JWTPayload {
@@ -88,6 +89,7 @@ export async function getAuthenticatedUser(token: string): Promise<AuthUser | nu
       permissions: user.role.permissions,
     },
     isSubscribed: user.isSubscribed,
+    createdAt: user.createdAt,
   }
 }
 

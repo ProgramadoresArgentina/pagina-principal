@@ -26,6 +26,27 @@ export default function MiCuentaPage() {
     router.push('/')
   }
 
+  // Calcular meses de suscripción desde createdAt
+  const getSubscriptionMonths = () => {
+    if (!user?.createdAt) {
+      return 0
+    }
+    
+    const createdDate = new Date(user.createdAt)
+    const now = new Date()
+    
+    const yearsDiff = now.getFullYear() - createdDate.getFullYear()
+    const monthsDiff = now.getMonth() - createdDate.getMonth()
+    const totalMonths = yearsDiff * 12 + monthsDiff
+    
+    // Si fue creado este mes, cuenta como 1 mes
+    const months = totalMonths === 0 ? 1 : totalMonths
+    
+    return Math.max(1, months) // Mínimo 1 mes
+  }
+
+  const subscriptionMonths = getSubscriptionMonths()
+
   return (
     <>
       <Header />
@@ -39,7 +60,9 @@ export default function MiCuentaPage() {
                     <div>
                       <h3 className="tp-login-title" style={{ color: '#ffffff' }}>Mi Cuenta</h3>
                       {user?.isSubscribed ? (
-                        <p className="mt-10" style={{ color: '#D0FF71' }}>✨ Miembro del Club</p>
+                        <p className="mt-10" style={{ color: '#D0FF71' }}>
+                          ✨ Miembro del Club · {subscriptionMonths} {subscriptionMonths === 1 ? 'mes' : 'meses'}
+                        </p>
                       ) : (
                         <p className="mt-10" style={{ color: '#a0a0a0' }}>
                           Usuario sin suscripción — <a href="/club" style={{ color: '#D0FF71', textDecoration: 'underline' }}>Unite al Club</a>
@@ -67,7 +90,7 @@ export default function MiCuentaPage() {
                           e.currentTarget.style.transform = 'scale(1)';
                         }}
                       >
-                        🚪 Cerrar sesión
+                      Cerrar sesión
                       </button>
                     </div>
                   </div>
@@ -217,7 +240,7 @@ export default function MiCuentaPage() {
                                     Miembro activo del Club
                                   </p>
                                   <p className="mb-0" style={{ color: '#a0a0a0', fontSize: '13px' }}>
-                                    Tienes acceso completo a todos los beneficios
+                                    {subscriptionMonths} {subscriptionMonths === 1 ? 'mes' : 'meses'} suscrito · Acceso completo a todos los beneficios
                                   </p>
                                 </div>
                               </div>
@@ -301,10 +324,16 @@ function OfertasLaboralesForm({ token }: { token: string | null }) {
   const [technologies, setTechnologies] = useState<string[]>([])
   const [seniority, setSeniority] = useState<string>('')
   const [provinces, setProvinces] = useState<string[]>([])
-  const [phone, setPhone] = useState('')
   const [isSyncing, setIsSyncing] = useState(false)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const [successMsg, setSuccessMsg] = useState<string | null>(null)
+  
+  // Modal para enlazar WhatsApp
+  const [showLinkModal, setShowLinkModal] = useState(false)
+  const [modalPhone, setModalPhone] = useState('')
+  const [isLinking, setIsLinking] = useState(false)
+  const [modalError, setModalError] = useState<string | null>(null)
+  const [modalSuccess, setModalSuccess] = useState<string | null>(null)
 
   const techsByCategory = useMemo(
     () => ({
@@ -378,7 +407,6 @@ function OfertasLaboralesForm({ token }: { token: string | null }) {
           setTechnologies(data.technologies || [])
           setSeniority(data.seniority || '')
           setProvinces(data.provinces || [])
-          setPhone(data.phone || '')
         }
       } catch {}
     }
@@ -389,7 +417,133 @@ function OfertasLaboralesForm({ token }: { token: string | null }) {
     // Validación internacional (E.164) usando libphonenumber-js
     try { return isValidPhoneNumber(value) } catch { return false }
   }
-  const isPhoneValid = formatOk(phone)
+
+  const handleToggleNotifications = async (checked: boolean) => {
+    if (checked) {
+      // Si intenta activar notificaciones, verificar si tiene LID
+      if (!(user as any)?.lid) {
+        // Abrir modal para enlazar WhatsApp
+        setShowLinkModal(true)
+        setModalPhone('')
+        setModalError(null)
+        setModalSuccess(null)
+      } else {
+        // Ya tiene LID, activar notificaciones automáticamente
+        setReceive(true)
+        await saveNotificationState(true)
+      }
+    } else {
+      // Desactivar notificaciones automáticamente
+      setReceive(false)
+      await saveNotificationState(false)
+    }
+  }
+
+  const saveNotificationState = async (receiveNotifications: boolean) => {
+    if (!token) return
+
+    try {
+      setIsSyncing(true)
+      const res = await fetch('/api/me/job-preferences', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          receive: receiveNotifications,
+          technologies,
+          seniority: seniority || null,
+          provinces,
+        }),
+      })
+      
+      if (!res.ok) {
+        setErrorMsg('No se pudo actualizar el estado de notificaciones')
+        return
+      }
+      
+      // Si desactivó las notificaciones, recargar para mostrar que se desenlazó WhatsApp
+      if (!receiveNotifications) {
+        setTimeout(() => {
+          window.location.reload()
+        }, 500)
+      }
+    } catch (e) {
+      setErrorMsg('Error de red al actualizar notificaciones')
+    } finally {
+      setIsSyncing(false)
+    }
+  }
+
+  const handleLinkWhatsApp = async () => {
+    setModalError(null)
+    setModalSuccess(null)
+
+    if (!token) {
+      setModalError('Sesión inválida. Iniciá sesión nuevamente.')
+      return
+    }
+
+    if (!formatOk(modalPhone)) {
+      setModalError('Ingresá tu WhatsApp con el formato +54 9 3764 68-6662')
+      return
+    }
+
+    try {
+      setIsLinking(true)
+      
+      // 1. Enlazar WhatsApp
+      const resLink = await fetch('/api/me/link-whatsapp', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          phoneFormatted: modalPhone,
+        }),
+      })
+      const dataLink = await resLink.json()
+      
+      if (!resLink.ok) {
+        setModalError(dataLink?.error || 'No se pudo enlazar WhatsApp')
+        return
+      }
+      
+      // 2. Activar notificaciones automáticamente
+      const resPref = await fetch('/api/me/job-preferences', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          receive: true,
+          technologies,
+          seniority: seniority || null,
+          provinces,
+        }),
+      })
+      
+      if (!resPref.ok) {
+        setModalError('WhatsApp enlazado pero no se pudieron activar las notificaciones. Intentá guardar manualmente.')
+        return
+      }
+      
+      // Éxito: mostrar mensaje
+      setModalSuccess('✅ WhatsApp enlazado y notificaciones activadas')
+      
+      // Esperar 1.5 segundos para que el usuario vea el mensaje y recargar
+      setTimeout(() => {
+        window.location.reload()
+      }, 1500)
+    } catch (e) {
+      setModalError('Error de red al enlazar WhatsApp')
+    } finally {
+      setIsLinking(false)
+    }
+  }
 
   const save = async () => {
     setErrorMsg(null)
@@ -398,14 +552,11 @@ function OfertasLaboralesForm({ token }: { token: string | null }) {
       setErrorMsg('Sesión inválida. Iniciá sesión nuevamente.')
       return
     }
-    if (receive && !formatOk(phone)) {
-      setErrorMsg('Ingresá tu WhatsApp con el formato +54 9 3764 68-6662')
-      return
-    }
     if (receive && technologies.length === 0) {
       setErrorMsg('Seleccioná al menos una tecnología para recibir notificaciones')
       return
     }
+    
     try {
       setIsSyncing(true)
       const res = await fetch('/api/me/job-preferences', {
@@ -416,7 +567,6 @@ function OfertasLaboralesForm({ token }: { token: string | null }) {
         },
         body: JSON.stringify({
           receive,
-          phoneFormatted: receive ? phone : undefined,
           technologies,
           seniority: seniority || null,
           provinces,
@@ -438,95 +588,11 @@ function OfertasLaboralesForm({ token }: { token: string | null }) {
   return (
     <div style={{ background: '#1a1b1e', border: '1px solid #3a3b3f', borderRadius: '12px', padding: '24px' }}>
       <h5 className="mb-4" style={{ color: '#D0FF71' }}>
-        💼 Configuración de Ofertas Laborales
+        Configuración de Ofertas Laborales
       </h5>
       
-      {/* LID (WhatsApp) */}
-      <div className="mb-4" style={{ 
-        background: 'rgba(208, 255, 113, 0.05)', 
-        border: '1px solid rgba(208, 255, 113, 0.2)',
-        borderRadius: '8px',
-        padding: '16px'
-      }}>
-        <label className="form-label" style={{ color: '#D0FF71', fontSize: '14px', fontWeight: '600' }}>
-          📱 Tu LID de WhatsApp
-        </label>
-        <input 
-          className="form-control" 
-          value={(user as any)?.lid ?? ''} 
-          disabled 
-          style={{
-            background: '#2d2e32',
-            border: '1px solid #3a3b3f',
-            color: '#ffffff',
-            padding: '12px'
-          }}
-        />
-        <small className="text-muted d-block mt-2">
-          Este es tu identificador para recibir ofertas en el grupo de WhatsApp
-        </small>
-      </div>
-
-      {!receive && (
-        <div className="mb-4">
-          <label className="form-label" style={{ color: '#a0a0a0', fontSize: '13px' }}>
-            Tu número de WhatsApp
-          </label>
-          <style jsx>{`
-            :global(.react-international-phone-input-container) {
-              display: flex !important;
-              align-items: center !important;
-              background: #2d2e32 !important;
-              border: 1px solid #3a3b3f !important;
-              border-radius: 4px !important;
-              padding: 0 !important;
-            }
-            :global(.react-international-phone-country-selector-button) {
-              background: #2d2e32 !important;
-              border: none !important;
-              border-right: 1px solid #3a3b3f !important;
-              padding: 12px 8px !important;
-              height: 100% !important;
-              display: flex !important;
-              align-items: center !important;
-            }
-            :global(.react-international-phone-country-selector-button__button-content) {
-              display: flex !important;
-              align-items: center !important;
-              gap: 4px !important;
-            }
-            :global(.react-international-phone-country-selector-button__flag-emoji) {
-              font-size: 20px !important;
-              line-height: 1 !important;
-            }
-            :global(.react-international-phone-input) {
-              background: #2d2e32 !important;
-              border: none !important;
-              color: #ffffff !important;
-              padding: 12px !important;
-              flex: 1 !important;
-            }
-            :global(.react-international-phone-input::placeholder) {
-              color: #6c757d !important;
-            }
-          `}</style>
-        <PhoneInput
-          defaultCountry="ar"
-          value={phone}
-          onChange={(val) => setPhone(val)}
-          placeholder="Ingresa tu número (ej. +54 9 3764 68-6662)"
-        />
-          <small className="text-muted d-block mt-2">Incluí el código de país. Ej: +1, +34, +54, etc.</small>
-        {!isPhoneValid && phone && (
-            <div className="text-danger mt-2" role="alert">
-              ⚠️ Número inválido. Revisá el código de país y formato.
-            </div>
-        )}
-      </div>
-      )}
-
-      {/* Mostrar número actual cuando las notificaciones están activadas */}
-      {receive && phone && (
+      {/* LID (WhatsApp) - Solo mostrar si tiene LID */}
+      {(user as any)?.lid && (
         <div className="mb-4" style={{ 
           background: 'rgba(208, 255, 113, 0.05)', 
           border: '1px solid rgba(208, 255, 113, 0.2)',
@@ -534,22 +600,11 @@ function OfertasLaboralesForm({ token }: { token: string | null }) {
           padding: '16px'
         }}>
           <label className="form-label" style={{ color: '#D0FF71', fontSize: '14px', fontWeight: '600' }}>
-            📱 Número de WhatsApp registrado
+            ✅ WhatsApp Enlazado
           </label>
-          <input 
-            className="form-control" 
-            value={phone} 
-            disabled 
-            style={{
-              background: '#2d2e32',
-              border: '1px solid #3a3b3f',
-              color: '#ffffff',
-              padding: '12px'
-            }}
-          />
-          <small className="text-muted d-block mt-2">
-            Para cambiar el número, desactiva las notificaciones primero
-          </small>
+          <p className="text-muted mb-0" style={{ fontSize: '13px' }}>
+            Tu número de WhatsApp está enlazado correctamente.
+          </p>
         </div>
       )}
 
@@ -564,15 +619,7 @@ function OfertasLaboralesForm({ token }: { token: string | null }) {
           className="form-check-input"
           type="checkbox"
           checked={receive}
-          onChange={e => {
-            const next = e.target.checked
-            if (next && !isPhoneValid) {
-                setErrorMsg('⚠️ Primero ingresá tu número de WhatsApp arriba para activar las notificaciones')
-              return
-            }
-            setReceive(next)
-              setErrorMsg(null)
-          }}
+          onChange={e => handleToggleNotifications(e.target.checked)}
           id="switch-notif"
             style={{ 
               width: '48px',
@@ -586,29 +633,10 @@ function OfertasLaboralesForm({ token }: { token: string | null }) {
           </label>
         </div>
         
-        {/* Mensaje de error justo debajo del switch */}
-        {!isPhoneValid && receive === false && errorMsg && errorMsg.includes('WhatsApp arriba') && (
-          <div 
-            className="mt-3" 
-            style={{ 
-              background: 'rgba(220, 53, 69, 0.1)',
-              border: '1px solid rgba(220, 53, 69, 0.3)',
-              borderRadius: '8px',
-              padding: '12px',
-              color: '#dc3545',
-              fontSize: '13px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px'
-            }}
-          >
-            <span style={{ fontSize: '18px' }}>⚠️</span>
-            <span>Primero ingresá tu número de WhatsApp arriba para activar las notificaciones</span>
-          </div>
-        )}
-        
         <p className="text-muted mt-2 mb-0" style={{ fontSize: '13px', paddingLeft: '58px' }}>
-          Necesitás estar en el grupo de WhatsApp de Ofertas Laborales
+          {(user as any)?.lid 
+            ? 'Necesitás estar en el grupo de WhatsApp de Ofertas Laborales' 
+            : 'Primero enlazá tu WhatsApp para recibir notificaciones'}
         </p>
       </div>
 
@@ -674,13 +702,13 @@ function OfertasLaboralesForm({ token }: { token: string | null }) {
         {/* Tecnologías filtradas */}
         <div className="d-flex flex-wrap gap-2">
           {(activeCategory === 'Todos' 
-            ? Object.values(techsByCategory).flat()
+            ? Array.from(new Set(Object.values(techsByCategory).flat())) // Eliminar duplicados
             : techsByCategory[activeCategory as keyof typeof techsByCategory] || []
-          ).map(t => {
+          ).map((t, idx) => {
             const selected = technologies.includes(t)
             return (
               <span
-                key={t}
+                key={`${activeCategory}-${t}-${idx}`}
                 role="button"
                 onClick={() => setTechnologies(prev => (selected ? prev.filter(x => x !== t) : [...prev, t]))}
                 style={{
@@ -739,7 +767,7 @@ function OfertasLaboralesForm({ token }: { token: string | null }) {
 
       <div className="mb-4">
         <label className="form-label" style={{ color: '#a0a0a0', fontSize: '13px', marginBottom: '12px' }}>
-          📍 Provincias (opcional, incluye CABA)
+          📍 Provincias (opcional, si no agregas ninguna no tendrá filtros y tomará tambien remoto)
         </label>
         <div className="d-flex flex-wrap gap-2">
           {provincias.map(p => {
@@ -809,6 +837,179 @@ function OfertasLaboralesForm({ token }: { token: string | null }) {
       >
         {isSyncing ? '⏳ Guardando...' : '💾 Guardar preferencias'}
       </button>
+
+      {/* Modal para enlazar WhatsApp */}
+      {showLinkModal && (
+        <div 
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.75)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999,
+            padding: '20px'
+          }}
+          onClick={() => {
+            if (!isLinking && !modalSuccess) {
+              setShowLinkModal(false)
+            }
+          }}
+        >
+          <div 
+            style={{
+              background: '#1a1b1e',
+              border: '2px solid #D0FF71',
+              borderRadius: '16px',
+              padding: '32px',
+              maxWidth: '500px',
+              width: '100%',
+              boxShadow: '0 10px 40px rgba(0, 0, 0, 0.5)'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h4 style={{ color: '#D0FF71', marginBottom: '16px', fontSize: '20px', fontWeight: '700' }}>
+              📱 Enlazar WhatsApp
+            </h4>
+            
+            <p style={{ color: '#a0a0a0', fontSize: '14px', marginBottom: '20px', lineHeight: '1.6' }}>
+              Para recibir notificaciones de ofertas laborales, necesitamos enlazar tu número de WhatsApp con tu cuenta.
+            </p>
+
+            <div style={{ marginBottom: '20px' }}>
+              <label className="form-label" style={{ color: '#ffffff', fontSize: '14px', marginBottom: '8px', display: 'block' }}>
+                Número de WhatsApp
+              </label>
+              <style jsx>{`
+                :global(.react-international-phone-input-container) {
+                  display: flex !important;
+                  align-items: center !important;
+                  background: #2d2e32 !important;
+                  border: 1px solid #3a3b3f !important;
+                  border-radius: 4px !important;
+                  padding: 0 !important;
+                }
+                :global(.react-international-phone-country-selector-button) {
+                  background: #2d2e32 !important;
+                  border: none !important;
+                  border-right: 1px solid #3a3b3f !important;
+                  padding: 12px 8px !important;
+                  height: 100% !important;
+                  display: flex !important;
+                  align-items: center !important;
+                }
+                :global(.react-international-phone-country-selector-button__button-content) {
+                  display: flex !important;
+                  align-items: center !important;
+                  gap: 4px !important;
+                }
+                :global(.react-international-phone-country-selector-button__flag-emoji) {
+                  font-size: 20px !important;
+                  line-height: 1 !important;
+                }
+                :global(.react-international-phone-input) {
+                  background: #2d2e32 !important;
+                  border: none !important;
+                  color: #ffffff !important;
+                  padding: 12px !important;
+                  flex: 1 !important;
+                }
+                :global(.react-international-phone-input::placeholder) {
+                  color: #6c757d !important;
+                }
+              `}</style>
+              <PhoneInput
+                defaultCountry="ar"
+                value={modalPhone}
+                onChange={(val) => setModalPhone(val)}
+                placeholder="Ej: +54 9 3764 68-6662"
+                disabled={isLinking || !!modalSuccess}
+              />
+              <small className="text-muted d-block mt-2" style={{ fontSize: '12px' }}>
+                Incluí el código de país. Ej: +54, +1, +34, etc.
+              </small>
+            </div>
+
+            {modalError && (
+              <div 
+                style={{ 
+                  background: 'rgba(220, 53, 69, 0.1)',
+                  border: '1px solid rgba(220, 53, 69, 0.3)',
+                  borderRadius: '8px',
+                  padding: '12px',
+                  color: '#dc3545',
+                  fontSize: '13px',
+                  marginBottom: '16px',
+                  whiteSpace: 'pre-line',
+                  lineHeight: '1.6'
+                }}
+              >
+                {modalError}
+              </div>
+            )}
+
+            {modalSuccess && (
+              <div 
+                style={{ 
+                  background: 'rgba(40, 167, 69, 0.1)',
+                  border: '1px solid rgba(40, 167, 69, 0.3)',
+                  borderRadius: '8px',
+                  padding: '12px',
+                  color: '#28a745',
+                  fontSize: '13px',
+                  marginBottom: '16px',
+                  textAlign: 'center',
+                  fontWeight: '600'
+                }}
+              >
+                {modalSuccess}
+              </div>
+            )}
+
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => setShowLinkModal(false)}
+                disabled={isLinking || !!modalSuccess}
+                style={{
+                  background: '#3a3b3f',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '8px',
+                  padding: '10px 20px',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  cursor: (isLinking || modalSuccess) ? 'not-allowed' : 'pointer',
+                  opacity: (isLinking || modalSuccess) ? 0.5 : 1
+                }}
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleLinkWhatsApp}
+                disabled={isLinking || !!modalSuccess}
+                style={{
+                  background: isLinking || modalSuccess
+                    ? '#6c757d' 
+                    : 'linear-gradient(135deg, #D0FF71 0%, #a8d65a 100%)',
+                  color: '#1a1b1e',
+                  border: 'none',
+                  borderRadius: '8px',
+                  padding: '10px 20px',
+                  fontSize: '14px',
+                  fontWeight: '700',
+                  cursor: (isLinking || modalSuccess) ? 'not-allowed' : 'pointer',
+                }}
+              >
+                {isLinking ? '⏳ Enlazando...' : (modalSuccess ? '✅ Enlazado' : '🔗 Enlazar')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
