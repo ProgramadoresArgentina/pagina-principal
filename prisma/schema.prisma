@@ -41,6 +41,9 @@ model User {
   
   // Book reading progress
   bookProgress BookProgress[]
+  
+  // User pins (badges)
+  pins UserPin[]
 
   @@map("users")
 }
@@ -191,5 +194,37 @@ model BookProgress {
   // Índices únicos
   @@unique([userId, bookFilename])
   @@map("book_progress")
+}
+
+// Modelo de Pin (Insignia/Badge)
+model Pin {
+  id          String   @id @default(cuid())
+  name        String   @unique // Ej: "Hacktoberfest 2024", "Contributor"
+  description String?  // Descripción del pin
+  imageUrl    String   // Ruta a la imagen del pin (ej: /assets/images/pins/pin-hacktoberfest.webp)
+  category    String?  // Categoría del pin (ej: "evento", "contribución", "logro")
+  isActive    Boolean  @default(true) // Si el pin está activo y se puede asignar
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relaciones
+  userPins    UserPin[]
+
+  @@map("pins")
+}
+
+// Tabla de relación Usuario-Pin
+model UserPin {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  pinId       String
+  pin         Pin      @relation(fields: [pinId], references: [id], onDelete: Cascade)
+  earnedAt    DateTime @default(now()) // Fecha en que obtuvo el pin
+  grantedBy   String?  // ID del admin que otorgó el pin (opcional)
+  reason      String?  // Razón por la que se otorgó (opcional)
+
+  @@unique([userId, pinId]) // Un usuario no puede tener el mismo pin dos veces
+  @@map("user_pins")
 }
 

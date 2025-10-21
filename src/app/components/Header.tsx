@@ -32,6 +32,9 @@ export default function Header(): JSX.Element {
                       <li>
                         <a href="/club/libros">Libros Exclusivos</a>
                       </li>
+                      <li>
+                        <a href="/pines">🏆 Pines</a>
+                      </li>
                       <li className="d-block d-md-none">
                         <a href="/club" className="tp-btn-black btn-transparent-bg">
                               <span className="tp-btn-black-filter-blur">

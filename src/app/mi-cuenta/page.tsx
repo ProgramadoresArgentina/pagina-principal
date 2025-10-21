@@ -4,7 +4,9 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import Header from '@/app/components/Header'
+import MobileHeader from '@/app/components/MobileHeader'
 import Footer from '@/app/components/Footer'
+import AllBadgesTab from '@/app/components/AllBadgesTab'
 import { PhoneInput } from 'react-international-phone'
 import 'react-international-phone/style.css'
 import { isValidPhoneNumber } from 'libphonenumber-js'
@@ -13,7 +15,7 @@ export default function MiCuentaPage() {
   const { isAuthenticated, isLoading, user, logout, token } = useAuth()
   const router = useRouter()
 
-  const [activeTab, setActiveTab] = useState<'general' | 'ofertas'>('general')
+  const [activeTab, setActiveTab] = useState<'general' | 'ofertas' | 'badges'>('general')
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -50,6 +52,7 @@ export default function MiCuentaPage() {
   return (
     <>
       <Header />
+      <MobileHeader />
       <main style={{ background: '#0a0b0d', minHeight: '100vh' }}>
         <section className="tp-login-area pt-120 pb-140 p-relative z-index-1 fix" style={{ background: 'transparent' }}>
           <div className="container container-1230">
@@ -156,6 +159,34 @@ export default function MiCuentaPage() {
                       }}
                     >
                       💼 Ofertas Laborales
+                      </button>
+                      <button
+                        onClick={() => setActiveTab('badges')}
+                        type="button"
+                      style={{
+                        background: 'transparent',
+                        border: 'none',
+                        borderBottom: activeTab === 'badges' ? '2px solid #D0FF71' : '2px solid transparent',
+                        color: activeTab === 'badges' ? '#D0FF71' : '#a0a0a0',
+                        padding: '12px 24px',
+                        fontSize: '15px',
+                        fontWeight: '600',
+                        cursor: 'pointer',
+                        transition: 'all 0.3s ease',
+                        marginBottom: '-2px'
+                      }}
+                      onMouseEnter={(e) => {
+                        if (activeTab !== 'badges') {
+                          e.currentTarget.style.color = '#ffffff';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (activeTab !== 'badges') {
+                          e.currentTarget.style.color = '#a0a0a0';
+                        }
+                      }}
+                    >
+                      🏆 Badges
                       </button>
                   </div>
 
@@ -287,6 +318,12 @@ export default function MiCuentaPage() {
                       ) : (
                         <PreviewOfertasLaborales />
                       )}
+                    </div>
+                  )}
+
+                  {activeTab === 'badges' && (
+                    <div className="mt-20">
+                      <BadgesTab token={token} username={user?.username || ''} />
                     </div>
                   )}
                 </div>
@@ -1007,6 +1044,358 @@ function OfertasLaboralesForm({ token }: { token: string | null }) {
                 {isLinking ? '⏳ Enlazando...' : (modalSuccess ? '✅ Enlazado' : '🔗 Enlazar')}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+interface UserPin {
+  id: string;
+  earnedAt: string;
+  reason: string | null;
+  pin: {
+    id: string;
+    name: string;
+    description: string | null;
+    imageUrl: string;
+    category: string | null;
+  };
+}
+
+function BadgesTab({ token, username }: { token: string | null, username: string }) {
+  const [pins, setPins] = useState<UserPin[]>([])
+  const [loading, setLoading] = useState(true)
+  const [copied, setCopied] = useState<'url' | 'markdown' | 'html' | null>(null)
+  const [showInstructions, setShowInstructions] = useState(false)
+
+  useEffect(() => {
+    const loadPins = async () => {
+      if (!token) return
+      try {
+        const res = await fetch('/api/me/pins', {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        if (res.ok) {
+          const data = await res.json()
+          setPins(data.pins || [])
+        }
+      } catch (error) {
+        console.error('Error al cargar pins:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    loadPins()
+  }, [token])
+
+  // Agregar timestamp para evitar cache
+  const timestamp = Date.now()
+  const badgeUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}/api/badges/${username}`
+  const badgeUrlWithCache = `${badgeUrl}?t=${timestamp}`
+  const markdownCode = `[![Badges de Programadores Argentina](${badgeUrl})](https://programadoresargentina.com/club)`
+  const htmlCode = `<a href="https://programadoresargentina.com/club" target="_blank"><img src="${badgeUrl}" alt="Badges de Programadores Argentina" /></a>`
+
+  const copyToClipboard = (text: string, type: 'url' | 'markdown' | 'html') => {
+    navigator.clipboard.writeText(text)
+    setCopied(type)
+    setTimeout(() => setCopied(null), 2000)
+  }
+
+  if (loading) {
+    return (
+      <div style={{ background: '#1a1b1e', border: '1px solid #3a3b3f', borderRadius: '12px', padding: '40px', textAlign: 'center' }}>
+        <p style={{ color: '#a0a0a0' }}>Cargando badges...</p>
+      </div>
+    )
+  }
+
+  return (
+    <div>
+
+      {/* Todos los Badges Disponibles */}
+      <div className="card mb-4" style={{ background: '#1a1b1e', border: '1px solid #3a3b3f' }}>
+        <div className="card-body p-4">
+          <h5 className="card-title mb-3" style={{ color: '#D0FF71' }}>
+            Pines Disponibles
+          </h5>
+          
+          <p style={{ color: '#a0a0a0', fontSize: '14px', marginBottom: '20px' }}>
+            Descubrí todos los badges que podés obtener en Programadores Argentina
+          </p>
+
+          <AllBadgesTab token={token} userPins={pins} />
+        </div>
+      </div>
+
+      {/* Compartir Badges */}
+      {pins.length > 0 && username && (
+        <div className="card mb-4" style={{ background: '#1a1b1e', border: '1px solid #3a3b3f' }}>
+          <div className="card-body p-4">
+            <h5 className="card-title mb-3" style={{ color: '#D0FF71' }}>
+              🔗 Compartir mis Badges
+            </h5>
+            
+            <p style={{ color: '#a0a0a0', fontSize: '14px', marginBottom: '20px' }}>
+              Mostrá tus badges en tu perfil de GitHub, sitio web o redes sociales
+            </p>
+
+            {/* Preview de la imagen */}
+            <div style={{
+              background: '#2d2e32',
+              border: '2px solid #3a3b3f',
+              borderRadius: '8px',
+              padding: '20px',
+              marginBottom: '20px',
+              textAlign: 'center'
+            }}>
+              <p style={{ color: '#a0a0a0', fontSize: '12px', marginBottom: '12px' }}>
+                Vista previa:
+              </p>
+              <div style={{ 
+                height: '400px',
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                background: '#1a1b1e',
+                borderRadius: '4px',
+                border: '1px solid #3a3b3f'
+              }}>
+                <iframe 
+                  src={badgeUrlWithCache}
+                  style={{ 
+                    width: '100%',
+                    height: '400px',
+                    border: 'none',
+                    borderRadius: '4px'
+                  }}
+                  scrolling="yes"
+                  onError={(e) => {
+                    console.error('Error cargando iframe de badges:', e);
+                    const iframe = e.target as HTMLIFrameElement;
+                    console.log('URL que falló:', iframe.src);
+                    iframe.style.display = 'none';
+                    // Mostrar mensaje de error
+                    const container = iframe.parentElement;
+                    if (container) {
+                      container.innerHTML = `
+                        <div style="color: #ff6b6b; font-size: 14px; padding: 20px;">
+                          ❌ Error cargando vista previa<br>
+                          <small style="color: #a0a0a0;">La URL funciona: <a href="${badgeUrlWithCache}" target="_blank" style="color: #D0FF71;">Ver imagen</a></small>
+                        </div>
+                      `;
+                    }
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* URL de la imagen */}
+            <div className="mb-3">
+              <label className="form-label" style={{ color: '#ffffff', fontSize: '13px', marginBottom: '8px', display: 'block' }}>
+                🌐 URL de la imagen
+              </label>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <input 
+                  type="text"
+                  value={badgeUrl}
+                  readOnly
+                  className="form-control"
+                  style={{
+                    background: '#2d2e32',
+                    border: '1px solid #3a3b3f',
+                    color: '#ffffff',
+                    padding: '10px',
+                    fontSize: '13px',
+                    flex: 1
+                  }}
+                  onClick={(e) => e.currentTarget.select()}
+                />
+                <button
+                  onClick={() => copyToClipboard(badgeUrl, 'url')}
+                  style={{
+                    background: copied === 'url' ? '#28a745' : 'linear-gradient(135deg, #D0FF71 0%, #a8d65a 100%)',
+                    color: '#1a1b1e',
+                    border: 'none',
+                    borderRadius: '8px',
+                    padding: '10px 20px',
+                    fontSize: '13px',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    whiteSpace: 'nowrap'
+                  }}
+                >
+                  {copied === 'url' ? '✓ Copiado' : '📋 Copiar'}
+                </button>
+              </div>
+            </div>
+
+            {/* Código Markdown */}
+            <div className="mb-3">
+              <label className="form-label" style={{ color: '#ffffff', fontSize: '13px', marginBottom: '8px', display: 'block' }}>
+                📝 Código Markdown (para GitHub README)
+              </label>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <input 
+                  type="text"
+                  value={markdownCode}
+                  readOnly
+                  className="form-control"
+                  style={{
+                    background: '#2d2e32',
+                    border: '1px solid #3a3b3f',
+                    color: '#ffffff',
+                    padding: '10px',
+                    fontSize: '13px',
+                    flex: 1,
+                    fontFamily: 'monospace'
+                  }}
+                  onClick={(e) => e.currentTarget.select()}
+                />
+                <button
+                  onClick={() => copyToClipboard(markdownCode, 'markdown')}
+                  style={{
+                    background: copied === 'markdown' ? '#28a745' : 'linear-gradient(135deg, #D0FF71 0%, #a8d65a 100%)',
+                    color: '#1a1b1e',
+                    border: 'none',
+                    borderRadius: '8px',
+                    padding: '10px 20px',
+                    fontSize: '13px',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    whiteSpace: 'nowrap'
+                  }}
+                >
+                  {copied === 'markdown' ? '✓ Copiado' : '📋 Copiar'}
+                </button>
+              </div>
+            </div>
+
+            {/* Código HTML */}
+            <div className="mb-3">
+              <label className="form-label" style={{ color: '#ffffff', fontSize: '13px', marginBottom: '8px', display: 'block' }}>
+                🔧 Código HTML
+              </label>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <input 
+                  type="text"
+                  value={htmlCode}
+                  readOnly
+                  className="form-control"
+                  style={{
+                    background: '#2d2e32',
+                    border: '1px solid #3a3b3f',
+                    color: '#ffffff',
+                    padding: '10px',
+                    fontSize: '13px',
+                    flex: 1,
+                    fontFamily: 'monospace'
+                  }}
+                  onClick={(e) => e.currentTarget.select()}
+                />
+                <button
+                  onClick={() => copyToClipboard(htmlCode, 'html')}
+                  style={{
+                    background: copied === 'html' ? '#28a745' : 'linear-gradient(135deg, #D0FF71 0%, #a8d65a 100%)',
+                    color: '#1a1b1e',
+                    border: 'none',
+                    borderRadius: '8px',
+                    padding: '10px 20px',
+                    fontSize: '13px',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    whiteSpace: 'nowrap'
+                  }}
+                >
+                  {copied === 'html' ? '✓ Copiado' : '📋 Copiar'}
+                </button>
+              </div>
+            </div>
+
+            {/* Botón de instrucciones */}
+            <button
+              onClick={() => setShowInstructions(!showInstructions)}
+              style={{
+                background: 'transparent',
+                color: '#D0FF71',
+                border: '1px solid #D0FF71',
+                borderRadius: '8px',
+                padding: '10px 20px',
+                fontSize: '13px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                width: '100%',
+                marginTop: '12px'
+              }}
+            >
+              {showInstructions ? '▼' : '▶'} Cómo agregar los badges a GitHub
+            </button>
+
+            {/* Instrucciones paso a paso */}
+            {showInstructions && (
+              <div style={{
+                background: '#2d2e32',
+                border: '1px solid #3a3b3f',
+                borderRadius: '8px',
+                padding: '20px',
+                marginTop: '16px'
+              }}>
+                <h6 style={{ color: '#D0FF71', marginBottom: '16px', fontSize: '14px' }}>
+                  📚 Paso a paso para agregar badges a tu README de GitHub:
+                </h6>
+                
+                <ol style={{ color: '#a0a0a0', fontSize: '13px', lineHeight: '1.8', paddingLeft: '20px' }}>
+                  <li style={{ marginBottom: '12px' }}>
+                    Abrí tu repositorio en GitHub (puede ser tu perfil: <code style={{ background: '#1a1b1e', padding: '2px 6px', borderRadius: '4px' }}>github.com/tu-usuario/tu-usuario</code>)
+                  </li>
+                  <li style={{ marginBottom: '12px' }}>
+                    Editá el archivo <code style={{ background: '#1a1b1e', padding: '2px 6px', borderRadius: '4px' }}>README.md</code> (o crealo si no existe)
+                  </li>
+                  <li style={{ marginBottom: '12px' }}>
+                    Copiá el <strong style={{ color: '#D0FF71' }}>código Markdown</strong> de arriba
+                  </li>
+                  <li style={{ marginBottom: '12px' }}>
+                    Pegalo donde quieras que aparezcan tus badges (típicamente al principio o en una sección "Badges" o "Logros")
+                  </li>
+                  <li style={{ marginBottom: '12px' }}>
+                    Hacé commit de los cambios
+                  </li>
+                  <li style={{ marginBottom: '0' }}>
+                    ¡Listo! Tus badges se mostrarán automáticamente y se actualizarán cada vez que ganes un nuevo badge 🎉
+                  </li>
+                </ol>
+
+                <div style={{
+                  background: 'rgba(208, 255, 113, 0.1)',
+                  border: '1px solid rgba(208, 255, 113, 0.3)',
+                  borderRadius: '8px',
+                  padding: '12px',
+                  marginTop: '16px'
+                }}>
+                  <p style={{ color: '#D0FF71', fontSize: '12px', marginBottom: '4px', fontWeight: '600' }}>
+                    💡 Tip:
+                  </p>
+                  <p style={{ color: '#a0a0a0', fontSize: '12px', marginBottom: '0', lineHeight: '1.6' }}>
+                    La imagen se actualiza automáticamente cada vez que ganás un nuevo badge. No necesitás cambiar el código en GitHub.
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Mensaje si no tiene username */}
+      {pins.length > 0 && !username && (
+        <div className="card" style={{ background: '#1a1b1e', border: '1px solid #FFA500' }}>
+          <div className="card-body p-4">
+            <h6 style={{ color: '#FFA500', marginBottom: '8px' }}>
+              ⚠️ Necesitás un nombre de usuario
+            </h6>
+            <p style={{ color: '#a0a0a0', fontSize: '13px', marginBottom: '0' }}>
+              Para compartir tus badges, necesitás tener un nombre de usuario configurado. Contactá a un administrador para que te asigne uno.
+            </p>
           </div>
         </div>
       )}

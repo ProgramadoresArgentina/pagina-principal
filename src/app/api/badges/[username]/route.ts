@@ -1,0 +1,337 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+
+/**
+ * GET /api/badges/[username]
+ * Genera una imagen SVG dinámica con los pins del usuario
+ * Esta URL se puede usar en GitHub README
+ */
+export async function GET(
+  req: NextRequest,
+  { params }: { params: { username: string } }
+) {
+  try {
+    const username = params.username;
+
+    // Buscar usuario por username
+    const user = await (prisma.user.findUnique as any)({
+      where: { username },
+      include: {
+        pins: {
+          include: {
+            pin: true,
+          },
+          orderBy: {
+            earnedAt: 'desc',
+          },
+        },
+      },
+    });
+
+    if (!user) {
+      return new NextResponse('Usuario no encontrado', { status: 404 });
+    }
+
+    // Configuración de la imagen - Más compacta
+    const pinSize = user.pins.length === 1 ? 120 : user.pins.length <= 2 ? 100 : user.pins.length <= 4 ? 80 : 70;
+    const pinSpacing = 20;
+    const padding = 30;
+    const pinsPerRow = user.pins.length === 1 ? 1 : user.pins.length <= 2 ? 2 : user.pins.length <= 4 ? 2 : Math.min(user.pins.length, 6);
+    const rows = Math.ceil((user.pins.length || 1) / pinsPerRow);
+    
+    // Calcular dimensiones más compactas
+    const contentWidth = padding * 2 + (pinSize + pinSpacing) * pinsPerRow - pinSpacing;
+    const contentHeight = padding * 2 + (pinSize + pinSpacing) * rows - pinSpacing;
+    
+    // Dimensiones más pequeñas y proporcionales
+    const minWidth = 750; // 600 + 1/4 = 750
+    const minHeight = 300;
+    const svgWidth = Math.max(contentWidth, minWidth);
+    const svgHeight = Math.max(contentHeight, minHeight);
+    
+    // Calcular offset para centrar el contenido
+    const offsetX = (svgWidth - contentWidth) / 2;
+    const offsetY = (svgHeight - contentHeight) / 2;
+
+    // Si no tiene pins, mostrar mensaje
+    if (user.pins.length === 0) {
+      // Obtener logo y convertir a base64
+      const host = req.headers.get('host') || req.headers.get('x-forwarded-host');
+      const protocol = req.headers.get('x-forwarded-proto') || (req.nextUrl.protocol || 'https');
+      const baseUrl = host ? `${protocol}://${host}` : req.nextUrl.origin;
+      const logoUrl = `${baseUrl}/assets/images/logo-club.png`;
+      
+      let logoDataUrl = '';
+      try {
+        const logoResponse = await fetch(logoUrl);
+        if (logoResponse.ok) {
+          const logoBuffer = await logoResponse.arrayBuffer();
+          const logoBase64 = Buffer.from(logoBuffer).toString('base64');
+          const logoMimeType = logoResponse.headers.get('content-type') || 'image/png';
+          logoDataUrl = `data:${logoMimeType};base64,${logoBase64}`;
+        }
+      } catch (error) {
+        console.error('Error cargando logo:', error);
+      }
+
+      const svg = `
+        <svg width="800" height="450" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#1a1b1e" />
+            <stop offset="50%" style="stop-color:#2d2e32" />
+            <stop offset="100%" style="stop-color:#1a1b1e" />
+          </linearGradient>
+          <linearGradient id="border" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#D0FF71" />
+            <stop offset="50%" style="stop-color:#a8d65a" />
+            <stop offset="100%" style="stop-color:#D0FF71" />
+          </linearGradient>
+        </defs>
+        <rect width="750" height="300" fill="url(#bg)"/>
+        <rect x="1" y="1" width="748" height="298" fill="none" stroke="url(#border)" stroke-width="2"/>
+          <text x="375" y="150" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#a0a0a0" text-anchor="middle">
+            Sin badges aún
+          </text>
+          
+          <!-- Branding en esquina inferior derecha -->
+          <g transform="translate(470, 250)">
+            <!-- Fondo del label -->
+            <rect 
+              x="0" 
+              y="0" 
+              width="260" 
+              height="40" 
+              rx="8" 
+              ry="8" 
+              fill="#2a2a2a" 
+              stroke="#3a3a3a" 
+              stroke-width="1"
+            />
+            ${logoDataUrl ? `
+            <image 
+              href="${logoDataUrl}" 
+              x="8" 
+              y="8" 
+              width="24" 
+              height="24"
+            />
+            ` : `
+            <rect 
+              x="8" 
+              y="8" 
+              width="24" 
+              height="24" 
+              fill="#D0FF71" 
+              rx="4"
+            />
+            `}
+            <text 
+              x="40" 
+              y="24" 
+              font-family="'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif" 
+              font-size="13" 
+              font-weight="600" 
+              fill="#D0FF71"
+            >
+              programadoresargentina.com/club
+            </text>
+          </g>
+        </svg>
+      `;
+      
+      return new NextResponse(svg.trim(), {
+        headers: {
+          'Content-Type': 'image/svg+xml',
+          'Cache-Control': 'public, max-age=0, must-revalidate', // Sin cache
+        },
+      });
+    }
+
+    // Generar SVG con los pins
+    let pinElements = '';
+    
+    for (let i = 0; i < user.pins.length; i++) {
+      const userPin = user.pins[i];
+      const row = Math.floor(i / pinsPerRow);
+      const col = i % pinsPerRow;
+      
+      const x = offsetX + padding + col * (pinSize + pinSpacing);
+      const y = offsetY + padding + row * (pinSize + pinSpacing);
+      const centerX = x + pinSize / 2;
+      const centerY = y + pinSize / 2;
+      const radius = pinSize / 2;
+
+      // Convertir imagen a base64 para que funcione en GitHub
+      try {
+        const host = req.headers.get('host') || req.headers.get('x-forwarded-host');
+        const protocol = req.headers.get('x-forwarded-proto') || (req.nextUrl.protocol || 'https');
+        const baseUrl = host ? `${protocol}://${host}` : req.nextUrl.origin;
+        
+        const imageUrl = userPin.pin.imageUrl.startsWith('http') 
+          ? userPin.pin.imageUrl 
+          : `${baseUrl}${userPin.pin.imageUrl}`;
+
+        // Obtener la imagen y convertir a base64
+        const imageResponse = await fetch(imageUrl);
+        if (imageResponse.ok) {
+          const imageBuffer = await imageResponse.arrayBuffer();
+          const base64 = Buffer.from(imageBuffer).toString('base64');
+          const mimeType = imageResponse.headers.get('content-type') || 'image/webp';
+          const dataUrl = `data:${mimeType};base64,${base64}`;
+
+          pinElements += `
+            <image 
+              href="${dataUrl}" 
+              x="${x}" 
+              y="${y}" 
+              width="${pinSize}" 
+              height="${pinSize}"
+            />
+          `;
+        } else {
+          // Fallback si no se puede cargar la imagen
+          pinElements += `
+            <rect 
+              x="${x}" 
+              y="${y}" 
+              width="${pinSize}" 
+              height="${pinSize}" 
+              fill="#3a3b3f" 
+              stroke="#D0FF71" 
+              stroke-width="2"
+            />
+            <text 
+              x="${x + pinSize/2}" 
+              y="${y + pinSize/2 + 5}" 
+              font-family="Arial, sans-serif" 
+              font-size="12" 
+              fill="#D0FF71" 
+              text-anchor="middle"
+            >
+              ${userPin.pin.name.substring(0, 8)}
+            </text>
+          `;
+        }
+      } catch (error) {
+        console.error(`Error cargando imagen para pin ${i}:`, error);
+        // Fallback si hay error
+        pinElements += `
+          <rect 
+            x="${x}" 
+            y="${y}" 
+            width="${pinSize}" 
+            height="${pinSize}" 
+            fill="#3a3b3f" 
+            stroke="#D0FF71" 
+            stroke-width="2"
+          />
+          <text 
+            x="${x + pinSize/2}" 
+            y="${y + pinSize/2 + 5}" 
+            font-family="Arial, sans-serif" 
+            font-size="12" 
+            fill="#D0FF71" 
+            text-anchor="middle"
+          >
+            ${userPin.pin.name.substring(0, 8)}
+          </text>
+        `;
+      }
+    }
+
+    // Obtener logo y convertir a base64
+    const host = req.headers.get('host') || req.headers.get('x-forwarded-host');
+    const protocol = req.headers.get('x-forwarded-proto') || (req.nextUrl.protocol || 'https');
+    const baseUrl = host ? `${protocol}://${host}` : req.nextUrl.origin;
+    const logoUrl = `${baseUrl}/assets/images/logo-club.png`;
+    
+    let logoDataUrl = '';
+    try {
+      const logoResponse = await fetch(logoUrl);
+      if (logoResponse.ok) {
+        const logoBuffer = await logoResponse.arrayBuffer();
+        const logoBase64 = Buffer.from(logoBuffer).toString('base64');
+        const logoMimeType = logoResponse.headers.get('content-type') || 'image/png';
+        logoDataUrl = `data:${logoMimeType};base64,${logoBase64}`;
+      }
+    } catch (error) {
+      console.error('Error cargando logo:', error);
+    }
+
+    const svg = `
+      <svg width="${svgWidth}" height="${svgHeight}" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#1a1b1e" />
+            <stop offset="50%" style="stop-color:#2d2e32" />
+            <stop offset="100%" style="stop-color:#1a1b1e" />
+          </linearGradient>
+          <linearGradient id="border" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#D0FF71" />
+            <stop offset="50%" style="stop-color:#a8d65a" />
+            <stop offset="100%" style="stop-color:#D0FF71" />
+          </linearGradient>
+        </defs>
+        <rect width="${svgWidth}" height="${svgHeight}" fill="url(#bg)"/>
+        <rect x="1" y="1" width="${svgWidth - 2}" height="${svgHeight - 2}" fill="none" stroke="url(#border)" stroke-width="2"/>
+        ${pinElements}
+        
+        <!-- Branding en esquina inferior derecha -->
+        <g transform="translate(${svgWidth - 260}, ${svgHeight - 40})">
+          <!-- Fondo del label -->
+          <rect 
+            x="0" 
+            y="0" 
+            width="260" 
+            height="40" 
+            rx="8" 
+            ry="8" 
+            fill="#2a2a2a" 
+            stroke="#3a3a3a" 
+            stroke-width="1"
+          />
+            ${logoDataUrl ? `
+            <image 
+              href="${logoDataUrl}" 
+              x="8" 
+              y="8" 
+              width="24" 
+              height="24"
+            />
+            ` : `
+            <rect 
+              x="8" 
+              y="8" 
+              width="24" 
+              height="24" 
+              fill="#D0FF71" 
+              rx="4"
+            />
+            `}
+          <text 
+            x="40" 
+            y="24" 
+            font-family="'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif" 
+            font-size="13" 
+            font-weight="600" 
+            fill="#D0FF71"
+          >
+            programadoresargentina.com/club
+          </text>
+        </g>
+      </svg>
+    `;
+
+    return new NextResponse(svg.trim(), {
+      headers: {
+        'Content-Type': 'image/svg+xml',
+        'Cache-Control': 'public, max-age=0, must-revalidate', // Sin cache para que se actualice siempre
+      },
+    });
+  } catch (error) {
+    console.error('Error al generar imagen de badges:', error);
+    return new NextResponse('Error al generar imagen', { status: 500 });
+  }
+}
+
