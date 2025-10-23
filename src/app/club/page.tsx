@@ -278,7 +278,8 @@ export default function Club(): JSX.Element {
                         <div className="it-benifit-content">
                           <h4 className="it-benifit-title"><a href="#">Oportunidades Laborales</a></h4>
                           <p>
-                            Ofertas de trabajo exclusivas todas las semanas de empresas líderes en tecnología de Argentina.
+                            Ofrecemos ofertas de trabajo exclusivas en tiempo real. Nuestro sistema automatizado recibe ofertas laborales de LinkedIn, Google Jobs, comunidades y grupos privados.
+                            Nuestro BOT puede emparejar estas ofertas con tus preferencias, enviándote notificaciones por WhatsApp cuando se encuentren oportunidades que coincidan con tu perfil.
                           </p>
                         </div>
                       </div>
@@ -341,7 +342,7 @@ export default function Club(): JSX.Element {
                           </span>
                         </div>
                         <div className="it-benifit-content">
-                          <h4 className="it-benifit-title"><a href="#" style={{ color: 'goldenrod' }}>1 Sorteo Mensual</a></h4>
+                          <h4 className="it-benifit-title"><a href="#" style={{ color: 'goldenrod' }}>Sorteo Mensual</a></h4>
                           <p>
                             Todos los meses realizamos un sorteo de cursos, libros técnicos o herramientas de desarrollo exclusivas para miembros del club.
                           </p>
