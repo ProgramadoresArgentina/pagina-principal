@@ -5,6 +5,7 @@ import Header from '@/app/components/Header'
 import MobileHeader from '@/app/components/MobileHeader'
 import Footer from '@/app/components/Footer'
 import BackToTop from '@/app/components/BackToTop'
+import { HoloCard } from 'react-holo-card-effect'
 
 interface Pin {
   id: string;
@@ -17,8 +18,6 @@ interface Pin {
 export default function MedallasPage() {
   const [pins, setPins] = useState<Pin[]>([])
   const [loading, setLoading] = useState(true)
-  const [visiblePins, setVisiblePins] = useState<number[]>([])
-  const [flippedPins, setFlippedPins] = useState<number[]>([])
 
   useEffect(() => {
     const loadPins = async () => {
@@ -36,25 +35,6 @@ export default function MedallasPage() {
     }
     loadPins()
   }, [])
-
-  useEffect(() => {
-    if (pins.length > 0) {
-      // Animar la aparición de los pins uno por uno
-      pins.forEach((_, index) => {
-        setTimeout(() => {
-          setVisiblePins(prev => [...prev, index])
-        }, index * 200) // 200ms de delay entre cada pin
-      })
-    }
-  }, [pins])
-
-  const handlePinClick = (index: number) => {
-    setFlippedPins(prev => 
-      prev.includes(index) 
-        ? prev.filter(i => i !== index) 
-        : [...prev, index]
-    )
-  }
 
   if (loading) {
     return (
@@ -129,17 +109,17 @@ export default function MedallasPage() {
                         </svg>
                       </span>
 
-                      <h1 className="tp-blog-title tp_fade_anim smooth">🏆 Pines <img src="/assets/img/blog/blog-masonry/blog-bradcum-shape.png" alt="" /> <br /> <a href="#down"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                      <h1 className="tp-blog-title tp_fade_anim smooth"> Pines 🏅 <img src="/assets/img/blog/blog-masonry/blog-bradcum-shape.png" alt="" /> <br /> <a href="#down"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
                           <path d="M9.99999 1V19M9.99999 19L1 10M9.99999 19L19 10" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                         </svg></a> de la comunidad...</h1>
 
                       {/* Descripción */}
                       <div className="text-center mt-4">
                         <p className="text-white mb-3" style={{ fontSize: '16px', lineHeight: '1.6', opacity: '0.9' }}>
-                          Los pines se pueden exhibir en tu perfil de GitHub. Hacé hover sobre cada medalla para ver cómo ganarla.
+                          Los pines se pueden exhibir en tu perfil de GitHub <img src="/assets/images/github-icon.svg" alt="GitHub Icon" style={{ width: '56px', height: '56px', margin: '0px 30px', verticalAlign: 'middle', filter: 'brightness(0) invert(1)' }} /> (se actualiza automáticamente cada vez que ganas un nuevo pin).
                         </p>
                         <p className="text-white" style={{ fontSize: '16px', lineHeight: '1.6', opacity: '0.9' }}>
-                          Para ver tus pines adquiridos, visitá <a href="/mi-cuenta" className="text-decoration-none" style={{ color: '#D0FF71', fontWeight: 'bold' }}>Mi Cuenta</a>.
+                          Para ver tus pines adquiridos, visitá <a href="/mi-cuenta?tab=badges" className="text-decoration-none" style={{ color: '#D0FF71', fontWeight: 'bold' }}>Mi Cuenta</a>.
                         </p>
                       </div>
 
@@ -161,185 +141,33 @@ export default function MedallasPage() {
                 <div className="row">
                   <div className="col-12">
                     <div className="tp-blog-wrapper">
-                      <style jsx>{`
-                        .pin-column {
-                          flex: 0 0 auto;
-                          width: 50%;
-                        }
-                        
-                        @media (min-width: 768px) {
-                          .pin-column {
-                            width: 20%;
-                          }
-                        }
-                        
-                        .sticker-container {
-                          perspective: 1000px;
-                          width: 100%;
-                          height: 220px;
-                          max-width: 220px;
-                        }
-                        
-                        .sticker {
-                          position: relative;
-                          width: 100%;
-                          height: 100%;
-                          transform-style: preserve-3d;
-                          transition: transform 0.6s;
-                          cursor: pointer;
-                        }
-                        
-                        .sticker.flipped {
-                          transform: rotateY(180deg);
-                        }
-                        
-                        .sticker-container:hover .sticker-front::before {
-                          animation: holographic 1.5s ease infinite;
-                        }
-                        
-                        @media (min-width: 768px) {
-                          .sticker-container:hover .sticker {
-                            transform: rotateY(180deg);
-                          }
-                        }
-                        
-                        .sticker-front, .sticker-back {
-                          position: absolute;
-                          width: 100%;
-                          height: 100%;
-                          backface-visibility: hidden;
-                          display: flex;
-                          align-items: center;
-                          justify-content: center;
-                          box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
-                          border-radius: 12px;
-                          overflow: hidden;
-                        }
-                        
-                        .sticker-front {
-                          background: linear-gradient(135deg, #1a1b1e 0%, #2d2e32 100%);
-                          position: relative;
-                        }
-                        
-                        .sticker-front::before {
-                          content: '';
-                          position: absolute;
-                          top: 0;
-                          left: 0;
-                          right: 0;
-                          bottom: 0;
-                          background: linear-gradient(
-                            135deg,
-                            transparent 0%,
-                            rgba(255, 255, 255, 0.1) 25%,
-                            rgba(255, 255, 255, 0.2) 50%,
-                            rgba(255, 255, 255, 0.1) 75%,
-                            transparent 100%
-                          );
-                          background-size: 200% 200%;
-                          animation: holographic 3s ease infinite;
-                          pointer-events: none;
-                          mix-blend-mode: overlay;
-                        }
-                        
-                        .sticker-front::after {
-                          content: '';
-                          position: absolute;
-                          top: 0;
-                          left: 0;
-                          right: 0;
-                          bottom: 0;
-                          background: 
-                            repeating-linear-gradient(
-                              0deg,
-                              rgba(208, 255, 113, 0.03) 0px,
-                              rgba(208, 255, 113, 0.03) 1px,
-                              transparent 1px,
-                              transparent 2px
-                            ),
-                            repeating-linear-gradient(
-                              90deg,
-                              rgba(208, 255, 113, 0.03) 0px,
-                              rgba(208, 255, 113, 0.03) 1px,
-                              transparent 1px,
-                              transparent 2px
-                            );
-                          pointer-events: none;
-                        }
-                        
-                        @keyframes holographic {
-                          0% {
-                            background-position: 0% 0%;
-                          }
-                          50% {
-                            background-position: 100% 100%;
-                          }
-                          100% {
-                            background-position: 0% 0%;
-                          }
-                        }
-                        
-                        .sticker-back {
-                          background: linear-gradient(135deg, #2d2e32 0%, #1a1b1e 100%);
-                          transform: rotateY(180deg);
-                          width: 100%;
-                          height: 100%;
-                          border-radius: 12px;
-                          top: 0;
-                          left: 0;
-                        }
-                        
-                        .sticker-back img {
-                          width: 80px;
-                          height: 80px;
-                          margin-bottom: 10px;
+                      <style jsx global>{`
+                        .sc-aXZVg {
+                          background-color: transparent !important;
                         }
                       `}</style>
-                      {/* Grid de medallas como stickers */}
-                      <div className="row g-4" style={{ paddingTop: '130px',paddingBottom: '300px' }}>
+                      {/* Grid de medallas con HoloCard */}
+                      <div className="row" style={{ paddingTop: '130px', paddingBottom: '300px', gap: '40px' }}>
                         {pins.map((pin, index) => (
                           <div
                             key={pin.id}
-                            className={`pin-column d-flex justify-content-center transform transition-all duration-700 ease-out ${
-                              visiblePins.includes(index) 
-                                ? 'opacity-100 translate-y-0 scale-100' 
-                                : 'opacity-0 translate-y-8 scale-95'
-                            }`}
-                            style={{
-                              transitionDelay: `${index * 200}ms`
-                            }}
+                            className="col-12 col-md-3 d-flex flex-column align-items-center mb-6"
                           >
-                            {/* Sticker con efecto flip */}
-                            <div 
-                              className="sticker-container"
-                              onClick={() => handlePinClick(index)}
-                            >
-                              <div className={`sticker ${flippedPins.includes(index) ? 'flipped' : ''}`}>
-                                {/* Frente del sticker */}
-                                <div className="sticker-front">
-                                  <img 
-                                    src={pin.imageUrl} 
-                                    alt={pin.name}
-                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                                  />
-                                </div>
-                                
-                                {/* Reverso del sticker */}
-                                <div className="sticker-back">
-                                  <div className="text-center flex flex-col items-center justify-center h-full" style={{ padding: '20px' }}>
-                                    <p style={{ 
-                                      fontSize: (pin.description || '').length > 80 ? '14px' : (pin.description || '').length > 50 ? '15px' : '16px',
-                                      lineHeight: '1.5',
-                                      textTransform: 'uppercase',
-                                      fontWeight: '600',
-                                      color: '#FFD700',
-                                      textShadow: '0 0 10px rgba(255, 215, 0, 0.5)'
-                                    }}>
-                                      {pin.description || 'Contactá a los administradores de la comunidad para más información.'}
-                                    </p>
-                                  </div>
-                                </div>
-                              </div>
+                            <HoloCard 
+                              url={pin.imageUrl} 
+                              height={300}
+                              showSparkles={false}
+                            />
+                            <div className="text-center mt-3" style={{ maxWidth: '200px' }}>
+                              <p style={{ 
+                                fontSize: '14px',
+                                lineHeight: '1.4',
+                                color: '#FFFFFF',
+                                margin: '0',
+                                fontWeight: '500'
+                              }}>
+                                {pin.description || 'Contactá a los administradores de la comunidad para más información.'}
+                              </p>
                             </div>
                           </div>
                         ))}

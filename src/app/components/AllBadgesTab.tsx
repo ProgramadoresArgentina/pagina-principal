@@ -2,6 +2,24 @@
 
 import React, { useEffect, useState } from 'react'
 
+// Estilos para el scrollbar personalizado
+const scrollbarStyles = `
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 8px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: #2d2e32;
+    border-radius: 4px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #D0FF71;
+    border-radius: 4px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #a8d65a;
+  }
+`
+
 interface UserPin {
   id: string;
   earnedAt: string;
@@ -22,6 +40,17 @@ interface AllBadgesTabProps {
 export default function AllBadgesTab({ token, userPins }: AllBadgesTabProps) {
   const [allPins, setAllPins] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+
+  // Agregar estilos al documento
+  useEffect(() => {
+    const styleElement = document.createElement('style')
+    styleElement.textContent = scrollbarStyles
+    document.head.appendChild(styleElement)
+    
+    return () => {
+      document.head.removeChild(styleElement)
+    }
+  }, [])
 
   useEffect(() => {
     const loadAllPins = async () => {
@@ -51,11 +80,27 @@ export default function AllBadgesTab({ token, userPins }: AllBadgesTabProps) {
   }
 
   return (
-    <div style={{ 
-      display: 'grid',
-      gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
-      gap: '16px'
-    }}>
+    <div 
+      className="custom-scrollbar"
+      style={{ 
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'flex-start',
+        width: '100%',
+        maxHeight: 'calc(100vh - 200px)',
+        overflowY: 'auto',
+        padding: '20px',
+        scrollbarWidth: 'thin',
+        scrollbarColor: '#D0FF71 #2d2e32'
+      }}>
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+        gap: '20px',
+        width: '100%',
+        maxWidth: '1200px',
+        justifyItems: 'center'
+      }}>
       {allPins.map((pin) => {
         const userHasPin = userPins.some(userPin => userPin.pin.id === pin.id)
         
@@ -65,36 +110,45 @@ export default function AllBadgesTab({ token, userPins }: AllBadgesTabProps) {
             style={{
               background: '#2d2e32',
               border: userHasPin ? '1px solid #D0FF71' : '1px solid #3a3b3f',
-              padding: '16px',
+              padding: '20px',
               textAlign: 'center',
               transition: 'all 0.3s ease',
-              borderRadius: '6px',
-              position: 'relative'
+              borderRadius: '8px',
+              position: 'relative',
+              height: 'fit-content',
+              minHeight: '200px',
+              maxWidth: '250px',
+              width: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between'
             }}
           >
             {userHasPin && (
               <div style={{
                 position: 'absolute',
-                top: '6px',
-                right: '6px',
+                top: '8px',
+                right: '8px',
                 background: '#D0FF71',
                 color: '#1a1b1e',
-                padding: '2px 6px',
-                borderRadius: '4px',
-                fontSize: '9px',
-                fontWeight: '500'
+                padding: '4px 8px',
+                borderRadius: '6px',
+                fontSize: '10px',
+                fontWeight: '600',
+                zIndex: 1
               }}>
                 ADQUIRIDO
               </div>
             )}
             
             <div style={{
-              width: '60px',
-              height: '60px',
-              margin: '0 auto 10px',
+              width: '80px',
+              height: '80px',
+              margin: '0 auto 15px',
               overflow: 'hidden',
               border: userHasPin ? '2px solid #D0FF71' : '2px solid #3a3b3f',
-              borderRadius: '4px'
+              borderRadius: '6px',
+              flexShrink: 0
             }}>
               <img 
                 src={pin.imageUrl} 
@@ -107,28 +161,35 @@ export default function AllBadgesTab({ token, userPins }: AllBadgesTabProps) {
               />
             </div>
             
-            <h6 style={{ 
-              color: userHasPin ? '#D0FF71' : '#ffffff', 
-              fontSize: '13px', 
-              fontWeight: '500',
-              marginBottom: '6px',
-              lineHeight: '1.3'
-            }}>
-              {pin.name}
-            </h6>
-            
-            <p style={{ 
-              color: '#a0a0a0', 
-              fontSize: '11px',
-              marginBottom: '8px',
-              lineHeight: '1.4'
-            }}>
-              {pin.description}
-            </p>
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+              <h6 style={{ 
+                color: userHasPin ? '#D0FF71' : '#ffffff', 
+                fontSize: '14px', 
+                fontWeight: '600',
+                marginBottom: '8px',
+                lineHeight: '1.3'
+              }}>
+                {pin.name}
+              </h6>
+              
+              <p style={{ 
+                color: '#a0a0a0', 
+                fontSize: '12px',
+                marginBottom: '0',
+                lineHeight: '1.4',
+                overflow: 'hidden',
+                display: '-webkit-box',
+                WebkitLineClamp: 3,
+                WebkitBoxOrient: 'vertical'
+              }}>
+                {pin.description}
+              </p>
+            </div>
             
           </div>
         )
       })}
+      </div>
     </div>
   )
 }

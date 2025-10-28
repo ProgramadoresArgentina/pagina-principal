@@ -1,12 +1,13 @@
 'use client'
 
 import React, { useEffect, useMemo, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import Header from '@/app/components/Header'
 import MobileHeader from '@/app/components/MobileHeader'
 import Footer from '@/app/components/Footer'
 import AllBadgesTab from '@/app/components/AllBadgesTab'
+// import ReferidosTab from '@/app/components/ReferidosTab'
 import { PhoneInput } from 'react-international-phone'
 import 'react-international-phone/style.css'
 import { isValidPhoneNumber } from 'libphonenumber-js'
@@ -14,8 +15,13 @@ import { isValidPhoneNumber } from 'libphonenumber-js'
 export default function MiCuentaPage() {
   const { isAuthenticated, isLoading, user, logout, token } = useAuth()
   const router = useRouter()
+  const searchParams = useSearchParams()
 
-  const [activeTab, setActiveTab] = useState<'general' | 'ofertas' | 'badges'>('general')
+  // Obtener tab desde query params o usar 'general' por defecto
+  const tabFromParams = searchParams?.get('tab') as 'general' | 'ofertas' | 'badges' | 'referidos' | null
+  const [activeTab, setActiveTab] = useState<'general' | 'ofertas' | 'badges' | 'referidos'>(
+    tabFromParams || 'general'
+  )
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -23,9 +29,26 @@ export default function MiCuentaPage() {
     }
   }, [isAuthenticated, isLoading, router])
 
+  // Sincronizar activeTab con query params
+  useEffect(() => {
+    const tabFromParams = searchParams?.get('tab') as 'general' | 'ofertas' | 'badges' | 'referidos' | null
+    if (tabFromParams && tabFromParams !== activeTab) {
+      setActiveTab(tabFromParams)
+    }
+  }, [searchParams, activeTab])
+
   const handleLogout = async () => {
     await logout()
     router.push('/')
+  }
+
+  // Función para cambiar de tab y actualizar URL
+  const handleTabChange = (tab: 'general' | 'ofertas' | 'badges' | 'referidos') => {
+    setActiveTab(tab)
+    // Actualizar URL sin recargar la página
+    const newUrl = new URL(window.location.href)
+    newUrl.searchParams.set('tab', tab)
+    window.history.pushState({}, '', newUrl.toString())
   }
 
   // Calcular meses de suscripción desde createdAt
@@ -105,7 +128,7 @@ export default function MiCuentaPage() {
                     paddingBottom: '0'
                   }}>
                       <button
-                        onClick={() => setActiveTab('general')}
+                        onClick={() => handleTabChange('general')}
                         type="button"
                       style={{
                         background: 'transparent',
@@ -133,7 +156,7 @@ export default function MiCuentaPage() {
                       👤 General
                       </button>
                       <button
-                        onClick={() => setActiveTab('ofertas')}
+                        onClick={() => handleTabChange('ofertas')}
                         type="button"
                       style={{
                         background: 'transparent',
@@ -161,7 +184,7 @@ export default function MiCuentaPage() {
                       💼 Ofertas Laborales
                       </button>
                       <button
-                        onClick={() => setActiveTab('badges')}
+                        onClick={() => handleTabChange('badges')}
                         type="button"
                       style={{
                         background: 'transparent',
@@ -187,6 +210,35 @@ export default function MiCuentaPage() {
                       }}
                     >
                       🏆 Badges
+                      </button>
+                      <button
+                      disabled
+                        onClick={() => handleTabChange('referidos')}
+                        type="button"
+                      style={{
+                        background: 'transparent',
+                        border: 'none',
+                        borderBottom: activeTab === 'referidos' ? '2px solid #D0FF71' : '2px solid transparent',
+                        color: activeTab === 'referidos' ? '#D0FF71' : '#a0a0a0',
+                        padding: '12px 24px',
+                        fontSize: '15px',
+                        fontWeight: '600',
+                        cursor: 'pointer',
+                        transition: 'all 0.3s ease',
+                        marginBottom: '-2px'
+                      }}
+                      onMouseEnter={(e) => {
+                        if (activeTab !== 'referidos') {
+                          e.currentTarget.style.color = '#ffffff';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (activeTab !== 'referidos') {
+                          e.currentTarget.style.color = '#a0a0a0';
+                        }
+                      }}
+                    >
+                      🤝 Referidos (próximamente)
                       </button>
                   </div>
 
@@ -326,6 +378,12 @@ export default function MiCuentaPage() {
                       <BadgesTab token={token} username={user?.username || ''} />
                     </div>
                   )}
+
+                  {/* {activeTab === 'referidos' && (
+                    <div className="mt-20">
+                      <ReferidosTab user={user} token={token} />
+                    </div>
+                  )} */}
                 </div>
               </div>
             </div>
@@ -339,17 +397,9 @@ export default function MiCuentaPage() {
 
 function PreviewOfertasLaborales() {
   return (
-    <div className="p-20">
-      <p className="mb-15">
-        Activá notificaciones de ofertas laborales y filtrá por tecnologías, seniority y provincia.
-      </p>
-      <ul className="mb-15">
-        <li>Switch de notificaciones (requiere estar en el grupo de WhatsApp de Ofertas Laborales)</li>
-        <li>Selector y buscador de tecnologías (JavaScript, TypeScript, Node, Java, Spring, etc.)</li>
-        <li>Filtros por seniority y provincia (incluye CABA)</li>
-      </ul>
+    <div className="p-20 text-center">
       <a href="/club" className="tp-btn-black btn-green-light-bg">
-        <span className="tp-btn-black-text">Suscribirme para acceder</span>
+        <span className="tp-btn-black-text">Suscribite para acceder a ofertas laborales.</span>
       </a>
     </div>
   )
@@ -1094,8 +1144,8 @@ function BadgesTab({ token, username }: { token: string | null, username: string
   const timestamp = Date.now()
   const badgeUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}/api/badges/${username}`
   const badgeUrlWithCache = `${badgeUrl}?t=${timestamp}`
-  const markdownCode = `[![Badges de Programadores Argentina](${badgeUrl})](https://programadoresargentina.com/club)`
-  const htmlCode = `<a href="https://programadoresargentina.com/club" target="_blank"><img src="${badgeUrl}" alt="Badges de Programadores Argentina" /></a>`
+  const markdownCode = `[![Pines de la Comunidad de Programadores Argentina](${badgeUrl})](https://programadoresargentina.com/pines)`
+  const htmlCode = `<a href="https://programadoresargentina.com/pines" target="_blank"><img src="${badgeUrl}" alt="Pines de la Comunidad de Programadores Argentina" /></a>`
 
   const copyToClipboard = (text: string, type: 'url' | 'markdown' | 'html') => {
     navigator.clipboard.writeText(text)
@@ -1356,7 +1406,7 @@ function BadgesTab({ token, username }: { token: string | null, username: string
                     Copiá el <strong style={{ color: '#D0FF71' }}>código Markdown</strong> de arriba
                   </li>
                   <li style={{ marginBottom: '12px' }}>
-                    Pegalo donde quieras que aparezcan tus badges (típicamente al principio o en una sección "Badges" o "Logros")
+                    Pegalo donde quieras que aparezcan tus badges (típicamente al principio o en una sección &quot;Badges&quot; o &quot;Logros&quot;)
                   </li>
                   <li style={{ marginBottom: '12px' }}>
                     Hacé commit de los cambios

@@ -2,8 +2,12 @@
 
 import { useEffect } from "react";
 import ChatWidget from "./ChatWidget";
+import NewsletterPopup from "./NewsletterPopup";
+import { useNewsletterPopup } from "@/hooks/useNewsletterPopup";
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
+  const { showPopup, closePopup } = useNewsletterPopup()
+
   useEffect(() => {
     // Manejar el preloader
     const preloader = document.getElementById('preloader');
@@ -32,6 +36,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
     <>
       {children}
       <ChatWidget />
+      {showPopup && <NewsletterPopup onClose={closePopup} />}
     </>
   );
 }

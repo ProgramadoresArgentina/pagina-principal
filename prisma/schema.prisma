@@ -44,6 +44,14 @@ model User {
   
   // User pins (badges)
   pins UserPin[]
+  
+  // Forum relations
+  forumPosts ForumPost[]
+  forumComments ForumComment[]
+  
+  // Referidos relations
+  referidosHechos Referido[] @relation("UserReferidos")
+  referidoPor Referido[] @relation("UserReferido")
 
   @@map("users")
 }
@@ -226,5 +234,63 @@ model UserPin {
 
   @@unique([userId, pinId]) // Un usuario no puede tener el mismo pin dos veces
   @@map("user_pins")
+}
+
+// Modelo de Post del Foro
+model ForumPost {
+  id          String   @id @default(cuid())
+  title       String   // Título del post
+  content     String   // Contenido del post (texto + enlaces)
+  slug        String   @unique // Slug para URL amigable
+  isPinned    Boolean  @default(false) // Si el post está fijado
+  isLocked    Boolean  @default(false) // Si el post está bloqueado para comentarios
+  viewCount   Int      @default(0) // Contador de vistas
+  score       Int      @default(0) // Puntuación del post (upvotes - downvotes)
+  multimedia  Json?    // Array de archivos multimedia (hasta 3)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relaciones
+  authorId    String
+  author      User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  comments    ForumComment[]
+
+  @@map("forum_posts")
+}
+
+// Modelo de Comentario del Foro
+model ForumComment {
+  id          String   @id @default(cuid())
+  content     String   // Contenido del comentario
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relaciones
+  authorId    String
+  author      User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  postId      String
+  post        ForumPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  parentId    String?  // Para comentarios anidados (respuestas)
+  parent      ForumComment? @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies     ForumComment[] @relation("CommentReplies")
+
+  @@map("forum_comments")
+}
+
+// Modelo de Referidos
+model Referido {
+  id          String   @id @default(cuid())
+  referidorId String   // ID del usuario que hizo la referencia
+  referidoId  String   // ID del usuario que fue referido
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relaciones
+  referidor   User     @relation("UserReferidos", fields: [referidorId], references: [id], onDelete: Cascade)
+  referido    User     @relation("UserReferido", fields: [referidoId], references: [id], onDelete: Cascade)
+
+  // Índices únicos
+  @@unique([referidorId, referidoId])
+  @@map("referidos")
 }
 

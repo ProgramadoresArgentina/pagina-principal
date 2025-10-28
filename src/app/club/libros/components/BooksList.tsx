@@ -228,7 +228,7 @@ export default function BooksList() {
           <div className="text-center">
             <div className="alert alert-warning" role="alert">
               <h4 className="alert-heading">No se encontraron libros</h4>
-              <p>No hay libros que coincidan con tu búsqueda: <strong>"{searchTerm}"</strong></p>
+              <p>No hay libros que coincidan con tu búsqueda: <strong>&quot;{searchTerm}&quot;</strong></p>
               <p className="mb-0">Intenta con otros términos de búsqueda.</p>
             </div>
           </div>
@@ -330,8 +330,8 @@ export default function BooksList() {
           <div className="text-center">
             <div className="alert alert-info" role="alert">
               <h4 className="alert-heading">Categoría vacía</h4>
-              <p>No hay libros disponibles en la categoría <strong>"{selectedCategory}"</strong>.</p>
-              <p className="mb-0">Prueba con otra categoría o busca en "Todas".</p>
+              <p>No hay libros disponibles en la categoría <strong>&quot;{selectedCategory}&quot;</strong>.</p>
+              <p className="mb-0">Prueba con otra categoría o busca en &quot;Todas&quot;.</p>
             </div>
           </div>
         </div>
@@ -557,12 +557,12 @@ export default function BooksList() {
             }
             {searchTerm.trim() && (
               <span style={{ display: 'block', fontSize: '12px', marginTop: '2px' }}>
-                para "{searchTerm}"
+                para &quot;{searchTerm}&quot;
               </span>
             )}
             {selectedCategory !== 'Todas' && (
               <span style={{ display: 'block', fontSize: '12px', marginTop: '2px' }}>
-                en categoría "{selectedCategory}"
+                en categoría &quot;{selectedCategory}&quot;
               </span>
             )}
           </p>

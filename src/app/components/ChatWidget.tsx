@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import ChatMessage from './ChatMessage'
 import ChatModeration from './ChatModeration'
 import DateDivider from './DateDivider'
+import Link from 'next/link'
 
 interface ChatInfo {
   messageCount: number
@@ -31,6 +32,7 @@ export default function ChatWidget() {
   const [isLoadingMore, setIsLoadingMore] = useState(false)
   const [hasMoreMessages, setHasMoreMessages] = useState(true)
   const [nextCursor, setNextCursor] = useState<string | null>(null)
+  const [isMobile, setIsMobile] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const messagesContainerRef = useRef<HTMLDivElement>(null)
   
@@ -41,8 +43,7 @@ export default function ChatWidget() {
     messages: socketMessages, 
     sendMessage, 
     deleteMessage,
-    isAuthenticated: socketAuthenticated,
-    anonymousName 
+    isAuthenticated: socketAuthenticated
   } = useSocket()
 
   // Scroll automático al final de los mensajes
@@ -121,6 +122,18 @@ export default function ChatWidget() {
     ))
   }
 
+  // Detectar tamaño de pantalla
+  useEffect(() => {
+    const checkIsMobile = () => {
+      setIsMobile(window.innerWidth <= 768)
+    }
+    
+    checkIsMobile()
+    window.addEventListener('resize', checkIsMobile)
+    
+    return () => window.removeEventListener('resize', checkIsMobile)
+  }, [])
+
   // Scroll automático cuando llegan mensajes del socket
   useEffect(() => {
     scrollToBottom()
@@ -192,9 +205,15 @@ export default function ChatWidget() {
     e.preventDefault()
     if (!message.trim() || !isConnected) return
 
+    // Requiere autenticación para enviar mensajes
+    if (!isAuthenticated) {
+      alert('Debes iniciar sesión para enviar mensajes.')
+      return
+    }
+
     console.log('Auth status:', { isAuthenticated, socketAuthenticated, isConnected })
     
-    // Permitir envío de mensajes siempre que esté conectado
+    // Permitir envío de mensajes solo si hay conexión activa
     if (!isConnected) {
       alert('No estás conectado al chat')
       return
@@ -268,7 +287,7 @@ export default function ChatWidget() {
     if (user) {
       return user.name || user.username || 'Usuario'
     }
-    return anonymousName || 'Anónimo'
+    return 'Usuario'
   }
 
   return (
@@ -336,13 +355,13 @@ export default function ChatWidget() {
       {isOpen && (
         <div 
           className={`position-fixed shadow-lg bg-white border ${
-            window.innerWidth <= 768 ? 'w-100 h-100' : 'rounded'
+            isMobile ? 'w-100 h-100' : 'rounded'
           }`}
           style={{
-            bottom: window.innerWidth <= 768 ? '0' : '20px',
-            right: window.innerWidth <= 768 ? '0' : '20px',
-            width: window.innerWidth <= 768 ? '100%' : '400px',
-            height: window.innerWidth <= 768 ? '100%' : '600px',
+            bottom: isMobile ? '0' : '20px',
+            right: isMobile ? '0' : '20px',
+            width: isMobile ? '100%' : '400px',
+            height: isMobile ? '100%' : '600px',
             zIndex: 1001,
             display: 'flex',
             flexDirection: 'column'
@@ -414,20 +433,26 @@ export default function ChatWidget() {
           )}
 
           {/* Área de mensajes */}
+          {/* Nota: lectura pública; escritura sólo con login */}
           <div 
             ref={messagesContainerRef}
             className="flex-grow-1 overflow-auto p-3"
             style={{ 
-              maxHeight: window.innerWidth <= 768 ? 'calc(100vh - 200px)' : '400px',
-              minHeight: window.innerWidth <= 768 ? 'calc(100vh - 200px)' : '200px'
+              maxHeight: isMobile ? 'calc(100vh - 200px)' : '400px',
+              minHeight: isMobile ? 'calc(100vh - 200px)' : '200px'
             }}
             onScroll={handleScroll}
           >
+            {!isAuthenticated && (
+              <div className="alert alert-info py-2 px-3 mb-3" role="alert" style={{ fontSize: '12px' }}>
+                Estás en modo lectura. <strong>Inicia sesión</strong> para participar en el chat.
+              </div>
+            )}
             {isLoading ? (
               <div 
                 className="text-center d-flex flex-column justify-content-center align-items-center"
                 style={{ 
-                  height: window.innerWidth <= 768 ? 'calc(100vh - 300px)' : '300px',
+                  height: isMobile ? 'calc(100vh - 300px)' : '300px',
                   minHeight: '200px'
                 }}
               >
@@ -441,13 +466,13 @@ export default function ChatWidget() {
               <div 
                 className="text-center text-muted d-flex flex-column justify-content-center align-items-center"
                 style={{ 
-                  height: window.innerWidth <= 768 ? 'calc(100vh - 300px)' : '300px',
+                  height: isMobile ? 'calc(100vh - 300px)' : '300px',
                   minHeight: '200px'
                 }}
               >
                 <i className="fas fa-comments fa-3x mb-3"></i>
                 <h5 className="mb-2">¡Bienvenido al chat!</h5>
-                <p className="mb-0">No hay mensajes aún. ¡Sé el primero en escribir!</p>
+                <p className="mb-0">No hay mensajes aún. {isAuthenticated ? '¡Sé el primero en escribir!' : 'Inicia sesión para participar.'}</p>
               </div>
             ) : (
               <>
@@ -470,7 +495,18 @@ export default function ChatWidget() {
 
           {/* Área de entrada */}
           <div className="p-3 border-top">
-            {!isConnected ? (
+            {!isAuthenticated ? (
+              <div className="alert alert-warning mb-0" role="alert">
+                <div style={{ fontSize: '14px' }}>
+                  <i className="fas fa-lock me-2"></i>
+                  Para enviar mensajes debes iniciar sesión.
+                </div>
+                <div className="d-flex gap-2 mt-10">
+                  <Link href="/ingresar" className="btn btn-sm btn-outline-warning">Iniciar sesión</Link>
+                  <Link href="/registro" className="btn btn-sm btn-warning text-dark">Registrarse</Link>
+                </div>
+              </div>
+            ) : !isConnected ? (
               <div className="alert alert-warning mb-0" style={{ fontSize: '12px' }}>
                 <i className="fas fa-info-circle me-1"></i>
                 Conectando al chat...
@@ -481,7 +517,7 @@ export default function ChatWidget() {
                   <input
                     type="text"
                     className="form-control"
-                    placeholder={`Escribe un mensaje${user ? ` como ${getDisplayName()}` : ' (aparecerás como anónimo)'}...`}
+                    placeholder={`Escribe un mensaje como ${getDisplayName()}...`}
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
                     maxLength={1000}

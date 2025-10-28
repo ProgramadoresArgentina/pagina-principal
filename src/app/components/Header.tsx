@@ -27,13 +27,16 @@ export default function Header(): JSX.Element {
                         <a href="/">Inicio</a>
                       </li>
                       <li>
-                        <a href="/articulos">Artículos de la comunidad</a>
+                        <a href="/articulos">Artículos</a>
+                      </li>
+                      <li>
+                        <a href="/foro">Foro</a>
                       </li>
                       <li>
                         <a href="/club/libros">Libros Exclusivos</a>
                       </li>
                       <li>
-                        <a href="/pines">🏆 Pines</a>
+                        <a href="/pines">🏅 Conseguir Pines</a>
                       </li>
                       <li className="d-block d-md-none">
                         <a href="/club" className="tp-btn-black btn-transparent-bg">

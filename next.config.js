@@ -14,6 +14,9 @@ const nextConfig = {
     }
     return config;
   },
+  // Configuración para páginas dinámicas
+  trailingSlash: false,
+  skipTrailingSlashRedirect: true,
 }
 
 module.exports = nextConfig

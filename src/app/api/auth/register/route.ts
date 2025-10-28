@@ -6,16 +6,34 @@ export async function POST(request: NextRequest) {
   try {
     const { email, password, name, username } = await request.json()
 
-    if (!email || !password) {
+    if (!email || !password || !name) {
       return NextResponse.json(
-        { error: 'Email y contraseña son requeridos' },
+        { error: 'Email, contraseña y nombre son requeridos' },
         { status: 400 }
       )
     }
 
-    if (password.length < 6) {
+    // Validar longitud del nombre
+    if (name.length < 2 || name.length > 50) {
       return NextResponse.json(
-        { error: 'La contraseña debe tener al menos 6 caracteres' },
+        { error: 'El nombre debe tener entre 2 y 50 caracteres' },
+        { status: 400 }
+      )
+    }
+
+    // Validación de contraseña segura
+    if (password.length < 8) {
+      return NextResponse.json(
+        { error: 'La contraseña debe tener al menos 8 caracteres' },
+        { status: 400 }
+      )
+    }
+
+    // Verificar que la contraseña tenga al menos una mayúscula, una minúscula y un número
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/
+    if (!passwordRegex.test(password)) {
+      return NextResponse.json(
+        { error: 'La contraseña debe contener al menos una mayúscula, una minúscula y un número' },
         { status: 400 }
       )
     }
@@ -69,6 +87,7 @@ export async function POST(request: NextRequest) {
         name,
         username,
         roleId: defaultRole.id,
+        isSubscribed: false, // Los nuevos usuarios no están suscritos por defecto
       },
       include: {
         role: {
@@ -82,6 +101,20 @@ export async function POST(request: NextRequest) {
         },
       },
     })
+
+    // Asignar pin de bienvenida "Ritual de Iniciación" automáticamente
+    try {
+      await prisma.userPin.create({
+        data: {
+          userId: user.id,
+          pinId: 'cmh12pybq0000i8i0ert555oq', // ID del pin "Ritual de Iniciación"
+          reason: 'Bienvenido a la comunidad de Programadores Argentina',
+        },
+      })
+    } catch (pinError) {
+      // Si hay error al asignar el pin, no fallar el registro
+      console.error('Error al asignar pin de bienvenida:', pinError)
+    }
 
     // Generar token
     const token = generateToken({

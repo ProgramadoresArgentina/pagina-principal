@@ -27,6 +27,7 @@ interface AuthContextType {
   user: AuthUser | null
   token: string | null
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>
+  register: (email: string, password: string, name?: string, username?: string) => Promise<{ success: boolean; error?: string }>
   logout: () => void
   isLoading: boolean
   isAuthenticated: boolean
@@ -119,6 +120,33 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   }
 
+  // Función de registro
+  const register = async (email: string, password: string, name?: string, username?: string): Promise<{ success: boolean; error?: string }> => {
+    try {
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password, name, username }),
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        setToken(data.token)
+        setUser(data.user)
+        localStorage.setItem('auth_token', data.token)
+        return { success: true }
+      } else {
+        return { success: false, error: data.error }
+      }
+    } catch (error) {
+      console.error('Error en registro:', error)
+      return { success: false, error: 'Error de conexión' }
+    }
+  }
+
   // Función de logout
   const logout = async () => {
     try {
@@ -143,6 +171,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     user,
     token,
     login,
+    register,
     logout,
     isLoading,
     isAuthenticated,

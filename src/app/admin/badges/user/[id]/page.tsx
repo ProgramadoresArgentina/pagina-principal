@@ -358,7 +358,7 @@ export default function UserBadgesDetailPage({ params }: { params: { id: string 
                               padding: '8px',
                               borderRadius: '6px',
                             }}>
-                              "{badge.reason}"
+                              &quot;{badge.reason}&quot;
                             </p>
                           )}
                           <button

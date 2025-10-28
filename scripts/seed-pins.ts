@@ -8,16 +8,9 @@ async function main() {
   // Crear pins iniciales
   const pins = [
     {
-      name: 'Hacktoberfest 2024',
-      description: 'Participó en Hacktoberfest 2024',
-      imageUrl: '/assets/images/pins/pin-hacktoberfest.webp',
-      category: 'evento',
-      isActive: true,
-    },
-    {
-      name: 'Contributor',
-      description: 'Contribuyó al proyecto de Programadores Argentina',
-      imageUrl: '/assets/images/pins/pin-contributor.webp',
+      name: 'Invitación al Club',
+      description: 'Haz que un amigo se sume al Club',
+      imageUrl: '/assets/images/pins/pin-joda-mate.png',
       category: 'contribución',
       isActive: true,
     },

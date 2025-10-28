@@ -3,11 +3,11 @@
 import { useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
-import LoginForm from '@/app/components/LoginForm'
+import RegisterForm from '@/app/components/RegisterForm'
 import Header from '@/app/components/Header'
 import Footer from '@/app/components/Footer'
 
-export default function LoginPageContent() {
+export default function RegisterPageContent() {
   const { isAuthenticated } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -38,12 +38,12 @@ export default function LoginPageContent() {
               <div className="col-xl-6 col-lg-8">
                 <div className="tp-login-wrapper">
                   <div className="tp-login-top text-center mb-20">
-                    <h3 className="tp-login-title">Ingresar a Programadores Argentina</h3>
-                    <p className="mt-20">¿No tienes cuenta? <span><a href={`/registro?redirect=${encodeURIComponent(redirectTo)}`}>Regístrate aquí</a></span></p>
+                    <h3 className="tp-login-title">Crear cuenta en Programadores Argentina</h3>
+                    <p className="mt-20">¿Ya tienes cuenta? <span><a href={`/ingresar?redirect=${encodeURIComponent(redirectTo)}`}>Inicia sesión aquí</a></span></p>
                   </div>
                   
                   <div className="tp-login-option">
-                    <LoginForm redirectTo={redirectTo} />
+                    <RegisterForm redirectTo={redirectTo} />
                   </div>
                 </div>
               </div>

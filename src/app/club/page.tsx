@@ -4,7 +4,6 @@ import BackToTop from "../components/BackToTop";
 import Header from "../components/Header";
 import MobileHeader from "../components/MobileHeader";
 import Footer from "../components/Footer";
-import SubscriptionHandler from "../components/SubscriptionHandler";
 
 export const metadata: Metadata = {
   title: "Club Programadores Argentina - Comunidad Exclusiva | Suscripción $4000/mes",
@@ -70,7 +69,6 @@ export default function Club(): JSX.Element {
       <BackToTop />
       <Header />
       <MobileHeader />
-      <SubscriptionHandler />
 
       <div id="smooth-wrapper">
         <div id="smooth-content">

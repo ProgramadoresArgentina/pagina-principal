@@ -1,0 +1,58 @@
+/* Estilos para el formulario de registro */
+
+.form-help-text {
+  margin-top: 8px;
+}
+
+.form-help-text small {
+  color: #666;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.disabled-input {
+  background-color: #f8f9fa !important;
+  color: #6c757d !important;
+  cursor: not-allowed !important;
+  opacity: 0.8;
+}
+
+.disabled-input:focus {
+  border-color: #ddd !important;
+  box-shadow: none !important;
+}
+
+/* Animación suave para el cambio de username */
+.tp-login-input input[disabled] {
+  transition: all 0.3s ease;
+}
+
+/* Mejoras visuales para el contador de caracteres */
+.form-help-text small {
+  display: block;
+  margin-top: 5px;
+}
+
+/* Estilo para campos requeridos */
+.tp-login-input-title label {
+  font-weight: 600;
+  color: #333;
+}
+
+.tp-login-input-title label::after {
+  content: ' *';
+  color: #dc3545;
+  font-weight: bold;
+}
+
+/* Remover asterisco para campos opcionales */
+.tp-login-input-title label:not([for="name"]):not([for="password"]):not([for="confirmPassword"])::after {
+  content: '';
+}
+
+/* Mejoras responsive */
+@media (max-width: 768px) {
+  .form-help-text small {
+    font-size: 13px;
+  }
+}

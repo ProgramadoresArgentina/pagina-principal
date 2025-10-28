@@ -32,22 +32,20 @@ export async function GET(
       return new NextResponse('Usuario no encontrado', { status: 404 });
     }
 
-    // Configuración de la imagen - Más compacta
-    const pinSize = user.pins.length === 1 ? 120 : user.pins.length <= 2 ? 100 : user.pins.length <= 4 ? 80 : 70;
-    const pinSpacing = 20;
-    const padding = 30;
+    // Configuración de la imagen - Dimensiones fijas con imagen de fondo
+    const svgWidth = 1680;
+    const svgHeight = 600;
+    
+    // Badges más grandes
+    const pinSize = user.pins.length === 1 ? 300 : user.pins.length <= 2 ? 180 : user.pins.length <= 4 ? 160 : 140;
+    const pinSpacing = 30;
+    const padding = 50;
     const pinsPerRow = user.pins.length === 1 ? 1 : user.pins.length <= 2 ? 2 : user.pins.length <= 4 ? 2 : Math.min(user.pins.length, 6);
     const rows = Math.ceil((user.pins.length || 1) / pinsPerRow);
     
-    // Calcular dimensiones más compactas
+    // Calcular dimensiones del contenido
     const contentWidth = padding * 2 + (pinSize + pinSpacing) * pinsPerRow - pinSpacing;
     const contentHeight = padding * 2 + (pinSize + pinSpacing) * rows - pinSpacing;
-    
-    // Dimensiones más pequeñas y proporcionales
-    const minWidth = 750; // 600 + 1/4 = 750
-    const minHeight = 300;
-    const svgWidth = Math.max(contentWidth, minWidth);
-    const svgHeight = Math.max(contentHeight, minHeight);
     
     // Calcular offset para centrar el contenido
     const offsetX = (svgWidth - contentWidth) / 2;
@@ -55,14 +53,27 @@ export async function GET(
 
     // Si no tiene pins, mostrar mensaje
     if (user.pins.length === 0) {
-      // Obtener logo y convertir a base64
+      // Obtener imagen de fondo y logo, convertir a base64
       const host = req.headers.get('host') || req.headers.get('x-forwarded-host');
       const protocol = req.headers.get('x-forwarded-proto') || (req.nextUrl.protocol || 'https');
       const baseUrl = host ? `${protocol}://${host}` : req.nextUrl.origin;
-      const logoUrl = `${baseUrl}/assets/images/logo-club.png`;
+      const wallpaperUrl = `${baseUrl}/assets/images/pins/pin-wallpaper.png`;
+      const logoUrl = `${baseUrl}/assets/images/logo.png`;
       
+      let wallpaperDataUrl = '';
       let logoDataUrl = '';
+      
       try {
+        // Cargar imagen de fondo
+        const wallpaperResponse = await fetch(wallpaperUrl);
+        if (wallpaperResponse.ok) {
+          const wallpaperBuffer = await wallpaperResponse.arrayBuffer();
+          const wallpaperBase64 = Buffer.from(wallpaperBuffer).toString('base64');
+          const wallpaperMimeType = wallpaperResponse.headers.get('content-type') || 'image/png';
+          wallpaperDataUrl = `data:${wallpaperMimeType};base64,${wallpaperBase64}`;
+        }
+        
+        // Cargar logo
         const logoResponse = await fetch(logoUrl);
         if (logoResponse.ok) {
           const logoBuffer = await logoResponse.arrayBuffer();
@@ -71,31 +82,37 @@ export async function GET(
           logoDataUrl = `data:${logoMimeType};base64,${logoBase64}`;
         }
       } catch (error) {
-        console.error('Error cargando logo:', error);
+        console.error('Error cargando imágenes:', error);
       }
 
       const svg = `
-        <svg width="800" height="450" xmlns="http://www.w3.org/2000/svg">
+        <svg width="${svgWidth}" height="${svgHeight}" xmlns="http://www.w3.org/2000/svg">
         <defs>
-          <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" style="stop-color:#1a1b1e" />
-            <stop offset="50%" style="stop-color:#2d2e32" />
-            <stop offset="100%" style="stop-color:#1a1b1e" />
-          </linearGradient>
           <linearGradient id="border" x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" style="stop-color:#D0FF71" />
             <stop offset="50%" style="stop-color:#a8d65a" />
             <stop offset="100%" style="stop-color:#D0FF71" />
           </linearGradient>
         </defs>
-        <rect width="750" height="300" fill="url(#bg)"/>
-        <rect x="1" y="1" width="748" height="298" fill="none" stroke="url(#border)" stroke-width="2"/>
-          <text x="375" y="150" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#a0a0a0" text-anchor="middle">
+        ${wallpaperDataUrl ? `
+        <image 
+          href="${wallpaperDataUrl}" 
+          x="0" 
+          y="0" 
+          width="${svgWidth}" 
+          height="${svgHeight}"
+          preserveAspectRatio="xMidYMid slice"
+        />
+        ` : `
+        <rect width="${svgWidth}" height="${svgHeight}" fill="#1a1b1e"/>
+        `}
+        <rect x="1" y="1" width="${svgWidth - 2}" height="${svgHeight - 2}" fill="none" stroke="url(#border)" stroke-width="2"/>
+          <text x="${svgWidth/2}" y="${svgHeight/2}" font-family="Arial, sans-serif" font-size="32" font-weight="bold" fill="#a0a0a0" text-anchor="middle">
             Sin badges aún
           </text>
           
           <!-- Branding en esquina inferior derecha -->
-          <g transform="translate(470, 250)">
+          <g transform="translate(${svgWidth - 280}, ${svgHeight - 60})">
             <!-- Fondo del label -->
             <rect 
               x="0" 
@@ -134,7 +151,7 @@ export async function GET(
               font-weight="600" 
               fill="#D0FF71"
             >
-              programadoresargentina.com/club
+              programadoresargentina.com/pines
             </text>
           </g>
         </svg>
@@ -240,14 +257,27 @@ export async function GET(
       }
     }
 
-    // Obtener logo y convertir a base64
+    // Obtener imagen de fondo y logo, convertir a base64
     const host = req.headers.get('host') || req.headers.get('x-forwarded-host');
     const protocol = req.headers.get('x-forwarded-proto') || (req.nextUrl.protocol || 'https');
     const baseUrl = host ? `${protocol}://${host}` : req.nextUrl.origin;
-    const logoUrl = `${baseUrl}/assets/images/logo-club.png`;
+    const wallpaperUrl = `${baseUrl}/assets/images/pins/pin-wallpaper.png`;
+    const logoUrl = `${baseUrl}/assets/images/logo.png`;
     
+    let wallpaperDataUrl = '';
     let logoDataUrl = '';
+    
     try {
+      // Cargar imagen de fondo
+      const wallpaperResponse = await fetch(wallpaperUrl);
+      if (wallpaperResponse.ok) {
+        const wallpaperBuffer = await wallpaperResponse.arrayBuffer();
+        const wallpaperBase64 = Buffer.from(wallpaperBuffer).toString('base64');
+        const wallpaperMimeType = wallpaperResponse.headers.get('content-type') || 'image/png';
+        wallpaperDataUrl = `data:${wallpaperMimeType};base64,${wallpaperBase64}`;
+      }
+      
+      // Cargar logo
       const logoResponse = await fetch(logoUrl);
       if (logoResponse.ok) {
         const logoBuffer = await logoResponse.arrayBuffer();
@@ -256,29 +286,35 @@ export async function GET(
         logoDataUrl = `data:${logoMimeType};base64,${logoBase64}`;
       }
     } catch (error) {
-      console.error('Error cargando logo:', error);
+      console.error('Error cargando imágenes:', error);
     }
 
     const svg = `
       <svg width="${svgWidth}" height="${svgHeight}" xmlns="http://www.w3.org/2000/svg">
         <defs>
-          <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" style="stop-color:#1a1b1e" />
-            <stop offset="50%" style="stop-color:#2d2e32" />
-            <stop offset="100%" style="stop-color:#1a1b1e" />
-          </linearGradient>
           <linearGradient id="border" x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" style="stop-color:#D0FF71" />
             <stop offset="50%" style="stop-color:#a8d65a" />
             <stop offset="100%" style="stop-color:#D0FF71" />
           </linearGradient>
         </defs>
-        <rect width="${svgWidth}" height="${svgHeight}" fill="url(#bg)"/>
+        ${wallpaperDataUrl ? `
+        <image 
+          href="${wallpaperDataUrl}" 
+          x="0" 
+          y="0" 
+          width="${svgWidth}" 
+          height="${svgHeight}"
+          preserveAspectRatio="xMidYMid slice"
+        />
+        ` : `
+        <rect width="${svgWidth}" height="${svgHeight}" fill="#1a1b1e"/>
+        `}
         <rect x="1" y="1" width="${svgWidth - 2}" height="${svgHeight - 2}" fill="none" stroke="url(#border)" stroke-width="2"/>
         ${pinElements}
         
         <!-- Branding en esquina inferior derecha -->
-        <g transform="translate(${svgWidth - 260}, ${svgHeight - 40})">
+        <g transform="translate(${svgWidth - 280}, ${svgHeight - 60})">
           <!-- Fondo del label -->
           <rect 
             x="0" 
@@ -317,7 +353,7 @@ export async function GET(
             font-weight="600" 
             fill="#D0FF71"
           >
-            programadoresargentina.com/club
+            programadoresargentina.com/pines
           </text>
         </g>
       </svg>
