@@ -21,6 +21,7 @@ interface ForumPost {
     username: string
   }
   commentCount: number
+  applauseCount: number
 }
 
 export default function ForumPageContent() {
@@ -31,12 +32,15 @@ export default function ForumPageContent() {
   const [sortBy, setSortBy] = useState<'recent' | 'top'>('recent')
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
+  const [totalPosts, setTotalPosts] = useState(0)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [isSearching, setIsSearching] = useState(false)
   const { user, isAuthenticated } = useAuth()
 
   const fetchPosts = async () => {
     try {
       setLoading(true)
-      const response = await fetch(`/api/forum/posts?page=${currentPage}&sort=${sortBy}`)
+      const response = await fetch(`/api/forum/posts?page=${currentPage}&sort=${sortBy}&limit=12`)
       
       if (!response.ok) {
         throw new Error('Error al cargar los posts')
@@ -46,10 +50,37 @@ export default function ForumPageContent() {
       setPosts(data.posts || [])
       setFilteredPosts(data.posts || [])
       setTotalPages(data.totalPages || 1)
+      setTotalPosts(data.totalCount || 0)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error desconocido')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleSearch = async (query: string) => {
+    setSearchQuery(query)
+    
+    if (query.trim() === '') {
+      setFilteredPosts(posts)
+      setIsSearching(false)
+      return
+    }
+
+    try {
+      setIsSearching(true)
+      const response = await fetch(`/api/forum/posts?search=${encodeURIComponent(query)}&limit=50`)
+      
+      if (!response.ok) {
+        throw new Error('Error al buscar posts')
+      }
+      
+      const data = await response.json()
+      setFilteredPosts(data.posts || [])
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error al buscar')
+    } finally {
+      setIsSearching(false)
     }
   }
 
@@ -123,6 +154,103 @@ export default function ForumPageContent() {
 
   return (
     <>
+      <style jsx>{`
+        .form-control::placeholder {
+          color: #a0a0a0 !important;
+          opacity: 0.8;
+        }
+        .form-control::-webkit-input-placeholder {
+          color: #a0a0a0 !important;
+          opacity: 0.8;
+        }
+        .form-control::-moz-placeholder {
+          color: #a0a0a0 !important;
+          opacity: 0.8;
+        }
+        .form-control:-ms-input-placeholder {
+          color: #a0a0a0 !important;
+          opacity: 0.8;
+        }
+        
+        @media (max-width: 768px) {
+          .forum-table-header {
+            display: none !important;
+          }
+          .forum-post-row {
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            gap: 12px !important;
+            padding: 16px !important;
+          }
+          .forum-post-title {
+            flex: none !important;
+            width: 100% !important;
+            margin-bottom: 8px !important;
+          }
+          .forum-post-meta {
+            display: flex !important;
+            flex-wrap: wrap !important;
+            gap: 12px !important;
+            width: 100% !important;
+            font-size: 12px !important;
+          }
+          .forum-post-stats {
+            display: flex !important;
+            gap: 16px !important;
+            margin-top: 8px !important;
+          }
+        }
+      `}</style>
+      <div style={{
+        background: '#1A1B1E',
+        minHeight: '100vh',
+        padding: '20px 0'
+      }}>
+      {/* Buscador */}
+      <div className="text-center mb-4" style={{ padding: '0 16px' }}>
+        <div className="row justify-content-center">
+          <div className="col-12 col-md-8 col-lg-6">
+            <div className="position-relative">
+              <input
+                type="text"
+                className="form-control"
+                placeholder="Buscar posts por título, contenido o autor..."
+                value={searchQuery}
+                onChange={(e) => handleSearch(e.target.value)}
+                disabled={isSearching}
+                style={{
+                  background: '#2d2e32',
+                  border: '2px solid #3a3b3f',
+                  borderRadius: '25px',
+                  color: '#ffffff',
+                  padding: '12px 20px 12px 50px',
+                  fontSize: '16px',
+                  transition: 'border-color 0.3s ease',
+                  height: '50px',
+                  opacity: isSearching ? 0.7 : 1
+                }}
+                onFocus={(e) => {
+                  e.target.style.borderColor = '#D0FF71'
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = '#3a3b3f'
+                }}
+              />
+              <div style={{
+                position: 'absolute',
+                left: '18px',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                color: isSearching ? '#D0FF71' : '#a0a0a0',
+                fontSize: '18px'
+              }}>
+                {isSearching ? '⏳' : '🔍'}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Filtros de ordenamiento */}
       <div className="text-center mb-4" style={{ padding: '0 16px' }}>
         <div className="d-flex justify-content-center gap-3">
@@ -175,7 +303,7 @@ export default function ForumPageContent() {
             overflow: 'hidden'
           }}>
             {/* Header de la tabla */}
-            <div style={{
+            <div className="forum-table-header" style={{
               background: 'linear-gradient(135deg, #2d2e32 0%, #1a1b1e 100%)',
               padding: '16px 20px',
               borderBottom: '1px solid #3a3b3f',
@@ -189,6 +317,7 @@ export default function ForumPageContent() {
               <div style={{ flex: '2', minWidth: '0' }}>Título</div>
               <div style={{ flex: '1', minWidth: '120px' }}>Autor</div>
               <div style={{ flex: '1', minWidth: '100px' }}>Fecha</div>
+              <div style={{ flex: '0.5', minWidth: '60px', textAlign: 'center' }}>👏</div>
               <div style={{ flex: '0.5', minWidth: '60px', textAlign: 'center' }}>Vistas</div>
               <div style={{ flex: '0.5', minWidth: '60px', textAlign: 'center' }}>Comentarios</div>
             </div>
@@ -198,6 +327,7 @@ export default function ForumPageContent() {
               <Link 
                 key={post.id}
                 href={`/foro/${post.slug}`}
+                className="forum-post-row"
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -340,6 +470,13 @@ export default function ForumPageContent() {
                   </div>
                 </div>
 
+                {/* Aplausos */}
+                <div style={{ flex: '0.5', minWidth: '60px', textAlign: 'center' }}>
+                  <span style={{ color: '#D0FF71', fontSize: '13px', fontWeight: '600' }}>
+                    {post.applauseCount || 0}
+                  </span>
+                </div>
+
                 {/* Vistas */}
                 <div style={{ flex: '0.5', minWidth: '60px', textAlign: 'center' }}>
                   <span style={{ color: '#a0a0a0', fontSize: '13px' }}>
@@ -409,6 +546,7 @@ export default function ForumPageContent() {
           </div>
         </div>
       )}
+    </div>
     </>
   )
 }

@@ -7,8 +7,9 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const page = parseInt(searchParams.get('page') || '1')
-    const limit = parseInt(searchParams.get('limit') || '10')
+    const limit = parseInt(searchParams.get('limit') || '12')
     const sort = searchParams.get('sort') || 'recent'
+    const search = searchParams.get('search') || ''
     const skip = (page - 1) * limit
 
     // Determinar ordenamiento
@@ -23,9 +24,20 @@ export async function GET(request: NextRequest) {
           { createdAt: 'desc' as const } // Luego por fecha
         ]
 
-    // Obtener posts con paginación (acceso público)
+    // Construir filtros de búsqueda
+    const searchFilter = search ? {
+      OR: [
+        { title: { contains: search, mode: 'insensitive' as const } },
+        { content: { contains: search, mode: 'insensitive' as const } },
+        { author: { name: { contains: search, mode: 'insensitive' as const } } },
+        { author: { username: { contains: search, mode: 'insensitive' as const } } }
+      ]
+    } : {}
+
+    // Obtener posts con paginación y búsqueda (acceso público)
     const [posts, totalCount] = await Promise.all([
       prisma.forumPost.findMany({
+        where: searchFilter,
         include: {
           author: {
             select: {
@@ -40,12 +52,17 @@ export async function GET(request: NextRequest) {
               id: true,
             }
           },
+          applause: {
+            select: {
+              count: true
+            }
+          },
         },
         orderBy,
         skip,
         take: limit,
       }),
-      prisma.forumPost.count()
+      prisma.forumPost.count({ where: searchFilter })
     ])
 
     // Formatear respuesta
@@ -57,6 +74,7 @@ export async function GET(request: NextRequest) {
       isPinned: post.isPinned,
       isLocked: post.isLocked,
       viewCount: post.viewCount,
+      applauseCount: post.applause.reduce((sum, applause) => sum + applause.count, 0),
       multimedia: post.multimedia,
       createdAt: post.createdAt,
       updatedAt: post.updatedAt,

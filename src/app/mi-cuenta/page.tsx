@@ -123,9 +123,13 @@ export default function MiCuentaPage() {
 
                   <div className="mb-4" style={{ 
                     display: 'flex', 
-                    gap: '12px',
+                    gap: '8px',
                     borderBottom: '2px solid #3a3b3f',
-                    paddingBottom: '0'
+                    paddingBottom: '0',
+                    flexWrap: 'wrap',
+                    overflowX: 'auto',
+                    scrollbarWidth: 'none',
+                    msOverflowStyle: 'none'
                   }}>
                       <button
                         onClick={() => handleTabChange('general')}
@@ -135,12 +139,14 @@ export default function MiCuentaPage() {
                         border: 'none',
                         borderBottom: activeTab === 'general' ? '2px solid #D0FF71' : '2px solid transparent',
                         color: activeTab === 'general' ? '#D0FF71' : '#a0a0a0',
-                        padding: '12px 24px',
-                        fontSize: '15px',
+                        padding: '12px 16px',
+                        fontSize: '14px',
                         fontWeight: '600',
                         cursor: 'pointer',
                         transition: 'all 0.3s ease',
-                        marginBottom: '-2px'
+                        marginBottom: '-2px',
+                        whiteSpace: 'nowrap',
+                        minWidth: 'fit-content'
                       }}
                       onMouseEnter={(e) => {
                         if (activeTab !== 'general') {
@@ -163,12 +169,14 @@ export default function MiCuentaPage() {
                         border: 'none',
                         borderBottom: activeTab === 'ofertas' ? '2px solid #D0FF71' : '2px solid transparent',
                         color: activeTab === 'ofertas' ? '#D0FF71' : '#a0a0a0',
-                        padding: '12px 24px',
-                        fontSize: '15px',
+                        padding: '12px 16px',
+                        fontSize: '14px',
                         fontWeight: '600',
                         cursor: 'pointer',
                         transition: 'all 0.3s ease',
-                        marginBottom: '-2px'
+                        marginBottom: '-2px',
+                        whiteSpace: 'nowrap',
+                        minWidth: 'fit-content'
                       }}
                       onMouseEnter={(e) => {
                         if (activeTab !== 'ofertas') {
@@ -191,12 +199,14 @@ export default function MiCuentaPage() {
                         border: 'none',
                         borderBottom: activeTab === 'badges' ? '2px solid #D0FF71' : '2px solid transparent',
                         color: activeTab === 'badges' ? '#D0FF71' : '#a0a0a0',
-                        padding: '12px 24px',
-                        fontSize: '15px',
+                        padding: '12px 16px',
+                        fontSize: '14px',
                         fontWeight: '600',
                         cursor: 'pointer',
                         transition: 'all 0.3s ease',
-                        marginBottom: '-2px'
+                        marginBottom: '-2px',
+                        whiteSpace: 'nowrap',
+                        minWidth: 'fit-content'
                       }}
                       onMouseEnter={(e) => {
                         if (activeTab !== 'badges') {
@@ -220,12 +230,14 @@ export default function MiCuentaPage() {
                         border: 'none',
                         borderBottom: activeTab === 'referidos' ? '2px solid #D0FF71' : '2px solid transparent',
                         color: activeTab === 'referidos' ? '#D0FF71' : '#a0a0a0',
-                        padding: '12px 24px',
-                        fontSize: '15px',
+                        padding: '12px 16px',
+                        fontSize: '14px',
                         fontWeight: '600',
                         cursor: 'pointer',
                         transition: 'all 0.3s ease',
-                        marginBottom: '-2px'
+                        marginBottom: '-2px',
+                        whiteSpace: 'nowrap',
+                        minWidth: 'fit-content'
                       }}
                       onMouseEnter={(e) => {
                         if (activeTab !== 'referidos') {
@@ -1144,8 +1156,8 @@ function BadgesTab({ token, username }: { token: string | null, username: string
   const timestamp = Date.now()
   const badgeUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}/api/badges/${username}`
   const badgeUrlWithCache = `${badgeUrl}?t=${timestamp}`
-  const markdownCode = `[![Pines de la Comunidad de Programadores Argentina](${badgeUrl})](https://programadoresargentina.com/pines)`
-  const htmlCode = `<a href="https://programadoresargentina.com/pines" target="_blank"><img src="${badgeUrl}" alt="Pines de la Comunidad de Programadores Argentina" /></a>`
+  const markdownCode = `[![Pines de la Comunidad de Programadores Argentina](${badgeUrl})](https://programadoresargentina.com/pines){:target="_blank"}`
+  const htmlCode = `<a href="https://programadoresargentina.com/pines" target="_blank" rel="noopener noreferrer"><img src="${badgeUrl}" alt="Pines de la Comunidad de Programadores Argentina" /></a>`
 
   const copyToClipboard = (text: string, type: 'url' | 'markdown' | 'html') => {
     navigator.clipboard.writeText(text)

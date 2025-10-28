@@ -33,6 +33,7 @@ export default function ChatWidget() {
   const [hasMoreMessages, setHasMoreMessages] = useState(true)
   const [nextCursor, setNextCursor] = useState<string | null>(null)
   const [isMobile, setIsMobile] = useState(false)
+  const [viewportHeight, setViewportHeight] = useState(0)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const messagesContainerRef = useRef<HTMLDivElement>(null)
   
@@ -122,16 +123,31 @@ export default function ChatWidget() {
     ))
   }
 
-  // Detectar tamaño de pantalla
+  // Detectar tamaño de pantalla y cambios en la altura de la ventana
   useEffect(() => {
     const checkIsMobile = () => {
       setIsMobile(window.innerWidth <= 768)
+      setViewportHeight(window.innerHeight)
+    }
+    
+    // Función para manejar cambios en la altura de la ventana (barra de navegación móvil)
+    const handleViewportChange = () => {
+      setViewportHeight(window.innerHeight)
     }
     
     checkIsMobile()
     window.addEventListener('resize', checkIsMobile)
     
-    return () => window.removeEventListener('resize', checkIsMobile)
+    // Escuchar cambios en la altura de la ventana (específico para móviles)
+    window.addEventListener('resize', handleViewportChange)
+    // También escuchar el evento de orientación que puede cambiar la altura
+    window.addEventListener('orientationchange', handleViewportChange)
+    
+    return () => {
+      window.removeEventListener('resize', checkIsMobile)
+      window.removeEventListener('resize', handleViewportChange)
+      window.removeEventListener('orientationchange', handleViewportChange)
+    }
   }, [])
 
   // Scroll automático cuando llegan mensajes del socket
@@ -355,13 +371,13 @@ export default function ChatWidget() {
       {isOpen && (
         <div 
           className={`position-fixed shadow-lg bg-white border ${
-            isMobile ? 'w-100 h-100' : 'rounded'
+            isMobile ? 'w-100' : 'rounded'
           }`}
           style={{
             bottom: isMobile ? '0' : '20px',
             right: isMobile ? '0' : '20px',
             width: isMobile ? '100%' : '400px',
-            height: isMobile ? '100%' : '600px',
+            height: isMobile ? '100dvh' : '600px',
             zIndex: 1001,
             display: 'flex',
             flexDirection: 'column'
@@ -438,8 +454,8 @@ export default function ChatWidget() {
             ref={messagesContainerRef}
             className="flex-grow-1 overflow-auto p-3"
             style={{ 
-              maxHeight: isMobile ? 'calc(100vh - 200px)' : '400px',
-              minHeight: isMobile ? 'calc(100vh - 200px)' : '200px'
+              maxHeight: isMobile ? `calc(${viewportHeight || '100dvh'} - 200px)` : '400px',
+              minHeight: isMobile ? `calc(${viewportHeight || '100dvh'} - 200px)` : '200px'
             }}
             onScroll={handleScroll}
           >
@@ -452,7 +468,7 @@ export default function ChatWidget() {
               <div 
                 className="text-center d-flex flex-column justify-content-center align-items-center"
                 style={{ 
-                  height: isMobile ? 'calc(100vh - 300px)' : '300px',
+                  height: isMobile ? `calc(${viewportHeight || '100dvh'} - 300px)` : '300px',
                   minHeight: '200px'
                 }}
               >
@@ -466,7 +482,7 @@ export default function ChatWidget() {
               <div 
                 className="text-center text-muted d-flex flex-column justify-content-center align-items-center"
                 style={{ 
-                  height: isMobile ? 'calc(100vh - 300px)' : '300px',
+                  height: isMobile ? `calc(${viewportHeight || '100dvh'} - 300px)` : '300px',
                   minHeight: '200px'
                 }}
               >

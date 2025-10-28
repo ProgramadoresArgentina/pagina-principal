@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import LoginForm from '@/app/components/LoginForm'
 import Header from '@/app/components/Header'
+import MobileHeader from '@/app/components/MobileHeader'
 import Footer from '@/app/components/Footer'
 
 export default function LoginPageContent() {

@@ -14,6 +14,7 @@ export default function CreatePostPageContent() {
   const [isUploading, setIsUploading] = useState(false)
   const [error, setError] = useState('')
   const [uploadedFiles, setUploadedFiles] = useState<any[]>([])
+  const [captcha, setCaptcha] = useState({ question: '', answer: 0, userAnswer: '' })
   const { user, isAuthenticated, token } = useAuth()
   const router = useRouter()
 
@@ -24,12 +25,45 @@ export default function CreatePostPageContent() {
     }
   }, [isAuthenticated, router])
 
+  // Generar captcha
+  const generateCaptcha = () => {
+    const num1 = Math.floor(Math.random() * 10) + 1
+    const num2 = Math.floor(Math.random() * 10) + 1
+    const operation = Math.random() > 0.5 ? '+' : '-'
+    
+    let question, answer
+    if (operation === '+') {
+      question = `${num1} + ${num2}`
+      answer = num1 + num2
+    } else {
+      // Asegurar que el resultado sea positivo
+      const maxNum = Math.max(num1, num2)
+      const minNum = Math.min(num1, num2)
+      question = `${maxNum} - ${minNum}`
+      answer = maxNum - minNum
+    }
+    
+    setCaptcha({ question, answer, userAnswer: '' })
+  }
+
+  // Generar captcha al cargar el componente
+  useEffect(() => {
+    generateCaptcha()
+  }, [])
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
     setFormData(prev => ({
       ...prev,
       [name]: value
     }))
+    
+    // Auto-resize para textarea
+    if (name === 'content' && e.target instanceof HTMLTextAreaElement) {
+      const textarea = e.target
+      textarea.style.height = 'auto'
+      textarea.style.height = Math.max(textarea.scrollHeight, 300) + 'px'
+    }
   }
 
   const handleFileUpload = async (files: FileList) => {
@@ -108,6 +142,16 @@ export default function CreatePostPageContent() {
       return false
     }
 
+    if (!captcha.userAnswer.trim()) {
+      setError('Debes resolver el captcha')
+      return false
+    }
+
+    if (parseInt(captcha.userAnswer) !== captcha.answer) {
+      setError('La respuesta del captcha es incorrecta')
+      return false
+    }
+
     return true
   }
 
@@ -156,8 +200,27 @@ export default function CreatePostPageContent() {
   }
 
   return (
-    <div className="row justify-content-center">
-      <div className="col-12 col-lg-8">
+    <>
+      <style jsx>{`
+        .form-control::placeholder {
+          color: #ffffff !important;
+          opacity: 0.7;
+        }
+        .form-control::-webkit-input-placeholder {
+          color: #ffffff !important;
+          opacity: 0.7;
+        }
+        .form-control::-moz-placeholder {
+          color: #ffffff !important;
+          opacity: 0.7;
+        }
+        .form-control:-ms-input-placeholder {
+          color: #ffffff !important;
+          opacity: 0.7;
+        }
+      `}</style>
+      <div className="row justify-content-center" style={{ marginTop: '120px' }}>
+        <div className="col-12 col-lg-8">
         <div style={{
           background: 'linear-gradient(135deg, #2d2e32 0%, #1a1b1e 100%)',
           border: '1px solid #3a3b3f',
@@ -176,18 +239,34 @@ export default function CreatePostPageContent() {
           </div>
 
           {/* Guías del foro */}
-          <div className="alert alert-info mb-4" role="alert" style={{
-            background: 'rgba(13, 110, 253, 0.1)',
-            border: '1px solid rgba(13, 110, 253, 0.3)',
-            color: '#0d6efd',
+          <div className="mb-4" style={{
+            background: 'linear-gradient(135deg, #3a3b3f 0%, #2d2e32 100%)',
+            border: '1px solid #4a4b4f',
             borderRadius: '12px',
-            padding: '16px'
+            padding: '20px',
+            borderLeft: '4px solid #D0FF71'
           }}>
-            <h6 className="alert-heading">📋 Guías del Foro</h6>
-            <ul className="mb-0" style={{ fontSize: '14px', lineHeight: '1.5' }}>
-              <li>Sé respetuoso y constructivo en tus comentarios</li>
-              <li>Usa títulos descriptivos y claros</li>
-              <li>Incluye código cuando sea relevante</li>
+            <h6 style={{ 
+              color: '#D0FF71', 
+              marginBottom: '15px', 
+              fontWeight: '600',
+              fontSize: '16px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}>
+              📋 Guías del Foro
+            </h6>
+            <ul className="mb-0" style={{ 
+              fontSize: '14px', 
+              lineHeight: '1.6',
+              color: '#ffffff',
+              paddingLeft: '20px',
+              margin: 0
+            }}>
+              <li style={{ marginBottom: '8px' }}>Sé respetuoso y constructivo en tus comentarios</li>
+              <li style={{ marginBottom: '8px' }}>Usa títulos descriptivos y claros</li>
+              <li style={{ marginBottom: '8px' }}>Incluye código cuando sea relevante</li>
               <li>Busca antes de crear posts similares</li>
             </ul>
           </div>
@@ -242,7 +321,7 @@ export default function CreatePostPageContent() {
                 placeholder="Describe tu pregunta, comparte tu conocimiento o inicia una discusión..."
                 value={formData.content}
                 onChange={handleInputChange}
-                rows={12}
+                rows={25}
                 style={{
                   background: '#1a1b1e',
                   border: '2px solid #3a3b3f',
@@ -250,7 +329,8 @@ export default function CreatePostPageContent() {
                   color: '#ffffff',
                   padding: '12px 16px',
                   fontSize: '16px',
-                  resize: 'vertical',
+                  resize: 'none',
+                  minHeight: '300px',
                   transition: 'border-color 0.3s ease'
                 }}
                 onFocus={(e) => {
@@ -455,5 +535,6 @@ export default function CreatePostPageContent() {
         </div>
       </div>
     </div>
+    </>
   )
 }

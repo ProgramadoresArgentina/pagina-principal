@@ -3,6 +3,7 @@ import { Metadata } from "next";
 import BackToTop from "./components/BackToTop";
 import Header from "./components/Header";
 import MobileHeader from "./components/MobileHeader";
+// import ForumPostsSlider from "./components/ForumPostsSlider";
 import PublicGroups from "./components/PublicGroups";
 import Footer from "./components/Footer";
 import StructuredData from "./components/StructuredData";
@@ -271,6 +272,8 @@ export default function Home(): JSX.Element {
                   <span className="swiper-notification" aria-live="assertive" aria-atomic="true"></span></div>
               </div>
             </div>
+
+            {/* <ForumPostsSlider /> */}
 
             <PublicGroups />
 

@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,61 +7,39 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Modelo de Usuario
 model User {
-  id           String   @id @default(cuid())
-  email        String   @unique
-  password     String   // Hash de la contraseña
-  name         String?
-  username     String?  @unique
-  avatar       String?
-  bio          String?
-  website      String?
-  location     String?
-  // Identificador de WhatsApp (Lead/Lista)
-  lid          String?  @unique
-  isSubscribed Boolean  @default(false) // Si está suscrito al club
-  isActive     Boolean  @default(true)  // Si la cuenta está activa
-  lastLogin    DateTime?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  // Relaciones
-  roleId       String
-  role         Role     @relation(fields: [roleId], references: [id])
-  jobPreference JobPreference?
-  
-  // Chat relations
-  chatMessages ChatMessage[]
-  chatBans     ChatBan[] @relation("ChatBanUser")
-  chatBansModerated ChatBan[] @relation("ChatBanModerator")
-  
-  // Book reading progress
-  bookProgress BookProgress[]
-  
-  // User pins (badges)
-  pins UserPin[]
-  
-  // Forum relations
-  forumPosts ForumPost[]
-  forumComments ForumComment[]
-  
-  // Referidos relations
-  referidosHechos Referido[] @relation("UserReferidos")
-  referidoPor Referido[] @relation("UserReferido")
+  id                String          @id @default(cuid())
+  email             String          @unique
+  password          String
+  name              String?
+  username          String?         @unique
+  avatar            String?
+  bio               String?
+  website           String?
+  location          String?
+  isSubscribed      Boolean         @default(false)
+  isActive          Boolean         @default(true)
+  lastLogin         DateTime?
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  roleId            String
+  lid               String?         @unique
+  bookProgress      BookProgress[]
+  chatBansModerated ChatBan[]       @relation("ChatBanModerator")
+  chatBans          ChatBan[]       @relation("ChatBanUser")
+  chatMessages      ChatMessage[]
+  forumApplause     ForumApplause[]
+  forumComments     ForumComment[]
+  forumPosts        ForumPost[]
+  jobPreference     JobPreference?
+  referidoPor       Referido[]      @relation("UserReferido")
+  referidosHechos   Referido[]      @relation("UserReferidos")
+  pins              UserPin[]
+  role              Role            @relation(fields: [roleId], references: [id])
 
   @@map("users")
 }
 
-// Seniority para ofertas laborales
-enum Seniority {
-  JUNIOR
-  SEMI_SENIOR
-  SENIOR
-  LEAD
-}
-
-// Preferencias laborales del usuario (1:1)
 model JobPreference {
   id                      String     @id @default(cuid())
   userId                  String     @unique
@@ -74,223 +49,204 @@ model JobPreference {
   provinces               String[]   @default([])
   createdAt               DateTime   @default(now())
   updatedAt               DateTime   @updatedAt
-
-  // Relaciones
   user                    User       @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("job_preferences")
 }
 
-// Modelo de Rol
 model Role {
-  id          String   @id @default(cuid())
-  name        String   @unique
+  id          String           @id @default(cuid())
+  name        String           @unique
   description String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  // Relaciones
-  users       User[]
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
   permissions RolePermission[]
+  users       User[]
 
   @@map("roles")
 }
 
-// Modelo de Permiso
 model Permission {
-  id          String   @id @default(cuid())
-  name        String   @unique
+  id          String           @id @default(cuid())
+  name        String           @unique
   description String?
-  resource    String   // Recurso al que aplica (posts, users, etc.)
-  action      String   // Acción (create, read, update, delete)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  // Relaciones
+  resource    String
+  action      String
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
   roles       RolePermission[]
 
   @@unique([resource, action])
   @@map("permissions")
 }
 
-// Tabla de relación Role-Permission
 model RolePermission {
   roleId       String
-  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
   permissionId String
   permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
 
   @@id([roleId, permissionId])
   @@map("role_permissions")
 }
 
-// Modelo de Chat Global
 model Chat {
-  id        String   @id @default(cuid())
-  name      String   @default("Chat Global")
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relaciones
-  messages ChatMessage[]
-  bans     ChatBan[]
+  id        String        @id @default(cuid())
+  name      String        @default("Chat Global")
+  isActive  Boolean       @default(true)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  bans      ChatBan[]
+  messages  ChatMessage[]
 
   @@map("chats")
 }
 
-// Modelo de Mensaje de Chat
 model ChatMessage {
-  id        String   @id @default(cuid())
-  content   String
-  isDeleted Boolean  @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relaciones
-  chatId    String
-  chat      Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
-  userId    String?  // Null para usuarios anónimos
-  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
-  
-  // Para usuarios anónimos
-  anonymousName String? // "anonimo-123"
-  userIp        String? // Para tracking y bans
+  id            String   @id @default(cuid())
+  content       String
+  isDeleted     Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  chatId        String
+  userId        String?
+  anonymousName String?
+  userIp        String?
+  chat          Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  user          User?    @relation(fields: [userId], references: [id])
 
   @@map("chat_messages")
 }
 
-// Modelo de Ban de Chat
 model ChatBan {
-  id        String   @id @default(cuid())
-  reason    String?
-  expiresAt DateTime? // Null = ban permanente
-  createdAt DateTime @default(now())
-
-  // Relaciones
-  chatId    String
-  chat      Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
-  userId    String?  // Null si es ban por IP
-  user      User?    @relation("ChatBanUser", fields: [userId], references: [id], onDelete: SetNull)
-  bannedBy  String   // ID del moderador/admin que aplicó el ban
-  bannedByUser User  @relation("ChatBanModerator", fields: [bannedBy], references: [id])
-  
-  // Para bans por IP
-  bannedIp  String?
+  id           String    @id @default(cuid())
+  reason       String?
+  expiresAt    DateTime?
+  createdAt    DateTime  @default(now())
+  chatId       String
+  userId       String?
+  bannedBy     String
+  bannedIp     String?
+  bannedByUser User      @relation("ChatBanModerator", fields: [bannedBy], references: [id])
+  chat         Chat      @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  user         User?     @relation("ChatBanUser", fields: [userId], references: [id])
 
   @@map("chat_bans")
 }
 
-// Modelo de Progreso de Lectura de Libros
 model BookProgress {
-  id          String   @id @default(cuid())
-  userId      String
-  bookTitle   String   // Título del libro
-  bookFilename String  // Nombre del archivo PDF
-  currentPage Int      @default(1) // Página actual
-  totalPages  Int?     // Total de páginas (opcional)
-  progress    Float    @default(0) // Porcentaje de progreso (0-100)
-  lastReadAt  DateTime @default(now()) // Última vez que leyó
-  timeSpent   Int      @default(0) // Tiempo total en segundos
-  isCompleted Boolean  @default(false) // Si completó el libro
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id           String   @id @default(cuid())
+  userId       String
+  bookTitle    String
+  bookFilename String
+  currentPage  Int      @default(1)
+  totalPages   Int?
+  progress     Float    @default(0)
+  lastReadAt   DateTime @default(now())
+  timeSpent    Int      @default(0)
+  isCompleted  Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  // Relaciones
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  // Índices únicos
   @@unique([userId, bookFilename])
   @@map("book_progress")
 }
 
-// Modelo de Pin (Insignia/Badge)
 model Pin {
-  id          String   @id @default(cuid())
-  name        String   @unique // Ej: "Hacktoberfest 2024", "Contributor"
-  description String?  // Descripción del pin
-  imageUrl    String   // Ruta a la imagen del pin (ej: /assets/images/pins/pin-hacktoberfest.webp)
-  category    String?  // Categoría del pin (ej: "evento", "contribución", "logro")
-  isActive    Boolean  @default(true) // Si el pin está activo y se puede asignar
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  // Relaciones
+  id          String    @id @default(cuid())
+  name        String    @unique
+  description String?
+  imageUrl    String
+  category    String?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
   userPins    UserPin[]
 
   @@map("pins")
 }
 
-// Tabla de relación Usuario-Pin
 model UserPin {
-  id          String   @id @default(cuid())
-  userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  pinId       String
-  pin         Pin      @relation(fields: [pinId], references: [id], onDelete: Cascade)
-  earnedAt    DateTime @default(now()) // Fecha en que obtuvo el pin
-  grantedBy   String?  // ID del admin que otorgó el pin (opcional)
-  reason      String?  // Razón por la que se otorgó (opcional)
+  id        String   @id @default(cuid())
+  userId    String
+  pinId     String
+  earnedAt  DateTime @default(now())
+  grantedBy String?
+  reason    String?
+  pin       Pin      @relation(fields: [pinId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([userId, pinId]) // Un usuario no puede tener el mismo pin dos veces
+  @@unique([userId, pinId])
   @@map("user_pins")
 }
 
-// Modelo de Post del Foro
 model ForumPost {
-  id          String   @id @default(cuid())
-  title       String   // Título del post
-  content     String   // Contenido del post (texto + enlaces)
-  slug        String   @unique // Slug para URL amigable
-  isPinned    Boolean  @default(false) // Si el post está fijado
-  isLocked    Boolean  @default(false) // Si el post está bloqueado para comentarios
-  viewCount   Int      @default(0) // Contador de vistas
-  score       Int      @default(0) // Puntuación del post (upvotes - downvotes)
-  multimedia  Json?    // Array de archivos multimedia (hasta 3)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  // Relaciones
-  authorId    String
-  author      User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  comments    ForumComment[]
+  id         String          @id @default(cuid())
+  title      String
+  content    String
+  slug       String          @unique
+  isPinned   Boolean         @default(false)
+  isLocked   Boolean         @default(false)
+  viewCount  Int             @default(0)
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+  authorId   String
+  multimedia Json?
+  score      Int             @default(0)
+  applause   ForumApplause[]
+  comments   ForumComment[]
+  author     User            @relation(fields: [authorId], references: [id], onDelete: Cascade)
 
   @@map("forum_posts")
 }
 
-// Modelo de Comentario del Foro
 model ForumComment {
-  id          String   @id @default(cuid())
-  content     String   // Contenido del comentario
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  // Relaciones
-  authorId    String
-  author      User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  postId      String
-  post        ForumPost @relation(fields: [postId], references: [id], onDelete: Cascade)
-  parentId    String?  // Para comentarios anidados (respuestas)
-  parent      ForumComment? @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
-  replies     ForumComment[] @relation("CommentReplies")
+  id        String         @id @default(cuid())
+  content   String
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  authorId  String
+  postId    String
+  parentId  String?
+  author    User           @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  parent    ForumComment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies   ForumComment[] @relation("CommentReplies")
+  post      ForumPost      @relation(fields: [postId], references: [id], onDelete: Cascade)
 
   @@map("forum_comments")
 }
 
-// Modelo de Referidos
+model ForumApplause {
+  id        String    @id @default(cuid())
+  postId    String
+  userId    String
+  count     Int       @default(1)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  post      ForumPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId])
+  @@map("forum_applause")
+}
+
 model Referido {
   id          String   @id @default(cuid())
-  referidorId String   // ID del usuario que hizo la referencia
-  referidoId  String   // ID del usuario que fue referido
+  referidorId String
+  referidoId  String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-
-  // Relaciones
-  referidor   User     @relation("UserReferidos", fields: [referidorId], references: [id], onDelete: Cascade)
   referido    User     @relation("UserReferido", fields: [referidoId], references: [id], onDelete: Cascade)
+  referidor   User     @relation("UserReferidos", fields: [referidorId], references: [id], onDelete: Cascade)
 
-  // Índices únicos
   @@unique([referidorId, referidoId])
   @@map("referidos")
 }
 
+enum Seniority {
+  JUNIOR
+  SEMI_SENIOR
+  SENIOR
+  LEAD
+}

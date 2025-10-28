@@ -47,6 +47,18 @@ export async function GET(
           },
           where: { parentId: null }, // Solo comentarios principales
           orderBy: { createdAt: 'asc' }
+        },
+        applause: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                username: true,
+                avatar: true
+              }
+            }
+          }
         }
       }
     })
@@ -90,6 +102,26 @@ export async function GET(
       }))
     }))
 
+    // Calcular información de aplausos
+    const totalApplauseCount = post.applause.reduce((sum, applause) => sum + applause.count, 0)
+    
+    // Verificar si el usuario actual aplaudió (si está autenticado)
+    let userApplauseCount = 0
+    const authHeader = request.headers.get('authorization')
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.substring(7)
+      const decoded = verifyToken(token)
+      if (decoded && decoded.userId) {
+        const authUser = await getAuthenticatedUser(token)
+        if (authUser) {
+          const userApplause = post.applause.find(applause => applause.userId === authUser.id)
+          if (userApplause) {
+            userApplauseCount = userApplause.count
+          }
+        }
+      }
+    }
+
     return NextResponse.json({
       post: {
         id: post.id,
@@ -99,6 +131,9 @@ export async function GET(
         isPinned: post.isPinned,
         isLocked: post.isLocked,
         viewCount: post.viewCount + 1, // +1 porque ya incrementamos
+        applauseCount: totalApplauseCount,
+        userApplauseCount: userApplauseCount,
+        multimedia: post.multimedia,
         createdAt: post.createdAt,
         updatedAt: post.updatedAt,
         author: {

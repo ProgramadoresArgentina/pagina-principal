@@ -13,6 +13,9 @@ interface ForumPost {
   isPinned: boolean
   isLocked: boolean
   viewCount: number
+  applauseCount: number
+  userApplauseCount: number
+  multimedia?: any[] | null
   createdAt: string
   updatedAt: string
   author: {
@@ -51,6 +54,11 @@ export default function PostPageContent({ slug }: PostPageContentProps) {
   const [replyingTo, setReplyingTo] = useState<string | null>(null)
   const [replyContent, setReplyContent] = useState('')
   const [submittingComment, setSubmittingComment] = useState(false)
+  const [isEditing, setIsEditing] = useState(false)
+  const [editTitle, setEditTitle] = useState('')
+  const [editContent, setEditContent] = useState('')
+  const [submittingEdit, setSubmittingEdit] = useState(false)
+  const [submittingApplause, setSubmittingApplause] = useState(false)
   const { user, isAuthenticated, token } = useAuth()
   const router = useRouter()
 
@@ -179,6 +187,144 @@ export default function PostPageContent({ slug }: PostPageContentProps) {
     }
   }
 
+  const handleEditPost = async (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    if (!isAuthenticated) {
+      setError('Debes iniciar sesión para editar')
+      return
+    }
+
+    if (!editTitle.trim() || !editContent.trim()) {
+      setError('El título y contenido no pueden estar vacíos')
+      return
+    }
+
+    setSubmittingEdit(true)
+    setError('')
+
+    try {
+      const response = await fetch(`/api/forum/posts/${slug}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ 
+          title: editTitle,
+          content: editContent
+        })
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        setIsEditing(false)
+        // Recargar el post para mostrar los cambios
+        fetchPost()
+      } else {
+        setError(data.error || 'Error al editar post')
+      }
+    } catch (err) {
+      setError('Error de conexión')
+    } finally {
+      setSubmittingEdit(false)
+    }
+  }
+
+  const handleDeletePost = async () => {
+    if (!isAuthenticated) {
+      setError('Debes iniciar sesión para eliminar')
+      return
+    }
+
+    if (!confirm('¿Estás seguro de que quieres eliminar este post? Esta acción no se puede deshacer.')) {
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/forum/posts/${slug}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+
+      if (response.ok) {
+        // Redirigir al foro después de eliminar
+        router.push('/foro')
+      } else {
+        const data = await response.json()
+        setError(data.error || 'Error al eliminar post')
+      }
+    } catch (err) {
+      setError('Error de conexión')
+    }
+  }
+
+  const handleApplause = async () => {
+    if (!isAuthenticated) {
+      setError('Debes iniciar sesión para aplaudir')
+      return
+    }
+
+    if (!post) return
+
+    if (post.userApplauseCount >= 10) {
+      setError('Ya has dado el máximo de aplausos (10)')
+      return
+    }
+
+    setSubmittingApplause(true)
+    setError('')
+
+    // Optimistic update - actualizar UI inmediatamente
+    const previousPost = post
+    setPost(prev => prev ? {
+      ...prev,
+      applauseCount: prev.applauseCount + 1,
+      userApplauseCount: prev.userApplauseCount + 1
+    } : null)
+
+    try {
+      const response = await fetch(`/api/forum/posts/${slug}/applause`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        // Revertir cambios si hay error
+        setPost(previousPost)
+        setError(data.error || 'Error al aplaudir')
+      }
+    } catch (err) {
+      // Revertir cambios si hay error de conexión
+      setPost(previousPost)
+      setError('Error de conexión')
+    } finally {
+      setSubmittingApplause(false)
+    }
+  }
+
+  const startEditing = () => {
+    if (post) {
+      setEditTitle(post.title)
+      setEditContent(post.content)
+      setIsEditing(true)
+    }
+  }
+
+  const cancelEditing = () => {
+    setIsEditing(false)
+    setEditTitle('')
+    setEditContent('')
+  }
+
   if (loading) {
     return (
       <div className="row">
@@ -281,15 +427,150 @@ export default function PostPageContent({ slug }: PostPageContentProps) {
           </div>
 
           {/* Contenido del post */}
-          <div style={{
-            color: '#ffffff',
-            fontSize: '16px',
-            lineHeight: '1.6',
-            marginBottom: '24px',
-            whiteSpace: 'pre-wrap'
-          }}>
-            {post.content}
-          </div>
+          {isEditing ? (
+            <form onSubmit={handleEditPost}>
+              <div className="mb-3">
+                <label htmlFor="editTitle" className="form-label" style={{ color: '#ffffff', fontWeight: '600' }}>
+                  Título
+                </label>
+                <input
+                  type="text"
+                  id="editTitle"
+                  className="form-control"
+                  value={editTitle}
+                  onChange={(e) => setEditTitle(e.target.value)}
+                  style={{
+                    background: '#1a1b1e',
+                    border: '2px solid #3a3b3f',
+                    borderRadius: '8px',
+                    color: '#ffffff',
+                    padding: '12px 16px',
+                    fontSize: '16px'
+                  }}
+                  required
+                />
+              </div>
+              <div className="mb-3">
+                <label htmlFor="editContent" className="form-label" style={{ color: '#ffffff', fontWeight: '600' }}>
+                  Contenido
+                </label>
+                <textarea
+                  id="editContent"
+                  className="form-control"
+                  value={editContent}
+                  onChange={(e) => setEditContent(e.target.value)}
+                  rows={8}
+                  style={{
+                    background: '#1a1b1e',
+                    border: '2px solid #3a3b3f',
+                    borderRadius: '8px',
+                    color: '#ffffff',
+                    padding: '12px 16px',
+                    fontSize: '16px',
+                    resize: 'vertical'
+                  }}
+                  required
+                />
+              </div>
+              <div className="d-flex gap-2">
+                <button
+                  type="submit"
+                  className="btn"
+                  disabled={submittingEdit || !editTitle.trim() || !editContent.trim()}
+                  style={{
+                    background: submittingEdit 
+                      ? 'rgba(208, 255, 113, 0.5)' 
+                      : 'linear-gradient(135deg, #D0FF71 0%, #a8d65a 100%)',
+                    color: '#1a1b1e',
+                    border: 'none',
+                    borderRadius: '8px',
+                    padding: '10px 20px',
+                    fontSize: '14px',
+                    fontWeight: '600'
+                  }}
+                >
+                  {submittingEdit ? 'Guardando...' : '💾 Guardar'}
+                </button>
+                <button
+                  type="button"
+                  className="btn"
+                  onClick={cancelEditing}
+                  style={{
+                    background: 'rgba(58, 59, 63, 0.5)',
+                    color: '#ffffff',
+                    border: '1px solid #3a3b3f',
+                    borderRadius: '8px',
+                    padding: '10px 20px',
+                    fontSize: '14px'
+                  }}
+                >
+                  Cancelar
+                </button>
+              </div>
+            </form>
+          ) : (
+            <div style={{
+              color: '#ffffff',
+              fontSize: '16px',
+              lineHeight: '1.6',
+              marginBottom: '24px',
+              whiteSpace: 'pre-wrap'
+            }}>
+              {post.content}
+            </div>
+          )}
+
+          {/* Multimedia */}
+          {post.multimedia && post.multimedia.length > 0 && (
+            <div style={{ marginBottom: '24px' }}>
+              <h5 style={{ color: '#ffffff', marginBottom: '16px' }}>📎 Archivos adjuntos</h5>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
+                {post.multimedia.map((file: any, index: number) => (
+                  <div
+                    key={index}
+                    style={{
+                      background: 'rgba(208, 255, 113, 0.1)',
+                      border: '1px solid rgba(208, 255, 113, 0.3)',
+                      borderRadius: '8px',
+                      padding: '12px',
+                      minWidth: '200px',
+                      flex: '1'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                      <span style={{ fontSize: '20px' }}>
+                        {file.type === 'image' ? '🖼️' : file.type === 'video' ? '🎥' : '📄'}
+                      </span>
+                      <span style={{ color: '#D0FF71', fontWeight: '600', fontSize: '14px' }}>
+                        {file.originalName}
+                      </span>
+                    </div>
+                    <div style={{ color: '#a0a0a0', fontSize: '12px' }}>
+                      Tipo: {file.type} | Tamaño: {file.size ? `${(file.size / 1024).toFixed(1)} KB` : 'N/A'}
+                    </div>
+                    {file.type === 'image' && (
+                      <div style={{ marginTop: '8px' }}>
+                        <img
+                          src={file.url || `/api/forum/media/${file.filename}`}
+                          alt={file.originalName}
+                          style={{
+                            maxWidth: '100%',
+                            maxHeight: '200px',
+                            borderRadius: '4px',
+                            border: '1px solid #3a3b3f'
+                          }}
+                          onError={(e) => {
+                            console.error('Error loading image:', file.filename)
+                            e.currentTarget.style.display = 'none'
+                          }}
+                        />
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Acciones del post */}
           <div className="d-flex justify-content-between align-items-center">
@@ -309,16 +590,67 @@ export default function PostPageContent({ slug }: PostPageContentProps) {
               ← Volver al Foro
             </Link>
             
-            {isAuthenticated && user?.id === post.author.id && (
-              <div className="d-flex gap-2">
-                <button className="btn btn-sm btn-outline-warning">
-                  ✏️ Editar
-                </button>
-                <button className="btn btn-sm btn-outline-danger">
-                  🗑️ Eliminar
-                </button>
-              </div>
-            )}
+            <div className="d-flex gap-3 align-items-center">
+              {/* Botón de aplausos */}
+              {isAuthenticated && (
+                <div className="d-flex align-items-center gap-2">
+                  <button
+                    onClick={handleApplause}
+                    disabled={submittingApplause || post.userApplauseCount >= 10}
+                    className="btn btn-sm"
+                    style={{
+                      background: post.userApplauseCount > 0 
+                        ? 'linear-gradient(135deg, #D0FF71 0%, #a8d65a 100%)' 
+                        : 'rgba(58, 59, 63, 0.5)',
+                      color: post.userApplauseCount > 0 ? '#1a1b1e' : '#ffffff',
+                      border: post.userApplauseCount > 0 
+                        ? '1px solid #D0FF71' 
+                        : '1px solid #3a3b3f',
+                      borderRadius: '20px',
+                      padding: '8px 16px',
+                      fontSize: '14px',
+                      fontWeight: '600',
+                      transition: 'all 0.3s ease',
+                      cursor: post.userApplauseCount >= 10 ? 'not-allowed' : 'pointer'
+                    }}
+                    title={post.userApplauseCount >= 10 
+                      ? 'Ya has dado el máximo de aplausos (10)' 
+                      : `Dar aplauso (${post.userApplauseCount}/10)`
+                    }
+                  >
+                    👏 {post.applauseCount} {post.userApplauseCount > 0 && `(${post.userApplauseCount})`}
+                  </button>
+                </div>
+              )}
+              
+              {/* Botones de editar/eliminar */}
+              {isAuthenticated && (user?.id === post.author.id || user?.role?.name === 'Administrador') && (
+                <div className="d-flex gap-2">
+                  <button 
+                    onClick={startEditing}
+                    className="btn btn-sm btn-outline-warning"
+                    style={{
+                      borderRadius: '20px',
+                      padding: '8px 16px',
+                      fontSize: '14px'
+                    }}
+                  >
+                    ✏️ Editar
+                  </button>
+                  <button 
+                    onClick={handleDeletePost}
+                    className="btn btn-sm btn-outline-danger"
+                    style={{
+                      borderRadius: '20px',
+                      padding: '8px 16px',
+                      fontSize: '14px'
+                    }}
+                  >
+                    🗑️ Eliminar
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -457,9 +789,9 @@ export default function PostPageContent({ slug }: PostPageContentProps) {
 
           {/* Lista de comentarios */}
           {post.comments.length === 0 ? (
-            <div className="text-center" style={{ color: '#a0a0a0', padding: '40px 0' }}>
+            <div className="text-center" style={{ color: '#FFF', padding: '40px 0' }}>
               <i className="fas fa-comments fa-3x mb-3"></i>
-              <p>No hay comentarios aún. ¡Sé el primero en participar!</p>
+              <p style={{ color: '#FFF' }}>No hay comentarios aún. ¡Sé el primero en participar!</p>
             </div>
           ) : (
             <div className="comments-list">

@@ -7,22 +7,23 @@
 }
 
 .forum-post-item {
-  background: #ffffff;
-  border: 1px solid #e0e0e0;
+  background: linear-gradient(135deg, #3a3b3f 0%, #2d2e32 100%);
+  border: 1px solid #4a4b4f;
   border-radius: 8px;
   padding: 20px;
   transition: all 0.3s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
 }
 
 .forum-post-item:hover {
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.6);
   transform: translateY(-2px);
+  border-color: #D0FF71;
 }
 
 .forum-post-item.pinned {
   border-left: 4px solid #D0FF71;
-  background: #f8fff8;
+  background: linear-gradient(135deg, rgba(208, 255, 113, 0.15) 0%, rgba(208, 255, 113, 0.05) 100%);
 }
 
 .forum-post-header {
@@ -275,14 +276,14 @@
 
 /* Guías del foro */
 .post-guidelines {
-  background: #f8f9fa;
+  background: #2d2e32;
   border-radius: 6px;
   padding: 20px;
-  border-left: 4px solid #007bff;
+  border-left: 4px solid #D0FF71;
 }
 
 .post-guidelines h5 {
-  color: #333;
+  color: #ffffff;
   margin-bottom: 15px;
   font-weight: 600;
 }
@@ -426,8 +427,9 @@
 .comment-form-section {
   margin-bottom: 30px;
   padding: 20px;
-  background: #f8f9fa;
+  background: #2d2e32;
   border-radius: 6px;
+  border: 1px solid #3a3b3f;
 }
 
 .comment-form .form-group {
