@@ -6,7 +6,7 @@ import MobileHeader from "../components/MobileHeader";
 import Footer from "../components/Footer";
 
 export const metadata: Metadata = {
-  title: "Club Programadores Argentina - Comunidad Exclusiva | Suscripción $4000/mes",
+  title: "Programadores Argentina - Suscripción Club Exclusivo",
   description: "Únete al Club Programadores Argentina, la comunidad exclusiva para desarrolladores. Networking privado, oportunidades laborales exclusivas, material IT exclusivo, mentorías grupales y sorteos mensuales. Suscripción $4000/mes.",
   keywords: [
     "club programadores argentina",
@@ -28,7 +28,7 @@ export const metadata: Metadata = {
     canonical: "/club",
   },
   openGraph: {
-    title: "Club Programadores Argentina - Comunidad Exclusiva",
+    title: "Programadores Argentina - Club Exclusivo",
     description: "Únete al Club Programadores Argentina, la comunidad exclusiva para desarrolladores. Networking privado, oportunidades laborales exclusivas y material IT exclusivo.",
     url: "https://programadoresargentina.com/club",
     siteName: "Programadores Argentina",
@@ -37,7 +37,7 @@ export const metadata: Metadata = {
         url: "/assets/images/logo-club.png",
         width: 1200,
         height: 630,
-        alt: "Club Programadores Argentina - Comunidad Exclusiva",
+        alt: "Programadores Argentina - Club Exclusivo",
       },
     ],
     locale: "es_AR",
@@ -45,7 +45,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Club Programadores Argentina - Comunidad Exclusiva",
+    title: "Programadores Argentina - Club Exclusivo",
     description: "Únete al Club Programadores Argentina, la comunidad exclusiva para desarrolladores. Networking privado y oportunidades laborales exclusivas.",
     images: ["/assets/images/logo-club.png"],
     creator: "@programadores_argentina",

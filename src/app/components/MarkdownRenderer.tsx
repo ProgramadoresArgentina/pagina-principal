@@ -8,9 +8,10 @@ import './MarkdownRenderer.css';
 
 interface MarkdownRendererProps {
   content: string;
+  slug?: string;
 }
 
-export default function MarkdownRenderer({ content }: MarkdownRendererProps) {
+export default function MarkdownRenderer({ content, slug }: MarkdownRendererProps) {
   const [htmlContent, setHtmlContent] = useState('');
   const [modalImage, setModalImage] = useState<{ src: string; alt: string } | null>(null);
 
@@ -21,9 +22,10 @@ export default function MarkdownRenderer({ content }: MarkdownRendererProps) {
           .use(remarkHtml, { sanitize: false })
           .process(content);
         
-        // Procesar el HTML para mejorar las imágenes y títulos
+        // Procesar el HTML para mejorar las imágenes, videos y títulos
         const enhancedHtml = enhanceImages(processedContent.toString());
-        const htmlWithIds = addIdsToHeadings(enhancedHtml);
+        const htmlWithVideos = processVideoPaths(enhancedHtml);
+        const htmlWithIds = addIdsToHeadings(htmlWithVideos);
         setHtmlContent(htmlWithIds);
       } catch (error) {
         console.error('Error processing markdown:', error);
@@ -73,6 +75,46 @@ export default function MarkdownRenderer({ content }: MarkdownRendererProps) {
       
       return `<img${enhancedAttrs}src="${src}">`;
     });
+  };
+
+  // Función para procesar rutas de videos en el HTML
+  const processVideoPaths = (html: string): string => {
+    // Si no hay slug, intentar obtenerlo de la URL
+    const articleSlug = slug || (typeof window !== 'undefined' ? window.location.pathname.match(/\/articulos\/([^\/]+)/)?.[1] : '');
+    
+    if (!articleSlug) return html;
+    
+    // Construir el folderName - el slug puede necesitar el prefijo numérico
+    // Por ahora usamos el slug directamente, pero esto puede necesitar ajuste
+    const folderName = articleSlug;
+    
+    const minioEndpoint = process.env.NEXT_PUBLIC_MINIO_ENDPOINT || process.env.MINIO_ENDPOINT || 'http://localhost:9000';
+    const bucketName = process.env.NEXT_PUBLIC_MINIO_BUCKET_NAME || process.env.MINIO_BUCKET_NAME || 'articulos';
+    
+    const convertToMinIOUrl = (path: string): string => {
+      if (path.startsWith('http') || path.startsWith('/assets/')) {
+        return path;
+      }
+      
+      // Limpiar la ruta relativa (eliminar ./ o ../)
+      const cleanPath = path.replace(/^\.\//, '').replace(/^\.\.\//, '');
+      const fullPath = `${folderName}/${cleanPath}`;
+      return `${minioEndpoint}/${bucketName}/${fullPath}`;
+    };
+    
+    // Procesar <source src="..."> - puede estar en cualquier orden de atributos
+    let processed = html.replace(/<source([^>]*src=["'])([^"']+)(["'][^>]*)>/gi, (match, before, src, after) => {
+      const minioUrl = convertToMinIOUrl(src);
+      return `<source${before}${minioUrl}${after}>`;
+    });
+    
+    // Procesar <video src="..."> - puede estar en cualquier orden de atributos
+    processed = processed.replace(/<video([^>]*src=["'])([^"']+)(["'][^>]*)>/gi, (match, before, src, after) => {
+      const minioUrl = convertToMinIOUrl(src);
+      return `<video${before}${minioUrl}${after}>`;
+    });
+    
+    return processed;
   };
 
   // Función para agregar IDs a los títulos

@@ -1,0 +1,204 @@
+/* Estilos mejorados para la página del artículo */
+
+.article-content-container {
+  position: relative;
+}
+
+/* Imagen principal del artículo */
+.article-hero-image {
+  border-radius: 16px;
+  max-height: 500px;
+  object-fit: cover;
+  width: 100%;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  margin-bottom: 3rem;
+}
+
+/* Contenido del artículo mejorado */
+.article-content {
+  font-size: 1.125rem;
+  line-height: 1.85;
+  color: rgba(255, 255, 255, 0.92);
+  max-width: 100%;
+  margin: 0 auto;
+  font-family: 'Georgia', 'Times New Roman', 'Times', serif;
+  font-feature-settings: 'liga' 1, 'kern' 1;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Mejor espaciado para párrafos */
+.article-content p {
+  margin-bottom: 1.75rem;
+  text-align: justify;
+  hyphens: auto;
+}
+
+/* Mejor tipografía para títulos */
+.article-content h1 {
+  margin-top: 4rem;
+  margin-bottom: 2.5rem;
+}
+
+.article-content h2 {
+  margin-top: 3.5rem;
+  margin-bottom: 2rem;
+  padding-top: 1.5rem;
+}
+
+.article-content h3 {
+  margin-top: 3rem;
+  margin-bottom: 1.75rem;
+}
+
+.article-content h4 {
+  margin-top: 2.5rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Mejorar código */
+.article-content pre {
+  margin: 2rem 0;
+  border-radius: 12px;
+}
+
+/* Mejorar imágenes dentro del contenido */
+.article-content img {
+  border-radius: 12px;
+  margin: 2.5rem 0;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+}
+
+/* Mejorar blockquotes */
+.article-content blockquote {
+  margin: 2.5rem 0;
+  padding: 2rem;
+  border-left-width: 5px;
+}
+
+/* Mejorar tablas */
+.article-content table {
+  margin: 2.5rem 0;
+  font-size: 0.95rem;
+}
+
+/* Mejor espaciado general */
+.postbox-details-text {
+  padding-top: 2rem;
+}
+
+/* Header del artículo mejorado */
+.postbox-details-item {
+  margin-bottom: 3rem;
+}
+
+.postbox-title {
+  margin-bottom: 1.5rem;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.postbox-details-meta {
+  gap: 2rem;
+  flex-wrap: wrap;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.postbox-author-box {
+  gap: 1rem;
+}
+
+.postbox-author-img img {
+  border-radius: 50%;
+  border: 2px solid rgba(208, 255, 113, 0.3);
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+  .article-content {
+    font-size: 1.05rem;
+    line-height: 1.8;
+  }
+
+  .article-hero-image {
+    max-height: 400px;
+  }
+
+  .postbox-title {
+    font-size: 2.5rem !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .article-content {
+    font-size: 1rem;
+    line-height: 1.75;
+  }
+
+  .article-content p {
+    text-align: left;
+    margin-bottom: 1.5rem;
+  }
+
+  .article-hero-image {
+    max-height: 300px;
+    border-radius: 12px;
+  }
+
+  .postbox-title {
+    font-size: 2rem !important;
+  }
+
+  .postbox-details-meta {
+    gap: 1rem;
+  }
+
+  .article-content h2 {
+    margin-top: 2.5rem;
+    font-size: 1.75rem;
+  }
+
+  .article-content h3 {
+    margin-top: 2rem;
+    font-size: 1.5rem;
+  }
+}
+
+/* Estilos de impresión */
+@media print {
+  .reading-tools,
+  .table-of-contents,
+  .related-articles,
+  .reading-progress-bar,
+  header,
+  footer,
+  .tp-btn-black {
+    display: none !important;
+  }
+
+  .article-content-container {
+    max-width: 100% !important;
+  }
+
+  .article-content {
+    font-size: 12pt;
+    line-height: 1.6;
+    color: #000 !important;
+  }
+
+  .article-content h1,
+  .article-content h2,
+  .article-content h3 {
+    color: #000 !important;
+    page-break-after: avoid;
+  }
+
+  .article-content img {
+    max-width: 100% !important;
+    page-break-inside: avoid;
+  }
+}
+

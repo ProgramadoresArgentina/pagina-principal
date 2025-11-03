@@ -1,0 +1,300 @@
+.reading-tools {
+  margin-bottom: 10px;
+}
+
+.reading-tools-container {
+  background: rgba(14, 15, 17, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 1rem;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.reading-tools-main {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.reading-time {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.9rem;
+  padding: 0.5rem 0.75rem;
+  background: rgba(208, 255, 113, 0.1);
+  border-radius: 8px;
+  border: 1px solid rgba(208, 255, 113, 0.2);
+}
+
+.reading-time svg {
+  color: #D0FF71;
+}
+
+.font-size-control {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 0.25rem;
+}
+
+.font-size-btn {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.85rem;
+  padding: 0.35rem 0.5rem;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+  font-weight: 600;
+}
+
+.font-size-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.font-size-btn.active {
+  background: rgba(208, 255, 113, 0.2);
+  color: #D0FF71;
+}
+
+.font-size-btn:nth-child(1) {
+  font-size: 0.75rem;
+}
+
+.font-size-btn:nth-child(2) {
+  font-size: 0.9rem;
+}
+
+.font-size-btn:nth-child(3) {
+  font-size: 1.05rem;
+}
+
+.font-size-btn:nth-child(4) {
+  font-size: 1.2rem;
+}
+
+.share-dropdown {
+  position: relative;
+}
+
+.share-button {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 0.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: rgba(255, 255, 255, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.share-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(208, 255, 113, 0.3);
+  color: #D0FF71;
+}
+
+.share-menu {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  background: rgba(14, 15, 17, 0.98);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 0.5rem;
+  min-width: 180px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(10px);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: all 0.3s ease;
+  z-index: 1000;
+}
+
+.share-dropdown:hover .share-menu {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.share-option {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.8);
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  text-align: left;
+  font-size: 0.9rem;
+}
+
+.share-option:hover {
+  background: rgba(208, 255, 113, 0.1);
+  color: #D0FF71;
+}
+
+.share-option svg {
+  flex-shrink: 0;
+}
+
+/* Modo lectura - siempre activo */
+.article-content-container {
+  max-width: 700px !important;
+  margin: 0 auto;
+}
+
+.article-content-container .markdown-content {
+  font-size: 1.25rem;
+  line-height: 1.9;
+}
+
+.article-content-container .markdown-content p {
+  margin-bottom: 1.8rem;
+}
+
+.article-content-container .markdown-content h1 {
+  font-size: 3rem;
+  margin-top: 3rem;
+  margin-bottom: 2rem;
+}
+
+.article-content-container .markdown-content h2 {
+  font-size: 2.5rem;
+  margin-top: 2.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.article-content-container .markdown-content h3 {
+  font-size: 2rem;
+  margin-top: 2rem;
+  margin-bottom: 1.2rem;
+}
+
+/* Tamaños de fuente - relativos al tamaño base del modo lectura */
+.article-content-container.font-small .markdown-content {
+  font-size: 1rem !important;
+}
+
+.article-content-container.font-small .markdown-content p {
+  font-size: 1rem !important;
+}
+
+.article-content-container.font-medium .markdown-content {
+  font-size: 1.25rem !important;
+}
+
+.article-content-container.font-medium .markdown-content p {
+  font-size: 1.25rem !important;
+}
+
+.article-content-container.font-large .markdown-content {
+  font-size: 1.5rem !important;
+}
+
+.article-content-container.font-large .markdown-content p {
+  font-size: 1.5rem !important;
+}
+
+.article-content-container.font-xlarge .markdown-content {
+  font-size: 1.75rem !important;
+}
+
+.article-content-container.font-xlarge .markdown-content p {
+  font-size: 1.75rem !important;
+}
+
+/* Ajustar títulos proporcionalmente */
+.article-content-container.font-small .markdown-content h1 {
+  font-size: 2.5rem !important;
+}
+
+.article-content-container.font-small .markdown-content h2 {
+  font-size: 2rem !important;
+}
+
+.article-content-container.font-small .markdown-content h3 {
+  font-size: 1.5rem !important;
+}
+
+.article-content-container.font-medium .markdown-content h1 {
+  font-size: 3rem !important;
+}
+
+.article-content-container.font-medium .markdown-content h2 {
+  font-size: 2.5rem !important;
+}
+
+.article-content-container.font-medium .markdown-content h3 {
+  font-size: 2rem !important;
+}
+
+.article-content-container.font-large .markdown-content h1 {
+  font-size: 3.5rem !important;
+}
+
+.article-content-container.font-large .markdown-content h2 {
+  font-size: 3rem !important;
+}
+
+.article-content-container.font-large .markdown-content h3 {
+  font-size: 2.25rem !important;
+}
+
+.article-content-container.font-xlarge .markdown-content h1 {
+  font-size: 4rem !important;
+}
+
+.article-content-container.font-xlarge .markdown-content h2 {
+  font-size: 3.5rem !important;
+}
+
+.article-content-container.font-xlarge .markdown-content h3 {
+  font-size: 2.5rem !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .reading-tools {
+    position: relative;
+    top: 0;
+    margin-bottom: 1.5rem;
+  }
+
+  .reading-tools-main {
+    gap: 0.75rem;
+  }
+
+  .reading-time {
+    font-size: 0.85rem;
+    padding: 0.4rem 0.6rem;
+  }
+
+  .font-size-control {
+    order: 3;
+    flex: 1;
+    justify-content: space-between;
+  }
+
+  .share-menu {
+    right: auto;
+    left: 0;
+  }
+}
+

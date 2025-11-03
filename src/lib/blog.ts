@@ -31,6 +31,16 @@ const BUCKET_NAME = process.env.MINIO_BUCKET_NAME || 'articulos';
 const BLOG_PREFIX = ''; // Sin prefijo, las carpetas están en la raíz
 const POSTS_PER_PAGE = 10; // Número de artículos por página
 
+// Función para formatear fechas de manera concisa
+export function formatDate(dateString: string): string {
+  const date = new Date(dateString);
+  const months = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+  const day = date.getDate();
+  const month = months[date.getMonth()];
+  const year = date.getFullYear();
+  return `${day} ${month} ${year}`;
+}
+
 // Función auxiliar para obtener el contenido de un archivo desde MinIO
 async function getMinIOObjectContent(key: string): Promise<string> {
   try {
@@ -89,8 +99,8 @@ function processMarkdownContent(fileContents: string, folderName: string, lastMo
   const { data, content } = matter(cleanedContent);
 
 
-  // Procesar el contenido para convertir rutas de imágenes relativas a URLs de MinIO
-  const processedContent = processImagePaths(content, folderName);
+  // Procesar el contenido para convertir rutas de imágenes y videos relativas a URLs de MinIO
+  const processedContent = processMediaPaths(content, folderName);
 
   // Extraer el slug del nombre de la carpeta (sin el número)
   const slug = folderName.replace(/^\d+-/, '');
@@ -111,27 +121,45 @@ function processMarkdownContent(fileContents: string, folderName: string, lastMo
   };
 }
 
-// Función auxiliar para procesar rutas de imágenes en el contenido markdown
-function processImagePaths(content: string, folderName: string): string {
-  // Patrón para encontrar imágenes markdown: ![alt](path)
-  const imagePattern = /!\[([^\]]*)\]\(([^)]+)\)/g;
+// Función auxiliar para procesar rutas de imágenes y videos en el contenido markdown
+function processMediaPaths(content: string, folderName: string): string {
+  const minioEndpoint = process.env.MINIO_ENDPOINT || 'http://localhost:9000';
+  const bucketName = process.env.MINIO_BUCKET_NAME || 'programadores-argentina-blog';
   
-  return content.replace(imagePattern, (match, alt, imagePath) => {
-    // Si la imagen ya es una URL completa o una ruta de assets, no procesarla
-    if (imagePath.startsWith('http') || imagePath.startsWith('/assets/')) {
-      return match;
+  // Función auxiliar para convertir rutas relativas a URLs de MinIO
+  const convertToMinIOUrl = (path: string): string => {
+    // Si ya es una URL completa o una ruta de assets, no procesarla
+    if (path.startsWith('http') || path.startsWith('/assets/')) {
+      return path;
     }
     
-    // Si es una ruta relativa, construir la URL de MinIO
-    const minioEndpoint = process.env.MINIO_ENDPOINT || 'http://localhost:9000';
-    const bucketName = process.env.MINIO_BUCKET_NAME || 'programadores-argentina-blog';
+    // Limpiar la ruta relativa (eliminar ./ o ../)
+    const cleanPath = path.replace(/^\.\//, '').replace(/^\.\.\//, '');
     
-    // Construir la ruta completa: folderName/imagePath
-    const fullPath = `${folderName}/${imagePath}`;
-    const minioUrl = `${minioEndpoint}/${bucketName}/${fullPath}`;
-    
+    // Construir la ruta completa: folderName/cleanPath
+    const fullPath = `${folderName}/${cleanPath}`;
+    return `${minioEndpoint}/${bucketName}/${fullPath}`;
+  };
+  
+  // Procesar imágenes markdown: ![alt](path)
+  let processed = content.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (match, alt, imagePath) => {
+    const minioUrl = convertToMinIOUrl(imagePath);
     return `![${alt}](${minioUrl})`;
   });
+  
+  // Procesar videos HTML: <source src="path">
+  processed = processed.replace(/<source([^>]*src=["'])([^"']+)(["'][^>]*)>/gi, (match, before, src, after) => {
+    const minioUrl = convertToMinIOUrl(src);
+    return `<source${before}${minioUrl}${after}>`;
+  });
+  
+  // Procesar también src directamente en videos: <video src="path">
+  processed = processed.replace(/<video([^>]*src=["'])([^"']+)(["'][^>]*)>/gi, (match, before, src, after) => {
+    const minioUrl = convertToMinIOUrl(src);
+    return `<video${before}${minioUrl}${after}>`;
+  });
+  
+  return processed;
 }
 
 // Función auxiliar para obtener carpetas de artículos

@@ -7569,7 +7569,7 @@ body.tp-magic-cursor #magic-cursor {
   font-weight: 500;
   font-size: 18px;
   line-height: 1.6;
-  color: rgba(255, 255, 255, 0.7);
+  color: #FFF;
 }
 @media (max-width: 767px) {
   .postbox-details-text p {
@@ -7577,7 +7577,7 @@ body.tp-magic-cursor #magic-cursor {
   }
 }
 .postbox-details-text p span {
-  color: var(--tp-common-green-light);
+  color: #D0FF71;
 }
 .postbox-details-quote p {
   font-weight: 600;

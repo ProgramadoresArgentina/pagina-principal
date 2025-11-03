@@ -10,9 +10,14 @@
 }
 
 .toc-header {
-  margin-bottom: 15px;
-  padding-bottom: 10px;
+  margin-bottom: 0;
+  padding-bottom: 15px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
 }
 
 .toc-header h4 {
@@ -24,9 +29,35 @@
   letter-spacing: 0.5px;
 }
 
+.toc-toggle {
+  background: transparent;
+  border: none;
+  color: #D0FF71;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  border-radius: 4px;
+}
+
+.toc-toggle:hover {
+  background: rgba(208, 255, 113, 0.1);
+}
+
 .toc-nav {
-  max-height: calc(70vh - 60px);
+  max-height: 400px;
   overflow-y: auto;
+  overflow-x: hidden;
+  transition: max-height 0.3s ease, opacity 0.3s ease, margin-top 0.3s ease;
+}
+
+.toc-nav.toc-collapsed {
+  max-height: 0;
+  opacity: 0;
+  margin-top: 0;
+  overflow: hidden;
 }
 
 .toc-list {
@@ -132,9 +163,19 @@
     font-size: 14px;
   }
   
+  .toc-nav {
+    max-height: 250px;
+  }
+  
   .toc-link {
     font-size: 12px;
     padding: 6px 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .toc-nav {
+    max-height: 200px;
   }
 }
 

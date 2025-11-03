@@ -9,7 +9,11 @@ import StructuredData from "../../components/StructuredData";
 import LockedContent from "../../components/LockedContent";
 import MarkdownRenderer from "../../components/MarkdownRenderer";
 import TableOfContents from "../../components/TableOfContents";
+import ReadingProgress from "../../components/ReadingProgress";
+import ReadingTools from "../../components/ReadingTools";
+import RelatedArticles from "../../components/RelatedArticles";
 import { getPostBySlug, getAllPosts } from "@/lib/blog";
+import "./ArticlePage.css";
 
 // Función para formatear fechas de manera concisa
 const formatDate = (dateString: string) => {
@@ -174,6 +178,7 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
 
 export default async function BlogPostPage({ params }: BlogPostPageProps): Promise<JSX.Element> {
   const post = await getPostBySlug(params.slug);
+  const allPosts = await getAllPosts();
 
   if (!post) {
     notFound();
@@ -196,6 +201,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps): Promi
         type="Article" 
         data={articleData} 
       />
+      <ReadingProgress />
       <BackToTop />
       <Header />
       <MobileHeader />
@@ -205,12 +211,12 @@ export default async function BlogPostPage({ params }: BlogPostPageProps): Promi
       <div id="smooth-wrapper">
         <div id="smooth-content">
           <main>
-            <section id="postbox" className="postbox-area pt-160 pb-80">
+            <section id="postbox" className="postbox-area pt-120 pb-80">
               <div className="container container-1330">
                 <div className="row">
                   <div className="col-12">
                     <div className="postbox-wrapper mb-115">
-                      <article className="postbox-details-item item-border mb-20">
+                      <article className="postbox-details-item pt-4 mb-2">
                         <div className="postbox-details-info-wrap">
                           <div className="d-flex align-items-center justify-content-between mb-20">
                             
@@ -271,27 +277,33 @@ export default async function BlogPostPage({ params }: BlogPostPageProps): Promi
                         </div>
                       </article>
                       
-                      <div className="col-12 col-md-10 col-lg-8 mx-auto">
-                      {post.image && (
-                        <div className="postbox-details-thumb mb-25">
-                          <img className="w-100" style={{ borderRadius: '14px', maxHeight: '300px', objectFit: 'cover' }} src={post.image} alt={post.title} />
-                        </div>
-                      )}
-                      {/* Tabla de Contenidos */}
-                      <TableOfContents content={post.content} isPublic={post.isPublic} />
+                      <div className="col-12 col-md-10 col-lg-8 mx-auto article-content-container">
+                        {/* Herramientas del lector */}
+                        <ReadingTools 
+                          content={post.content}
+                          title={post.title}
+                          slug={post.slug}
+                          author={post.author}
+                        />
+
+                        {/* Tabla de Contenidos */}
+                        <TableOfContents content={post.content} isPublic={post.isPublic} />
 
                         <LockedContent 
                             isPublic={post.isPublic}
                             excerpt={post.excerpt}
                             title={post.title}
                         >
-                        
-                
-                            <div className="postbox-details-text mb-45">
-                            <MarkdownRenderer content={post.content} />
+                            <div className="postbox-details-text article-content pt-0">
+                              <MarkdownRenderer content={post.content} slug={post.slug} />
                             </div>
                         </LockedContent>
-                        
+
+                        {/* Artículos relacionados */}
+                        <RelatedArticles 
+                          articles={allPosts.slice(0, 10)}
+                          currentSlug={post.slug}
+                        />
                       </div>
                     </div>
                   </div>

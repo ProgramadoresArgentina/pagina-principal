@@ -1,11 +1,15 @@
 'use client'
 
 import { JSX } from "react";
+import { usePathname } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import UserDropdown from './UserDropdown';
 
 export default function Header(): JSX.Element {
   const { isAuthenticated, isLoading } = useAuth();
+  const pathname = usePathname();
+  const loginUrl = `/ingresar?redirect=${encodeURIComponent(pathname || '/')}`;
+  
   return (
     <div id="header-sticky" className="tp-header-10-area tp-header-11-style tp-header-blur sticky-black-bg header-11-dark-style header-transparent">
       <div className="container container-1630">
@@ -73,7 +77,7 @@ export default function Header(): JSX.Element {
                         {isAuthenticated ? (
                           <UserDropdown />
                         ) : (
-                          <a href="/ingresar" className="tp-btn-black btn-green-light-bg">
+                          <a href={loginUrl} className="tp-btn-black btn-green-light-bg">
                               <span className="tp-btn-black-filter-blur">
                                   <svg width="0" height="0">
                                       <defs>
@@ -107,7 +111,7 @@ export default function Header(): JSX.Element {
                         {isAuthenticated ? (
                           <UserDropdown />
                         ) : (
-                          <a href="/ingresar" className="tp-btn-black btn-green-light-bg">
+                          <a href={loginUrl} className="tp-btn-black btn-green-light-bg">
                               <span className="tp-btn-black-filter-blur">
                                   <svg width="0" height="0">
                                       <defs>

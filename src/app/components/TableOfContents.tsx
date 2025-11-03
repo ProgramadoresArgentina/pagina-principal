@@ -21,6 +21,7 @@ export default function TableOfContents({ content, isPublic = true }: TableOfCon
   const [tocItems, setTocItems] = useState<TocItem[]>([]);
   const [activeId, setActiveId] = useState<string>('');
   const [isClient, setIsClient] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(true);
 
   // Determinar si el contenido está bloqueado basado en la suscripción del usuario y si el artículo es público
   const isLocked = !isPublic && (!isAuthenticated || !user?.isSubscribed);
@@ -200,51 +201,6 @@ export default function TableOfContents({ content, isPublic = true }: TableOfCon
     }
   };
 
-  // No renderizar en el servidor
-  if (!isClient) {
-    return null;
-  }
-
-  // Mostrar indicador de carga temporal
-  if (tocItems.length === 0) {
-    return (
-      <div className="table-of-contents">
-        <div className="toc-header">
-          <h4>Tabla de Contenidos</h4>
-        </div>
-        <div className="toc-loading">
-          <p>Buscando títulos...</p>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="table-of-contents">
-      <div className="toc-header">
-        <h4>Tabla de Contenidos</h4>
-      </div>
-      <nav className="toc-nav">
-        <ul className="toc-list">
-          {tocItems.map((item) => (
-            <li
-              key={item.id}
-              className={`toc-item toc-level-${item.level} ${
-                activeId === item.id ? 'active' : ''
-              }`}
-            >
-               <button
-                 onClick={() => scrollToSection(item.id)}
-                 className={`toc-link ${isLocked ? 'toc-link-disabled' : ''}`}
-                 title={isLocked ? 'Contenido bloqueado - Suscríbete para acceder' : item.text}
-                 disabled={isLocked}
-               >
-                 {item.text}
-               </button>
-            </li>
-          ))}
-        </ul>
-      </nav>
-    </div>
-  );
+  // Ocultar tabla de contenido por ahora
+  return null;
 }

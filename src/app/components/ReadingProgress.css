@@ -1,0 +1,29 @@
+.reading-progress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  z-index: 1000;
+  transition: opacity 0.3s ease;
+}
+
+.reading-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #D0FF71, #00ff88, #D0FF71);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+  box-shadow: 0 0 10px rgba(208, 255, 113, 0.5);
+  transition: width 0.1s ease;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
