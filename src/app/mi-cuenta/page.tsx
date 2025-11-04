@@ -37,11 +37,6 @@ export default function MiCuentaPage() {
     }
   }, [searchParams, activeTab])
 
-  const handleLogout = async () => {
-    await logout()
-    router.push('/')
-  }
-
   // Función para cambiar de tab y actualizar URL
   const handleTabChange = (tab: 'general' | 'ofertas' | 'badges' | 'referidos') => {
     setActiveTab(tab)
@@ -82,7 +77,7 @@ export default function MiCuentaPage() {
             <div className="row justify-content-center">
               <div className="col-xl-10 col-lg-10">
                 <div className="tp-login-wrapper" style={{ background: 'transparent', boxShadow: 'none' }}>
-                  <div className="tp-login-top mb-30 d-flex justify-content-between align-items-center">
+                  <div className="tp-login-top mb-30">
                     <div>
                       <h3 className="tp-login-title" style={{ color: '#ffffff' }}>Mi Cuenta</h3>
                       {user?.isSubscribed ? (
@@ -94,30 +89,6 @@ export default function MiCuentaPage() {
                           Usuario sin suscripción — <a href="/club" style={{ color: '#D0FF71', textDecoration: 'underline' }}>Unite al Club</a>
                         </p>
                       )}
-                    </div>
-                    <div>
-                      <button 
-                        onClick={handleLogout} 
-                        style={{
-                          background: 'linear-gradient(135deg, #c2185b 0%, #a8124b 100%)',
-                          border: 'none',
-                          borderRadius: '8px',
-                          padding: '10px 20px',
-                          color: '#ffffff',
-                          fontSize: '14px',
-                          fontWeight: '600',
-                          cursor: 'pointer',
-                          transition: 'transform 0.2s ease'
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.transform = 'scale(1.05)';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.transform = 'scale(1)';
-                        }}
-                      >
-                      Cerrar sesión
-                      </button>
                     </div>
                   </div>
 
@@ -367,9 +338,7 @@ export default function MiCuentaPage() {
                           <h5 className="card-title mb-3" style={{ color: '#D0FF71' }}>
                             🔒 Seguridad
                           </h5>
-                          <p className="text-muted mb-0" style={{ fontSize: '14px' }}>
-                            Próximamente podrás cambiar tu contraseña y configurar la autenticación de dos factores.
-                          </p>
+                          <ChangePasswordForm token={token} />
                         </div>
                       </div>
                     </div>
@@ -1124,6 +1093,181 @@ interface UserPin {
     imageUrl: string;
     category: string | null;
   };
+}
+
+function ChangePasswordForm({ token }: { token: string | null }) {
+  const [currentPassword, setCurrentPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState<string | null>(null)
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError(null)
+    setSuccess(null)
+
+    if (!token) {
+      setError('Sesión inválida. Iniciá sesión nuevamente.')
+      return
+    }
+
+    if (newPassword.length < 6) {
+      setError('La nueva contraseña debe tener al menos 6 caracteres')
+      return
+    }
+
+    if (newPassword !== confirmPassword) {
+      setError('Las contraseñas no coinciden')
+      return
+    }
+
+    try {
+      setLoading(true)
+      const res = await fetch('/api/me/change-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          currentPassword,
+          newPassword,
+        }),
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        setError(data.error || 'Error al cambiar la contraseña')
+        return
+      }
+
+      setSuccess('✅ Contraseña actualizada exitosamente')
+      setCurrentPassword('')
+      setNewPassword('')
+      setConfirmPassword('')
+    } catch (error) {
+      setError('Error de red al cambiar la contraseña')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <div className="mb-3">
+        <label className="form-label" style={{ color: '#a0a0a0', fontSize: '13px', marginBottom: '8px' }}>
+          Contraseña actual
+        </label>
+        <input
+          type="password"
+          className="form-control"
+          value={currentPassword}
+          onChange={(e) => setCurrentPassword(e.target.value)}
+          required
+          style={{
+            background: '#2d2e32',
+            border: '1px solid #3a3b3f',
+            color: '#ffffff',
+            padding: '12px',
+          }}
+        />
+      </div>
+
+      <div className="mb-3">
+        <label className="form-label" style={{ color: '#a0a0a0', fontSize: '13px', marginBottom: '8px' }}>
+          Nueva contraseña
+        </label>
+        <input
+          type="password"
+          className="form-control"
+          value={newPassword}
+          onChange={(e) => setNewPassword(e.target.value)}
+          required
+          minLength={6}
+          style={{
+            background: '#2d2e32',
+            border: '1px solid #3a3b3f',
+            color: '#ffffff',
+            padding: '12px',
+          }}
+        />
+        <small className="text-muted" style={{ fontSize: '12px', color: '#666' }}>
+          Mínimo 6 caracteres
+        </small>
+      </div>
+
+      <div className="mb-3">
+        <label className="form-label" style={{ color: '#a0a0a0', fontSize: '13px', marginBottom: '8px' }}>
+          Confirmar nueva contraseña
+        </label>
+        <input
+          type="password"
+          className="form-control"
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+          required
+          minLength={6}
+          style={{
+            background: '#2d2e32',
+            border: '1px solid #3a3b3f',
+            color: '#ffffff',
+            padding: '12px',
+          }}
+        />
+      </div>
+
+      {error && (
+        <div className="alert alert-danger" style={{ 
+          marginBottom: '16px',
+          background: 'rgba(220, 53, 69, 0.1)',
+          border: '1px solid rgba(220, 53, 69, 0.3)',
+          color: '#dc3545',
+          fontSize: '13px',
+          padding: '12px',
+          borderRadius: '8px'
+        }}>
+          {error}
+        </div>
+      )}
+
+      {success && (
+        <div className="alert alert-success" style={{ 
+          marginBottom: '16px',
+          background: 'rgba(40, 167, 69, 0.1)',
+          border: '1px solid rgba(40, 167, 69, 0.3)',
+          color: '#28a745',
+          fontSize: '13px',
+          padding: '12px',
+          borderRadius: '8px'
+        }}>
+          {success}
+        </div>
+      )}
+
+      <button
+        type="submit"
+        disabled={loading}
+        style={{
+          background: loading
+            ? '#6c757d'
+            : 'linear-gradient(135deg, #D0FF71 0%, #a8d65a 100%)',
+          color: '#1a1b1e',
+          border: 'none',
+          borderRadius: '8px',
+          padding: '12px 24px',
+          fontSize: '14px',
+          fontWeight: '600',
+          cursor: loading ? 'not-allowed' : 'pointer',
+          transition: 'all 0.3s ease',
+        }}
+      >
+        {loading ? '⏳ Cambiando...' : '🔒 Cambiar contraseña'}
+      </button>
+    </form>
+  )
 }
 
 function BadgesTab({ token, username }: { token: string | null, username: string }) {

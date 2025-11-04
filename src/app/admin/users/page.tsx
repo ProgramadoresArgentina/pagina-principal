@@ -32,6 +32,7 @@ interface User {
   email: string;
   avatar: string | null;
   isSubscribed: boolean;
+  subscribedAt: string | null;
   isActive: boolean;
   role: string;
   pinsCount: number;
@@ -45,7 +46,7 @@ interface Pagination {
   totalPages: number;
 }
 
-export default function AdminBadgesPage() {
+export default function AdminUsersPage() {
   const { isAuthenticated, isLoading, token } = useAuth()
   const router = useRouter()
 
@@ -59,10 +60,12 @@ export default function AdminBadgesPage() {
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [searchTerm, setSearchTerm] = useState('')
+  const [isSubscribedFilter, setIsSubscribedFilter] = useState<string>('')
+  const [updatingUsers, setUpdatingUsers] = useState<Set<string>>(new Set())
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
-      router.push('/ingresar?redirect=/admin/badges')
+      router.push('/ingresar?redirect=/admin/users')
     }
   }, [isAuthenticated, isLoading, router])
 
@@ -70,7 +73,7 @@ export default function AdminBadgesPage() {
     if (token) {
       loadUsers()
     }
-  }, [token, pagination.page, searchTerm])
+  }, [token, pagination.page, searchTerm, isSubscribedFilter])
 
   const loadUsers = async () => {
     try {
@@ -81,6 +84,9 @@ export default function AdminBadgesPage() {
       })
       if (searchTerm) {
         params.append('search', searchTerm)
+      }
+      if (isSubscribedFilter !== '') {
+        params.append('isSubscribed', isSubscribedFilter)
       }
 
       const res = await fetch(`/api/admin/users/list?${params}`, {
@@ -120,6 +126,122 @@ export default function AdminBadgesPage() {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
+  const handleToggleSubscription = async (userId: string, currentStatus: boolean) => {
+    if (updatingUsers.has(userId)) return
+
+    try {
+      setUpdatingUsers(prev => new Set(prev).add(userId))
+      
+      const res = await fetch('/api/admin/update-subscription', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          userId,
+          isSubscribed: !currentStatus,
+        }),
+      })
+
+      if (!res.ok) {
+        const errorData = await res.json()
+        console.error('Error al actualizar suscripción:', errorData)
+        alert('Error al actualizar suscripción: ' + (errorData.error || 'Error desconocido'))
+        return
+      }
+
+      // Actualizar el estado local
+      setUsers(prevUsers =>
+        prevUsers.map(user =>
+          user.id === userId ? { ...user, isSubscribed: !currentStatus } : user
+        )
+      )
+    } catch (error) {
+      console.error('Error al actualizar suscripción:', error)
+      alert('Error al actualizar suscripción')
+    } finally {
+      setUpdatingUsers(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(userId)
+        return newSet
+      })
+    }
+  }
+
+  const handleResetPassword = async (userId: string) => {
+    if (updatingUsers.has(userId)) return
+
+    if (!confirm('¿Estás seguro de resetear la contraseña a "programadoresargentina"? El usuario deberá cambiarla después.')) {
+      return
+    }
+
+    try {
+      setUpdatingUsers(prev => new Set(prev).add(userId))
+      
+      const res = await fetch('/api/admin/users/reset-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          userId,
+        }),
+      })
+
+      if (!res.ok) {
+        const errorData = await res.json()
+        console.error('Error al resetear contraseña:', errorData)
+        alert('Error al resetear contraseña: ' + (errorData.error || 'Error desconocido'))
+        return
+      }
+
+      const data = await res.json()
+      alert(`✅ Contraseña reseteada exitosamente. Nueva contraseña: ${data.defaultPassword}`)
+    } catch (error) {
+      console.error('Error al resetear contraseña:', error)
+      alert('Error al resetear contraseña')
+    } finally {
+      setUpdatingUsers(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(userId)
+        return newSet
+      })
+    }
+  }
+
+  const handleFilterChange = (value: string) => {
+    setIsSubscribedFilter(value)
+    setPagination(prev => ({ ...prev, page: 1 }))
+  }
+
+  const getTimeAgo = (dateString: string): string => {
+    const now = new Date()
+    const date = new Date(dateString)
+    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000)
+    
+    if (diffInSeconds < 60) return 'menos de un minuto'
+    if (diffInSeconds < 3600) {
+      const minutes = Math.floor(diffInSeconds / 60)
+      return `${minutes} ${minutes === 1 ? 'minuto' : 'minutos'}`
+    }
+    if (diffInSeconds < 86400) {
+      const hours = Math.floor(diffInSeconds / 3600)
+      return `${hours} ${hours === 1 ? 'hora' : 'horas'}`
+    }
+    if (diffInSeconds < 2592000) {
+      const days = Math.floor(diffInSeconds / 86400)
+      return `${days} ${days === 1 ? 'día' : 'días'}`
+    }
+    if (diffInSeconds < 31536000) {
+      const months = Math.floor(diffInSeconds / 2592000)
+      return `${months} ${months === 1 ? 'mes' : 'meses'}`
+    }
+    const years = Math.floor(diffInSeconds / 31536000)
+    return `${years} ${years === 1 ? 'año' : 'años'}`
+  }
+
   if (isLoading || loading) {
     return (
       <>
@@ -148,16 +270,16 @@ export default function AdminBadgesPage() {
                 {/* Header */}
                 <div className="mb-40">
                   <h2 style={{ color: '#D0FF71', marginBottom: '10px' }}>
-                    🏅 Administración de Badges
+                    Administración de Usuarios
                   </h2>
                   <p style={{ color: '#a0a0a0', fontSize: '14px' }}>
-                    Gestiona los badges de los usuarios de la comunidad
+                    Gestiona los usuarios y sus suscripciones del club
                   </p>
                 </div>
 
-                {/* Search */}
+                {/* Search and Filters */}
                 <div className="mb-30">
-                  <form onSubmit={handleSearch} style={{ display: 'flex', gap: '10px' }}>
+                  <form onSubmit={handleSearch} style={{ display: 'flex', gap: '10px', marginBottom: '15px' }}>
                     <input
                       type="text"
                       placeholder="Buscar por nombre, usuario o email..."
@@ -190,6 +312,31 @@ export default function AdminBadgesPage() {
                       🔍 Buscar
                     </button>
                   </form>
+                  
+                  {/* Filter by subscription */}
+                  <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                    <label style={{ color: '#a0a0a0', fontSize: '14px', marginRight: '10px' }}>
+                      Filtrar por suscripción:
+                    </label>
+                    <select
+                      value={isSubscribedFilter}
+                      onChange={(e) => handleFilterChange(e.target.value)}
+                      style={{
+                        background: '#1a1b1e',
+                        border: '1px solid #3a3b3f',
+                        color: '#ffffff',
+                        padding: '10px 16px',
+                        borderRadius: '8px',
+                        fontSize: '14px',
+                        cursor: 'pointer',
+                        minWidth: '200px',
+                      }}
+                    >
+                      <option value="">Todos</option>
+                      <option value="true">Con suscripción</option>
+                      <option value="false">Sin suscripción</option>
+                    </select>
+                  </div>
                 </div>
 
                 {/* Stats */}
@@ -198,9 +345,18 @@ export default function AdminBadgesPage() {
                   border: '1px solid #3a3b3f',
                   borderRadius: '12px',
                   padding: '20px',
+                  display: 'flex',
+                  gap: '30px',
+                  flexWrap: 'wrap',
                 }}>
                   <p style={{ color: '#a0a0a0', marginBottom: '0', fontSize: '14px' }}>
                     Total de usuarios: <strong style={{ color: '#D0FF71' }}>{pagination.total}</strong>
+                  </p>
+                  <p style={{ color: '#a0a0a0', marginBottom: '0', fontSize: '14px' }}>
+                    Con suscripción: <strong style={{ color: '#4CAF50' }}>{users.filter(u => u.isSubscribed).length}</strong>
+                  </p>
+                  <p style={{ color: '#a0a0a0', marginBottom: '0', fontSize: '14px' }}>
+                    Sin suscripción: <strong style={{ color: '#FFA500' }}>{users.filter(u => !u.isSubscribed).length}</strong>
                   </p>
                 </div>
 
@@ -225,13 +381,13 @@ export default function AdminBadgesPage() {
                             Rol
                           </th>
                           <th style={{ padding: '16px', textAlign: 'center', color: '#D0FF71', fontSize: '13px', fontWeight: '600' }}>
-                            Badges
+                            Suscripción
                           </th>
                           <th style={{ padding: '16px', textAlign: 'center', color: '#D0FF71', fontSize: '13px', fontWeight: '600' }}>
-                            Estado
+                            Fecha Suscripción
                           </th>
                           <th style={{ padding: '16px', textAlign: 'center', color: '#D0FF71', fontSize: '13px', fontWeight: '600' }}>
-                            Acciones
+                            Suscripto
                           </th>
                         </tr>
                       </thead>
@@ -296,8 +452,8 @@ export default function AdminBadgesPage() {
                             <td style={{ padding: '16px', textAlign: 'center' }}>
                               <span
                                 style={{
-                                  background: user.role === 'admin' ? 'rgba(208, 255, 113, 0.1)' : '#2d2e32',
-                                  color: user.role === 'admin' ? '#D0FF71' : '#a0a0a0',
+                                  background: user.role === 'Administrador' ? 'rgba(208, 255, 113, 0.1)' : '#2d2e32',
+                                  color: user.role === 'Administrador' ? '#D0FF71' : '#a0a0a0',
                                   padding: '4px 12px',
                                   borderRadius: '12px',
                                   fontSize: '12px',
@@ -305,20 +461,6 @@ export default function AdminBadgesPage() {
                                 }}
                               >
                                 {user.role}
-                              </span>
-                            </td>
-                            <td style={{ padding: '16px', textAlign: 'center' }}>
-                              <span
-                                style={{
-                                  background: user.pinsCount > 0 ? 'rgba(208, 255, 113, 0.1)' : '#2d2e32',
-                                  color: user.pinsCount > 0 ? '#D0FF71' : '#a0a0a0',
-                                  padding: '4px 12px',
-                                  borderRadius: '12px',
-                                  fontSize: '13px',
-                                  fontWeight: '600',
-                                }}
-                              >
-                                🏅 {user.pinsCount}
                               </span>
                             </td>
                             <td style={{ padding: '16px', textAlign: 'center' }}>
@@ -336,24 +478,94 @@ export default function AdminBadgesPage() {
                               </span>
                             </td>
                             <td style={{ padding: '16px', textAlign: 'center' }}>
-                              <button
-                                onClick={() => router.push(`/admin/badges/user/${user.id}`)}
-                                style={{
-                                  background: 'linear-gradient(135deg, #D0FF71 0%, #a8d65a 100%)',
-                                  color: '#1a1b1e',
-                                  border: 'none',
-                                  borderRadius: '6px',
-                                  padding: '8px 16px',
-                                  fontSize: '13px',
-                                  fontWeight: '600',
-                                  cursor: 'pointer',
-                                  transition: 'transform 0.2s',
-                                }}
-                                onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
-                                onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
-                              >
-                                Ver Badges
-                              </button>
+                              {user.subscribedAt ? (
+                                <div>
+                                  <p style={{ color: '#a0a0a0', marginBottom: '2px', fontSize: '12px' }}>
+                                    {new Date(user.subscribedAt).toLocaleDateString('es-AR', {
+                                      year: 'numeric',
+                                      month: 'short',
+                                      day: 'numeric'
+                                    })}
+                                  </p>
+                                  <p style={{ color: '#666', marginBottom: '0', fontSize: '11px' }}>
+                                    Hace {getTimeAgo(user.subscribedAt)}
+                                  </p>
+                                </div>
+                              ) : (
+                                <span style={{ color: '#666', fontSize: '12px' }}>—</span>
+                              )}
+                            </td>
+                            <td style={{ padding: '16px', textAlign: 'center' }}>
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'center' }}>
+                                <label
+                                  style={{
+                                    position: 'relative',
+                                    display: 'inline-block',
+                                    width: '50px',
+                                    height: '26px',
+                                    cursor: updatingUsers.has(user.id) ? 'not-allowed' : 'pointer',
+                                    opacity: updatingUsers.has(user.id) ? 0.6 : 1,
+                                  }}
+                                >
+                                  <input
+                                    type="checkbox"
+                                    checked={user.isSubscribed}
+                                    onChange={() => handleToggleSubscription(user.id, user.isSubscribed)}
+                                    disabled={updatingUsers.has(user.id)}
+                                    style={{
+                                      opacity: 0,
+                                      width: 0,
+                                      height: 0,
+                                    }}
+                                  />
+                                  <span
+                                    style={{
+                                      position: 'absolute',
+                                      top: 0,
+                                      left: 0,
+                                      right: 0,
+                                      bottom: 0,
+                                      backgroundColor: user.isSubscribed ? '#4CAF50' : '#3a3b3f',
+                                      borderRadius: '26px',
+                                      transition: 'background-color 0.3s',
+                                    }}
+                                  >
+                                    <span
+                                      style={{
+                                        position: 'absolute',
+                                        content: '""',
+                                        height: '20px',
+                                        width: '20px',
+                                        left: '3px',
+                                        bottom: '3px',
+                                        backgroundColor: '#ffffff',
+                                        borderRadius: '50%',
+                                        transition: 'transform 0.3s',
+                                        transform: user.isSubscribed ? 'translateX(24px)' : 'translateX(0)',
+                                      }}
+                                    />
+                                  </span>
+                                </label>
+                                <button
+                                  onClick={() => handleResetPassword(user.id)}
+                                  disabled={updatingUsers.has(user.id)}
+                                  style={{
+                                    background: '#c2185b',
+                                    color: '#ffffff',
+                                    border: 'none',
+                                    borderRadius: '6px',
+                                    padding: '6px 12px',
+                                    fontSize: '11px',
+                                    fontWeight: '600',
+                                    cursor: updatingUsers.has(user.id) ? 'not-allowed' : 'pointer',
+                                    opacity: updatingUsers.has(user.id) ? 0.6 : 1,
+                                    whiteSpace: 'nowrap',
+                                  }}
+                                  title="Resetear contraseña a 'programadoresargentina'"
+                                >
+                                  🔑 Resetear Pass
+                                </button>
+                              </div>
                             </td>
                           </tr>
                         ))}

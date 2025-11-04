@@ -70,10 +70,15 @@ async function handleSubscriptionActive(subscriptionId: string) {
     }
 
     // Actualizar usuario en la base de datos
+    const user = await prisma.user.findUnique({
+      where: { email: payerEmail },
+    })
+    
     const updatedUser = await prisma.user.update({
       where: { email: payerEmail },
       data: { 
         isSubscribed: true,
+        subscribedAt: user?.subscribedAt || new Date(), // Solo establecer si no existe
         updatedAt: new Date()
       }
     })
@@ -112,6 +117,7 @@ async function handleSubscriptionInactive(subscriptionId: string) {
       where: { email: payerEmail },
       data: { 
         isSubscribed: false,
+        subscribedAt: null, // Limpiar fecha cuando se desactiva
         updatedAt: new Date()
       }
     })

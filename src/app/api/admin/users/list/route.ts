@@ -58,7 +58,7 @@ export async function GET(req: NextRequest) {
     console.log('[Admin] Usuario cargado:', authUser.username, 'Rol:', authUser.role.name);
 
     // Verificar si es admin o tiene permiso users:read
-    const isAdmin = authUser.role.name === 'admin';
+    const isAdmin = authUser.role.name === 'Administrador';
     const hasUsersRead = authUser.role.permissions.some(
       (rp) => rp.permission.resource === 'users' && rp.permission.action === 'read'
     );
@@ -78,19 +78,25 @@ export async function GET(req: NextRequest) {
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '20');
     const search = searchParams.get('search') || '';
+    const isSubscribedFilter = searchParams.get('isSubscribed');
 
     const skip = (page - 1) * limit;
 
     // Construir filtro de búsqueda
-    const where = search
-      ? {
-          OR: [
-            { name: { contains: search } },
-            { username: { contains: search } },
-            { email: { contains: search } },
-          ],
-        }
-      : {};
+    const where: any = {};
+    
+    if (search) {
+      where.OR = [
+        { name: { contains: search } },
+        { username: { contains: search } },
+        { email: { contains: search } },
+      ];
+    }
+    
+    // Filtro por suscripción
+    if (isSubscribedFilter !== null && isSubscribedFilter !== undefined && isSubscribedFilter !== '') {
+      where.isSubscribed = isSubscribedFilter === 'true';
+    }
 
     // Obtener usuarios
     console.log('[Admin] Consultando usuarios con filtros:', { where, skip, limit });
@@ -123,6 +129,7 @@ export async function GET(req: NextRequest) {
         email: user.email,
         avatar: user.avatar,
         isSubscribed: user.isSubscribed,
+        subscribedAt: user.subscribedAt,
         isActive: user.isActive,
         role: user.role.name,
         pinsCount: user.pins.length,

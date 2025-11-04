@@ -52,7 +52,7 @@ export async function GET(
     }
 
     // Verificar si es admin
-    const isAdmin = authUser.role.name === 'admin';
+    const isAdmin = authUser.role.name === 'Administrador';
     const hasUsersRead = authUser.role.permissions.some(
       (rp) => rp.permission.resource === 'users' && rp.permission.action === 'read'
     );

@@ -18,6 +18,7 @@ model User {
   website           String?
   location          String?
   isSubscribed      Boolean         @default(false)
+  subscribedAt      DateTime?
   isActive          Boolean         @default(true)
   lastLogin         DateTime?
   createdAt         DateTime        @default(now())

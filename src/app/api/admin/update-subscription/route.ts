@@ -1,20 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { verifyToken } from '@/lib/auth'
 
 // Configurar la ruta como dinámica
 export const dynamic = 'force-dynamic'
 
 export async function PATCH(request: NextRequest) {
   try {
-    // Verificar la clave de administrador
-    const adminKey = process.env.ADMIN_API_KEY
-    if (!adminKey) {
-      return NextResponse.json(
-        { error: 'ADMIN_API_KEY no configurada' },
-        { status: 500 }
-      )
-    }
-
     const authHeader = request.headers.get('authorization')
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return NextResponse.json(
@@ -23,26 +15,63 @@ export async function PATCH(request: NextRequest) {
       )
     }
 
-    const providedKey = authHeader.substring(7)
-    if (providedKey !== adminKey) {
+    const token = authHeader.substring(7)
+    const decoded = await verifyToken(token)
+    if (!decoded || !decoded.userId) {
       return NextResponse.json(
-        { error: 'Clave de administrador inválida' },
+        { error: 'Token inválido' },
         { status: 401 }
       )
     }
 
-    const { email, isSubscribed, roleName } = await request.json()
+    // Obtener usuario autenticado con rol
+    const authUser = await prisma.user.findUnique({
+      where: { id: decoded.userId },
+      include: {
+        role: {
+          include: {
+            permissions: {
+              include: {
+                permission: true,
+              },
+            },
+          },
+        },
+      },
+    })
 
-    if (!email) {
+    if (!authUser) {
       return NextResponse.json(
-        { error: 'Email es requerido' },
+        { error: 'Usuario no encontrado' },
+        { status: 404 }
+      )
+    }
+
+    // Verificar si es admin o tiene permiso users:update
+    const isAdmin = authUser.role.name === 'Administrador'
+    const hasUsersUpdate = authUser.role.permissions.some(
+      (rp) => rp.permission.resource === 'users' && rp.permission.action === 'update'
+    )
+
+    if (!isAdmin && !hasUsersUpdate) {
+      return NextResponse.json(
+        { error: 'No tienes permisos para actualizar usuarios' },
+        { status: 403 }
+      )
+    }
+
+    const { userId, isSubscribed, roleName } = await request.json()
+
+    if (!userId) {
+      return NextResponse.json(
+        { error: 'userId es requerido' },
         { status: 400 }
       )
     }
 
     // Buscar el usuario
     const user = await prisma.user.findUnique({
-      where: { email },
+      where: { id: userId },
       include: {
         role: {
           include: {
@@ -68,6 +97,14 @@ export async function PATCH(request: NextRequest) {
     
     if (typeof isSubscribed === 'boolean') {
       updateData.isSubscribed = isSubscribed
+      // Si se está activando la suscripción y no tiene fecha, establecerla
+      if (isSubscribed && !user.isSubscribed) {
+        updateData.subscribedAt = new Date()
+      }
+      // Si se está desactivando la suscripción, limpiar la fecha
+      if (!isSubscribed && user.isSubscribed) {
+        updateData.subscribedAt = null
+      }
     }
 
     if (roleName) {

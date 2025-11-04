@@ -144,8 +144,6 @@ export default function ForumPageContent() {
             padding: '24px'
           }}>
             <h4 className="alert-heading">📝 Foro Vacío</h4>
-            <p>No hay posts disponibles en este momento.</p>
-            <p className="mb-0">¡Sé el primero en iniciar una discusión!</p>
           </div>
         </div>
       </div>

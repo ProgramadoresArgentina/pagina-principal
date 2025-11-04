@@ -298,6 +298,20 @@ export default function RegisterForm({ onSuccess, redirectTo = '/' }: RegisterFo
           type="submit" 
           className="tp-login-btn w-100"
           disabled={isLoading}
+          style={{
+            background: isLoading
+              ? '#6c757d'
+              : 'linear-gradient(135deg, #D0FF71 0%, #a8d65a 100%)',
+            color: '#1a1b1e',
+            border: 'none',
+            borderRadius: '8px',
+            padding: '14px 24px',
+            fontSize: '16px',
+            fontWeight: '700',
+            cursor: isLoading ? 'not-allowed' : 'pointer',
+            transition: 'all 0.3s ease',
+            width: '100%',
+          }}
         >
           {isLoading ? 'Creando cuenta...' : 'Crear cuenta'}
         </button>

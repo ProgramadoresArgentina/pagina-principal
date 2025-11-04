@@ -39,7 +39,7 @@ export async function GET(req: NextRequest) {
     }
 
     // Verificar si es admin
-    if (authUser.role.name !== 'admin') {
+    if (authUser.role.name !== 'Administrador') {
       return NextResponse.json(
         { error: 'No tienes permisos para listar pins' },
         { status: 403 }
