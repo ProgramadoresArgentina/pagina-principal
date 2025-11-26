@@ -81,15 +81,9 @@ export default function ClubLibros(): JSX.Element {
                 <div className="row">
                   <div className="col-xl-12">
                     <div className="it-about-title-box z-index-2 text-center">
-                      <h4 className="tp-section-title-platform platform-text-black fs-84 mb-30 pt-30 tp-split-text tp-split-right" style={{ perspective: '400px' }}>
+                      <h4 className="tp-section-title-platform platform-text-black fs-84 pt-30 tp-split-text tp-split-right" style={{ perspective: '400px' }}>
                       Biblioteca Digital
                       </h4>
-                      <div className="tp_text_anim">
-                        <p style={{ perspective: '400px', maxWidth: '800px', margin: '0 auto' }}>
-                          Accede a nuestra biblioteca exclusiva de libros técnicos y recursos de programación. 
-                          Una colección cuidadosamente seleccionada de materiales que te ayudarán a crecer profesionalmente.
-                        </p>
-                      </div>
                     </div>
                   </div>
                 </div>
@@ -100,7 +94,7 @@ export default function ClubLibros(): JSX.Element {
             {/* books area start */}
             <div className="it-benifit-area p-relative pb-120">
               <div className="container container-1230">
-                <div className="it-benifit-bg pb-120 z-index-1" data-bg-color="#1A1B1E" style={{ paddingTop: '30px' }}>
+                <div className="it-benifit-bg pb-120 z-index-1" data-bg-color="#1A1B1E" style={{ paddingTop: '20px' }}>
                   <BooksList />
                 </div>
               </div>

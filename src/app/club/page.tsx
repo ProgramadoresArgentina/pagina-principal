@@ -167,10 +167,26 @@ export default function Club(): JSX.Element {
                         </p>
                       </div>
                       <div className="tp_fade_anim" data-fade-from="top" data-ease="bounce" style={{ translate: 'none', rotate: 'none', scale: 'none', transform: 'translate(0px, 0px)', opacity: 1 }}>
-                        <a className="tp-btn-black-radius btn-blue-bg d-inline-flex align-items-center justify-content-between mr-15" href="https://www.mercadopago.com.ar/subscriptions/checkout?preapproval_plan_id=2c93808497f5faa7019800406b1d03db&success_url=https://programadoresargentina.com/club?success=true&failure_url=https://programadoresargentina.com/club?success=false" data-name="MP-payButton">
+                        {/* <a className="tp-btn-black-radius btn-blue-bg d-inline-flex align-items-center justify-content-between mr-15" href="https://www.mercadopago.com.ar/subscriptions/checkout?preapproval_plan_id=2c93808497f5faa7019800406b1d03db&success_url=https://programadoresargentina.com/club?success=true&failure_url=https://programadoresargentina.com/club?success=false" data-name="MP-payButton">
                           <span>
                             <span className="text-1">Suscribirse por $4000 /mes</span>
                             <span className="text-2">Suscribirme</span>
+                          </span>
+                          <i>
+                            <span>
+                              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M1 11L11 1M11 1H1M11 1V11" stroke="#21212D" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"></path>
+                              </svg>
+                              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M1 11L11 1M11 1H1M11 1V11" stroke="#21212D" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"></path>
+                              </svg>
+                            </span>
+                          </i>
+                        </a> */}
+                        <a className="tp-btn-black-radius btn-blue-bg d-inline-flex align-items-center justify-content-between mr-15" href="#" data-name="MP-payButton">
+                          <span>
+                            <span className="text-1">Suscribirse por $4000 /mes</span>
+                            <span className="text-2">El club se encuentra lleno</span>
                           </span>
                           <i>
                             <span>

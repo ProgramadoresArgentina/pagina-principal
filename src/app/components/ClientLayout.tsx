@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect } from "react";
-import ChatWidget from "./ChatWidget";
 import NewsletterPopup from "./NewsletterPopup";
 import { useNewsletterPopup } from "@/hooks/useNewsletterPopup";
 
@@ -35,7 +34,6 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
   return (
     <>
       {children}
-      <ChatWidget />
       {showPopup && <NewsletterPopup onClose={closePopup} />}
     </>
   );
