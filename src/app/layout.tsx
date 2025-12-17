@@ -6,6 +6,9 @@ import { AuthProvider } from '@/contexts/AuthContext';
 export const metadata: Metadata = {
   title: 'Comunidad Programadores Argentina',
   description: 'Comunidad de programadores de Argentina. Sumate a nuestra comunidad de Discord y participá de eventos, workshops y mucho más.',
+  icons: {
+    icon: '/assets/images/favicon.ico',
+  },
 };
 
 export default function RootLayout({
@@ -15,9 +18,44 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es-AR" className='no-js agntix-dark'>
-      <head>
+      <body className="tp-magic-cursor">
+        {/* Cargar CSS dinámicamente */}
+        <Script
+          id="load-css"
+          strategy="beforeInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                if (typeof window === 'undefined') return;
+                var links = [
+                  { rel: 'shortcut icon', type: 'image/x-icon', href: '/assets/images/favicon.ico' },
+                  { rel: 'stylesheet', href: '/assets/css/bootstrap.css' },
+                  { rel: 'stylesheet', href: '/assets/css/slick.css' },
+                  { rel: 'stylesheet', href: '/assets/css/swiper-bundle.css' },
+                  { rel: 'stylesheet', href: '/assets/css/magnific-popup.css' },
+                  { rel: 'stylesheet', href: '/assets/css/font-awesome-pro.css' },
+                  { rel: 'stylesheet', href: '/assets/css/spacing.css' },
+                  { rel: 'stylesheet', href: '/assets/css/atropos.min.css' },
+                  { rel: 'stylesheet', href: '/assets/css/main.css' }
+                ];
+                links.forEach(function(linkProps) {
+                  var existingLink = document.querySelector('link[href="' + linkProps.href + '"]');
+                  if (!existingLink) {
+                    var link = document.createElement('link');
+                    Object.keys(linkProps).forEach(function(key) {
+                      link.setAttribute(key, linkProps[key]);
+                    });
+                    document.head.appendChild(link);
+                  }
+                });
+              })();
+            `,
+          }}
+        />
         {/* Google Tag Manager */}
-        <script
+        <Script
+          id="gtm-init"
+          strategy="beforeInteractive"
           dangerouslySetInnerHTML={{
             __html: `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
 new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
@@ -27,18 +65,6 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
           }}
         />
         {/* End Google Tag Manager */}
-        
-        <link rel="shortcut icon" type="image/x-icon" href="/assets/images/favicon.ico" />
-        <link rel="stylesheet" href="/assets/css/bootstrap.css" />
-        <link rel="stylesheet" href="/assets/css/slick.css" />
-        <link rel="stylesheet" href="/assets/css/swiper-bundle.css" />
-        <link rel="stylesheet" href="/assets/css/magnific-popup.css" />
-        <link rel="stylesheet" href="/assets/css/font-awesome-pro.css" />
-        <link rel="stylesheet" href="/assets/css/spacing.css" />
-        <link rel="stylesheet" href="/assets/css/atropos.min.css" />
-        <link rel="stylesheet" href="/assets/css/main.css" />
-      </head>
-      <body className="tp-magic-cursor">
         {/* Google Tag Manager (noscript) */}
         <noscript>
           <iframe 

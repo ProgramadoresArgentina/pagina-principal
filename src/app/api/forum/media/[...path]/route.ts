@@ -20,10 +20,13 @@ const s3Client = new S3Client({
 // GET /api/forum/media/[...path] - Obtener archivos multimedia del foro
 export async function GET(
   request: NextRequest,
-  { params }: { params: { path: string[] } }
+  { params }: { params: Promise<{ path: string[] }> }
 ) {
+  let path: string[] = [];
   try {
-    const filePath = params.path.join('/')
+    const resolvedParams = await params;
+    path = resolvedParams.path;
+    const filePath = path.join('/')
     
     console.log('📁 Serving forum media:', filePath)
 
@@ -90,7 +93,7 @@ export async function GET(
       { 
         error: 'Archivo multimedia no encontrado',
         details: error.message,
-        path: params.path.join('/')
+        path: path.length > 0 ? path.join('/') : 'unknown'
       },
       { status: 404 }
     )

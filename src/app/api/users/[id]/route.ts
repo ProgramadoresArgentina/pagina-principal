@@ -5,7 +5,7 @@ import { validateAdminApiKey } from '@/lib/admin'
 // GET /api/users/[id] - Obtener un usuario por ID
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   // Validar API key de administrador
   if (!validateAdminApiKey(request)) {
@@ -13,7 +13,7 @@ export async function GET(
   }
   
   try {
-    const { id } = params
+    const { id } = await params
 
     const user = await prisma.user.findUnique({
       where: { id },
@@ -57,7 +57,7 @@ export async function GET(
 // PUT /api/users/[id] - Actualizar un usuario
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   // Validar API key de administrador
   if (!validateAdminApiKey(request)) {
@@ -65,7 +65,7 @@ export async function PUT(
   }
   
   try {
-    const { id } = params
+    const { id } = await params
     const body = await request.json()
     const { email, name, username, avatar, bio, website, location, lid, roleId } = body
 
@@ -170,7 +170,7 @@ export async function PUT(
 // DELETE /api/users/[id] - Eliminar un usuario
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   // Validar API key de administrador
   if (!validateAdminApiKey(request)) {
@@ -178,7 +178,7 @@ export async function DELETE(
   }
   
   try {
-    const { id } = params
+    const { id } = await params
 
     // Verificar si el usuario existe
     const existingUser = await prisma.user.findUnique({

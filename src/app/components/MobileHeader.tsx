@@ -1,4 +1,5 @@
 import { JSX } from "react";
+import Link from "next/link";
 
 export default function MobileHeader(): JSX.Element {
   return (
@@ -39,10 +40,10 @@ export default function MobileHeader(): JSX.Element {
         <div className="tp-offcanvas-wrapper offcanvas-black-bg">
           <div className="tp-offcanvas-top d-flex align-items-center justify-content-between">
             <div className="tp-offcanvas-logo">
-              <a href="/">
+              <Link href="/">
                 <img className="logo-1" data-width="120" src="/assets/images/logo.png" alt="Logo Comunidad Programadores Argentina" />
                 <img className="logo-2" data-width="120" src="/assets/images/logo.png" alt="Logo Comunidad Programadores Argentina" />
-              </a>
+              </Link>
             </div>
             <div className="tp-offcanvas-close">
               <button className="tp-offcanvas-close-btn">

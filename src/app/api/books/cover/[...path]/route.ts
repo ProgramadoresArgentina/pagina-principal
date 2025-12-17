@@ -19,11 +19,12 @@ const BOOKS_BUCKET_NAME = 'libros';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { path: string[] } }
+  { params }: { params: Promise<{ path: string[] }> }
 ) {
   try {
+    const { path } = await params;
     // Decodificar la URL para manejar caracteres especiales
-    const imagePath = decodeURIComponent(params.path.join('/'));
+    const imagePath = decodeURIComponent(path.join('/'));
     
     console.log('🖼️ Serving cover:', imagePath);
     

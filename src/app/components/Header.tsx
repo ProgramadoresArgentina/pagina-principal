@@ -1,6 +1,7 @@
 'use client'
 
 import { JSX } from "react";
+import Link from "next/link";
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import UserDropdown from './UserDropdown';
@@ -17,9 +18,9 @@ export default function Header(): JSX.Element {
           <div className="row align-items-center">
             <div className="col-xl-2 col-lg-4 col-md-6 col-5">
               <div className="tp-header-10-logo">
-                <a href="/">
+                <Link href="/">
                   <img data-width="40" width="40" src="/assets/images/logo.png" alt="Logo Comunidad Programadores Argentina" />
-                </a>
+                </Link>
               </div>
             </div>
             <div className="col-xl-10 col-lg-8 col-md-6 col-7">
@@ -28,16 +29,16 @@ export default function Header(): JSX.Element {
                   <nav className="tp-mobile-menu-active">
                     <ul>
                       <li>
-                        <a href="/">Inicio</a>
+                        <Link href="/">Inicio</Link>
                       </li>
                       <li>
-                        <a href="/articulos">Artículos</a>
+                        <Link href="/articulos">Artículos</Link>
                       </li>
                       <li>
-                        <a href="/foro">Foro</a>
+                        <Link href="/foro">Foro</Link>
                       </li>
                       <li>
-                        <a href="/club/libros">Libros Exclusivos</a>
+                        <Link href="/club/libros">Libros Exclusivos</Link>
                       </li>
                       <li>
                         <a href="/pines">🏅 Conseguir Pines</a>

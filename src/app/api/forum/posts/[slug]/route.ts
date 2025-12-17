@@ -5,10 +5,10 @@ import { verifyToken, getAuthenticatedUser } from '@/lib/auth'
 // GET /api/forum/posts/[slug] - Obtener post individual por slug
 export async function GET(
   request: NextRequest,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
-    const { slug } = params
+    const { slug } = await params
 
     const post = await prisma.forumPost.findUnique({
       where: { slug },
@@ -158,7 +158,7 @@ export async function GET(
 // PUT /api/forum/posts/[slug] - Actualizar post (solo autor o admin)
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
     // Verificar autenticación
@@ -187,7 +187,7 @@ export async function PUT(
       )
     }
 
-    const { slug } = params
+    const { slug } = await params
     const { title, content } = await request.json()
 
     // Buscar el post
@@ -287,7 +287,7 @@ export async function PUT(
 // DELETE /api/forum/posts/[slug] - Eliminar post (solo autor o admin)
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
     // Verificar autenticación
@@ -316,7 +316,7 @@ export async function DELETE(
       )
     }
 
-    const { slug } = params
+    const { slug } = await params
 
     // Buscar el post
     const existingPost = await prisma.forumPost.findUnique({

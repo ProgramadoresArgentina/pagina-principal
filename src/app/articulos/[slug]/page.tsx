@@ -1,6 +1,7 @@
 import { JSX } from "react";
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import BackToTop from "../../components/BackToTop";
 import Header from "../../components/Header";
 import MobileHeader from "../../components/MobileHeader";
@@ -26,9 +27,9 @@ const formatDate = (dateString: string) => {
 };
 
 interface BlogPostPageProps {
-  params: {
+  params: Promise<{
     slug: string;
-  };
+  }>;
 }
 
 export async function generateStaticParams() {
@@ -39,7 +40,8 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: BlogPostPageProps): Promise<Metadata> {
-  const post = await getPostBySlug(params.slug);
+  const { slug } = await params;
+  const post = await getPostBySlug(slug);
 
   if (!post) {
     return {
@@ -177,7 +179,8 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
 }
 
 export default async function BlogPostPage({ params }: BlogPostPageProps): Promise<JSX.Element> {
-  const post = await getPostBySlug(params.slug);
+  const { slug } = await params;
+  const post = await getPostBySlug(slug);
   const allPosts = await getAllPosts();
 
   if (!post) {
@@ -220,7 +223,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps): Promi
                         <div className="postbox-details-info-wrap">
                           <div className="d-flex align-items-center justify-content-between mb-20">
                             
-                          <a href="/articulos" className="tp-btn-black btn-green-light-bg">
+                          <Link href="/articulos" className="tp-btn-black btn-green-light-bg">
                               <span className="tp-btn-black-filter-blur">
                                 <svg width="0" height="0">
                                   <defs>
@@ -242,8 +245,8 @@ export default async function BlogPostPage({ params }: BlogPostPageProps): Promi
                                 <span className="tp-btn-black-text">
                                   Volver
                                 </span>
-                              </span>
-                            </a>
+                                </span>
+                            </Link>
                             <div className="postbox-tag postbox-details-tag">
                             <span>
                               <i>

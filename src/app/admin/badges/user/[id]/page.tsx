@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useParams } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import Header from '@/app/components/Header'
 import MobileHeader from '@/app/components/MobileHeader'
@@ -29,7 +29,8 @@ interface UserInfo {
   email: string;
 }
 
-export default function UserBadgesDetailPage({ params }: { params: { id: string } }) {
+export default function UserBadgesDetailPage() {
+  const params = useParams()
   const { isAuthenticated, isLoading, token } = useAuth()
   const router = useRouter()
 
@@ -54,12 +55,12 @@ export default function UserBadgesDetailPage({ params }: { params: { id: string 
     if (token) {
       loadData()
     }
-  }, [token, params.id])
+  }, [token, params?.id])
 
   const loadData = async () => {
     try {
       setLoading(true)
-      const res = await fetch(`/api/admin/users/${params.id}/badges`, {
+      const res = await fetch(`/api/admin/users/${params?.id}/badges`, {
         headers: { Authorization: `Bearer ${token}` },
       })
 
@@ -94,7 +95,7 @@ export default function UserBadgesDetailPage({ params }: { params: { id: string 
       setError(null)
       setSuccess(null)
 
-      const res = await fetch(`/api/admin/users/${params.id}/badges`, {
+      const res = await fetch(`/api/admin/users/${params?.id}/badges`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

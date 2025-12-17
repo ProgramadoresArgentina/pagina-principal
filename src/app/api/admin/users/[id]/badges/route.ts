@@ -8,9 +8,10 @@ import { prisma } from '@/lib/prisma';
  */
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id: userId } = await params;
     const authHeader = req.headers.get('authorization');
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return NextResponse.json(
@@ -63,8 +64,6 @@ export async function GET(
         { status: 403 }
       );
     }
-
-    const userId = params.id;
 
     // Obtener usuario con sus badges
     const user = await prisma.user.findUnique({
@@ -136,9 +135,10 @@ export async function GET(
  */
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id: userId } = await params;
     const authHeader = req.headers.get('authorization');
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return NextResponse.json(
@@ -189,8 +189,6 @@ export async function POST(
         { status: 403 }
       );
     }
-
-    const userId = params.id;
     const body = await req.json();
     const { pinId, reason } = body;
 
@@ -284,7 +282,7 @@ export async function POST(
  */
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const authHeader = req.headers.get('authorization');

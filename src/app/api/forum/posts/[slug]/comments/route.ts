@@ -5,7 +5,7 @@ import { verifyToken, getAuthenticatedUser } from '@/lib/auth'
 // POST /api/forum/posts/[slug]/comments - Crear comentario en un post
 export async function POST(
   request: NextRequest,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
     // Verificar autenticación
@@ -34,7 +34,7 @@ export async function POST(
       )
     }
 
-    const { slug } = params
+    const { slug } = await params
     const { content, parentId } = await request.json()
 
     if (!content) {

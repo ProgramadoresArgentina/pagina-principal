@@ -1,8 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  experimental: {
-    serverComponentsExternalPackages: ['redis']
-  },
+  serverExternalPackages: ['redis'],
   webpack: (config, { isServer }) => {
     if (!isServer) {
       config.resolve.fallback = {

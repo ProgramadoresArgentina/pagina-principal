@@ -5,9 +5,10 @@ import { verifyToken, getAuthenticatedUser } from '@/lib/auth'
 // PUT /api/forum/comments/[id] - Actualizar comentario
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     // Verificar autenticación
     const authHeader = request.headers.get('authorization')
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -33,8 +34,6 @@ export async function PUT(
         { status: 404 }
       )
     }
-
-    const { id } = params
     const { content } = await request.json()
 
     if (!content) {
@@ -129,9 +128,10 @@ export async function PUT(
 // DELETE /api/forum/comments/[id] - Eliminar comentario
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     // Verificar autenticación
     const authHeader = request.headers.get('authorization')
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -157,8 +157,6 @@ export async function DELETE(
         { status: 404 }
       )
     }
-
-    const { id } = params
 
     // Buscar el comentario
     const existingComment = await prisma.forumComment.findUnique({

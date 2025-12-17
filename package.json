@@ -28,11 +28,11 @@
     "gray-matter": "^4.0.3",
     "jsonwebtoken": "^9.0.2",
     "libphonenumber-js": "^1.12.24",
-    "next": "14.2.4",
+    "next": "15.0.7",
     "pdfjs-dist": "^5.4.296",
     "prisma": "^6.15.0",
-    "react": "^18",
-    "react-dom": "^18",
+    "react": "^19.2.1",
+    "react-dom": "^19.2.1",
     "react-holo-card-effect": "^0.1.3",
     "react-input-mask": "^2.0.4",
     "react-international-phone": "^4.6.0",
@@ -48,9 +48,10 @@
     "@types/bcryptjs": "^2.4.6",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "24.3.1",
-    "@types/react": "19.1.12",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
     "eslint": "^8",
-    "eslint-config-next": "14.2.4",
+    "eslint-config-next": "15.0.7",
     "tsx": "^4.20.5"
   }
 }

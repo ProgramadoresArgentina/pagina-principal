@@ -1,5 +1,6 @@
 import { JSX } from "react";
 import { Metadata } from "next";
+import Link from "next/link";
 import BackToTop from "./components/BackToTop";
 import Header from "./components/Header";
 import MobileHeader from "./components/MobileHeader";
@@ -171,7 +172,7 @@ export default function Home(): JSX.Element {
                     </a>
                   </div>
                   <div className="tp_fade_anim" data-delay=".7" data-fade-from="top" data-ease="bounce">
-                    <a className="tp-btn-black-radius btn-blue-bg btn-border d-inline-flex align-items-center justify-content-between" href="/articulos">
+                    <Link className="tp-btn-black-radius btn-blue-bg btn-border d-inline-flex align-items-center justify-content-between" href="/articulos">
                       <span>
                         <span className="text-1">Ver Artículos</span>
                         <span className="text-2">Leer</span>
@@ -192,7 +193,7 @@ export default function Home(): JSX.Element {
                           </svg>
                         </span>
                       </i>
-                    </a>
+                    </Link>
                   </div>
                 </div>
               </div>

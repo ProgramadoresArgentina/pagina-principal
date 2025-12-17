@@ -138,8 +138,14 @@ export async function getBooks(): Promise<Book[]> {
       }
       return a.title.localeCompare(b.title);
     });
-  } catch (error) {
-    console.error('Error fetching books from MinIO:', error);
+  } catch (error: any) {
+    // Manejar específicamente el caso de bucket no existente
+    if (error.name === 'NoSuchBucket' || error.Code === 'NoSuchBucket') {
+      console.log('⚠️ Books bucket does not exist in MinIO');
+      return [];
+    }
+    // Para otros errores, loguear pero no fallar
+    console.error('Error fetching books from MinIO:', error.message || error);
     return [];
   }
 }

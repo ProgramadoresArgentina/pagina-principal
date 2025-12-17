@@ -1,4 +1,5 @@
 import { JSX } from "react";
+import Link from "next/link";
 
 export default function Footer(): JSX.Element {
   return (
@@ -17,7 +18,7 @@ export default function Footer(): JSX.Element {
                 <h4 className="tp-footer-widget-title-sm pre mb-25">Enlaces rápidos</h4>
                 <div className="tp-footer-widget-menu">
                   <ul>
-                    <li><a href="/articulos">Articulos</a></li>
+                    <li><Link href="/articulos">Articulos</Link></li>
                     <li><a href="/club">Club</a></li>
                   </ul>
                 </div>

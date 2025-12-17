@@ -5,9 +5,10 @@ import { verifyToken, getAuthenticatedUser } from '@/lib/auth'
 // POST /api/forum/posts/[slug]/applause - Dar aplauso a un post
 export async function POST(
   request: NextRequest,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
+    const { slug } = await params;
     // Verificar autenticación
     const authHeader = request.headers.get('authorization')
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -33,8 +34,6 @@ export async function POST(
         { status: 404 }
       )
     }
-
-    const { slug } = params
 
     // Buscar el post
     const post = await prisma.forumPost.findUnique({
@@ -113,10 +112,10 @@ export async function POST(
 // GET /api/forum/posts/[slug]/applause - Obtener información de aplausos
 export async function GET(
   request: NextRequest,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
-    const { slug } = params
+    const { slug } = await params
 
     // Buscar el post
     const post = await prisma.forumPost.findUnique({

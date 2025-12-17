@@ -16,12 +16,13 @@ export const metadata: Metadata = {
 };
 
 interface PostPageProps {
-  params: {
+  params: Promise<{
     slug: string
-  }
+  }>
 }
 
-export default function PostPage({ params }: PostPageProps): JSX.Element {
+export default async function PostPage({ params }: PostPageProps): Promise<JSX.Element> {
+  const { slug } = await params;
   return (
     <>
       <BackToTop />
@@ -44,7 +45,7 @@ export default function PostPage({ params }: PostPageProps): JSX.Element {
             <div className="it-benifit-area p-relative pb-120">
               <div className="container container-1230">
                 <div className="it-benifit-bg pb-120 z-index-1" data-bg-color="#1A1B1E" style={{ paddingTop: '30px' }}>
-                  <PostPageContent slug={params.slug} />
+                  <PostPageContent slug={slug} />
                 </div>
               </div>
             </div>

@@ -5,13 +5,14 @@ import { getBook } from "@/lib/books";
 import BookViewer from "./components/BookViewer";
 
 interface BookPageProps {
-  searchParams: {
+  searchParams: Promise<{
     path?: string;
-  };
+  }>;
 }
 
 export async function generateMetadata({ searchParams }: BookPageProps): Promise<Metadata> {
-  const bookPath = searchParams.path;
+  const params = await searchParams;
+  const bookPath = params.path;
   
   if (!bookPath) {
     return {
@@ -52,7 +53,8 @@ export async function generateMetadata({ searchParams }: BookPageProps): Promise
 }
 
 export default async function BookPage({ searchParams }: BookPageProps): Promise<JSX.Element> {
-  const bookPath = searchParams.path;
+  const params = await searchParams;
+  const bookPath = params.path;
   
   console.log('📚 Book viewer page (query):', {
     bookPath

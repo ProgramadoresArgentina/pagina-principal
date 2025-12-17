@@ -2,6 +2,7 @@
 
 import { useAuth } from '@/contexts/AuthContext';
 import { usePathname } from 'next/navigation';
+import Link from 'next/link';
 import { Book } from '@/lib/books';
 import dynamic from 'next/dynamic';
 import React from 'react';
@@ -202,7 +203,7 @@ export default function BookViewer({ book }: BookViewerProps) {
             flexWrap: 'wrap'
           }}
         >
-          <a 
+          <Link 
             href="/club/libros"
             style={{
               background: 'linear-gradient(135deg, #D0FF71 0%, #a8d65a 100%)',
@@ -225,7 +226,7 @@ export default function BookViewer({ book }: BookViewerProps) {
             }}
           >
             ← Volver a la biblioteca
-          </a>
+          </Link>
           
           {totalPages ? (
             <span style={{ fontSize: 13, color: '#a0a0a0', whiteSpace: 'nowrap' }}>

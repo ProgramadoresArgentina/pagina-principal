@@ -19,13 +19,16 @@ const s3Client = new S3Client({
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { path: string[] } }
+  { params }: { params: Promise<{ path: string[] }> }
 ) {
+  let path: string[] = [];
   try {
-    console.log('📚 Raw params.path:', params.path);
+    const resolvedParams = await params;
+    path = resolvedParams.path;
+    console.log('📚 Raw params.path:', path);
     
     // Next.js ya decodifica automáticamente los parámetros
-    const filePath = params.path.join('/');
+    const filePath = path.join('/');
     
     console.log('📚 Serving book:', filePath);
     console.log('📚 File path type:', typeof filePath);
@@ -95,7 +98,7 @@ export async function GET(
       { 
         error: 'Libro no encontrado',
         details: error.message,
-        path: params.path.join('/')
+        path: path.length > 0 ? path.join('/') : 'unknown'
       },
       { status: 404 }
     );

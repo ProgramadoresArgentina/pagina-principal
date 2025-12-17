@@ -1,13 +1,16 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import NewsletterPopup from "./NewsletterPopup";
 import { useNewsletterPopup } from "@/hooks/useNewsletterPopup";
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   const { showPopup, closePopup } = useNewsletterPopup()
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
+    
     // Manejar el preloader
     const preloader = document.getElementById('preloader');
     if (preloader) {
