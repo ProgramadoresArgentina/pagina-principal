@@ -17,10 +17,9 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Token inválido o expirado' }, { status: 401 })
     }
 
-    const hasJobPreference = (prisma as any).jobPreference !== undefined
-    const preferences = hasJobPreference
-      ? await (prisma as any).jobPreference.findUnique({ where: { userId: user.id } })
-      : null
+    const preferences = await prisma.jobPreference.findUnique({ 
+      where: { userId: user.id } 
+    })
 
     return NextResponse.json({
       receiveJobNotifications: preferences?.receiveJobNotifications ?? false,
@@ -29,7 +28,7 @@ export async function GET(request: NextRequest) {
       provinces: preferences?.provinces ?? [],
       phone: preferences?.phone ?? null,
       lid: user.lid ?? null,
-      preferencesPersisted: !!hasJobPreference,
+      preferencesPersisted: true,
     })
   } catch (error) {
     console.error('Error obteniendo preferencias:', error)
@@ -70,35 +69,29 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    const hasJobPreference = (prisma as any).jobPreference !== undefined
-    if (hasJobPreference) {
-      // Asegurar preferences existente
-      await (prisma as any).jobPreference.upsert({
-        where: { userId: authUser.id },
-        create: { userId: authUser.id },
-        update: {},
-      })
-    }
+    // Asegurar preferences existente
+    await prisma.jobPreference.upsert({
+      where: { userId: authUser.id },
+      create: { userId: authUser.id },
+      update: {},
+    })
 
     // Actualizar preferencias
-    let updatedPrefs: any = null
-    if (hasJobPreference) {
-      updatedPrefs = await (prisma as any).jobPreference.update({
-        where: { userId: authUser.id },
-        data: {
-          receiveJobNotifications: receive,
-          technologies: technologies ?? undefined,
-          seniority: seniority as any | undefined,
-          provinces: provinces ?? undefined,
-        },
-      })
-    }
+    const updatedPrefs = await prisma.jobPreference.update({
+      where: { userId: authUser.id },
+      data: {
+        receiveJobNotifications: receive,
+        technologies: technologies ?? undefined,
+        seniority: seniority ? (seniority as 'JUNIOR' | 'SEMI_SENIOR' | 'SENIOR' | 'LEAD') : undefined,
+        provinces: provinces ?? undefined,
+      },
+    })
 
     return NextResponse.json({
       ok: true,
       lid: receive ? authUser.lid : null,
       preferences: updatedPrefs,
-      preferencesPersisted: !!hasJobPreference,
+      preferencesPersisted: true,
     })
   } catch (error: any) {
     console.error('Error guardando preferencias:', error)

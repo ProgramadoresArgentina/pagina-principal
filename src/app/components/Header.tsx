@@ -35,6 +35,9 @@ export default function Header(): JSX.Element {
                         <Link href="/articulos">Artículos</Link>
                       </li>
                       <li>
+                        <Link href="/cotizador">Cotizar proyecto</Link>
+                      </li>
+                      <li>
                         <Link href="/foro">Foro</Link>
                       </li>
                       <li>
