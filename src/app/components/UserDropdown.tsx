@@ -176,6 +176,29 @@ export default function UserDropdown() {
                 >
                   <span>Badges</span>
                 </button>
+                <button
+                  onClick={() => handleNavigation('/admin/cotizaciones')}
+                  style={{
+                    width: '100%',
+                    background: 'transparent',
+                    border: 'none',
+                    borderTop: '1px solid #3a3b3f',
+                    color: '#D0FF71',
+                    padding: '12px 16px',
+                    textAlign: 'left',
+                    cursor: 'pointer',
+                    fontSize: '14px',
+                    fontWeight: '600',
+                    transition: 'background 0.2s',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.background = '#2d2e32'}
+                  onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                >
+                  <span>Cotizaciones</span>
+                </button>
               </div>
             </>
           )}

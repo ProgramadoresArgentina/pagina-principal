@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { calculateProjectQuoteUsd, type ProjectQuoteAnswers } from '@/lib/projectQuote';
+import {
+  calculateProjectQuoteUsd,
+  formatUsdRange,
+  getProjectQuoteSummary,
+  type ProjectQuoteAnswers,
+} from '@/lib/projectQuote';
 
 export const dynamic = 'force-dynamic';
 
@@ -39,6 +44,46 @@ export async function POST(req: NextRequest) {
         createdAt: true,
       },
     });
+
+    // Enviar webhook a n8n (no bloquea la respuesta si falla)
+    const webhookUrl = process.env.N8N_WEBHOOK_URL;
+    if (webhookUrl) {
+      // Generar mensaje formateado para WhatsApp
+      const summary = getProjectQuoteSummary(answers);
+      const message = `📋 *Nueva Cotización de Proyecto*
+
+📧 *Email:* ${email}
+💰 *Estimado:* ${formatUsdRange(estimate)}
+📅 *Fecha:* ${new Date(quote.createdAt).toLocaleDateString('es-AR', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      })}
+
+📝 *Resumen:*
+${summary.map((s) => `• ${s}`).join('\n')}
+
+🔗 *ID:* ${quote.id}`;
+
+      fetch(webhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message,
+          email,
+          answers,
+          estimateMinUsd: estimate.minUsd,
+          estimateMaxUsd: estimate.maxUsd,
+          quoteId: quote.id,
+          createdAt: quote.createdAt,
+          summary,
+        }),
+      }).catch((err) => {
+        console.error('Error enviando webhook a n8n:', err);
+      });
+    }
 
     return NextResponse.json({
       ok: true,
