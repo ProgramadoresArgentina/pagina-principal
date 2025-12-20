@@ -251,3 +251,20 @@ enum Seniority {
   SENIOR
   LEAD
 }
+
+model ProjectQuote {
+  id            String   @id @default(cuid())
+  email         String
+  answers       Json
+  estimateMinUsd Int
+  estimateMaxUsd Int
+  responded     Boolean  @default(false)
+  respondedAt   DateTime?
+  adminNote     String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([createdAt])
+  @@index([responded, createdAt])
+  @@map("project_quotes")
+}
