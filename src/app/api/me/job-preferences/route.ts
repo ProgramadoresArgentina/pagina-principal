@@ -26,7 +26,6 @@ export async function GET(request: NextRequest) {
       technologies: preferences?.technologies ?? [],
       seniority: preferences?.seniority ?? null,
       provinces: preferences?.provinces ?? [],
-      phone: preferences?.phone ?? null,
       lid: user.lid ?? null,
       preferencesPersisted: true,
     })

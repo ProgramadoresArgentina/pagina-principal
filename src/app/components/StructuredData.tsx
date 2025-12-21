@@ -1,7 +1,7 @@
 import { JSX } from "react";
 
 interface StructuredDataProps {
-  type: 'Organization' | 'Article' | 'WebSite' | 'WebPage';
+  type: 'Organization' | 'Article' | 'WebSite' | 'WebPage' | 'SiteNavigationElement';
   data: any;
 }
 
@@ -50,6 +50,48 @@ export default function StructuredData({ type, data }: StructuredDataProps): JSX
             "@type": "SearchAction",
             "target": "https://programadoresargentina.com/articulos?search={search_term_string}",
             "query-input": "required name=search_term_string"
+          },
+          // Enlaces principales para ayudar a Google a generar sitelinks
+          "mainEntity": {
+            "@type": "ItemList",
+            "itemListElement": [
+              {
+                "@type": "ListItem",
+                "position": 1,
+                "name": "Club Exclusivo",
+                "url": "https://programadoresargentina.com/club"
+              },
+              {
+                "@type": "ListItem",
+                "position": 2,
+                "name": "Artículos",
+                "url": "https://programadoresargentina.com/articulos"
+              },
+              {
+                "@type": "ListItem",
+                "position": 3,
+                "name": "Cotizar Proyecto",
+                "url": "https://programadoresargentina.com/cotizador"
+              },
+              {
+                "@type": "ListItem",
+                "position": 4,
+                "name": "Foro",
+                "url": "https://programadoresargentina.com/foro"
+              },
+              {
+                "@type": "ListItem",
+                "position": 5,
+                "name": "Libros Exclusivos",
+                "url": "https://programadoresargentina.com/club/libros"
+              },
+              {
+                "@type": "ListItem",
+                "position": 6,
+                "name": "Pines",
+                "url": "https://programadoresargentina.com/pines"
+              }
+            ]
           }
         };
 
@@ -98,6 +140,46 @@ export default function StructuredData({ type, data }: StructuredDataProps): JSX
             "@type": "Organization",
             "name": "Programadores Argentina"
           }
+        };
+
+      case 'SiteNavigationElement':
+        return {
+          "@context": "https://schema.org",
+          "@type": "SiteNavigationElement",
+          "name": "Navegación Principal",
+          "url": "https://programadoresargentina.com",
+          "hasPart": [
+            {
+              "@type": "SiteNavigationElement",
+              "name": "Club Exclusivo",
+              "url": "https://programadoresargentina.com/club"
+            },
+            {
+              "@type": "SiteNavigationElement",
+              "name": "Artículos",
+              "url": "https://programadoresargentina.com/articulos"
+            },
+            {
+              "@type": "SiteNavigationElement",
+              "name": "Cotizar Proyecto",
+              "url": "https://programadoresargentina.com/cotizador"
+            },
+            {
+              "@type": "SiteNavigationElement",
+              "name": "Foro",
+              "url": "https://programadoresargentina.com/foro"
+            },
+            {
+              "@type": "SiteNavigationElement",
+              "name": "Libros Exclusivos",
+              "url": "https://programadoresargentina.com/club/libros"
+            },
+            {
+              "@type": "SiteNavigationElement",
+              "name": "Pines",
+              "url": "https://programadoresargentina.com/pines"
+            }
+          ]
         };
 
       default:

@@ -2,6 +2,7 @@ import Script from 'next/script';
 import type { Metadata } from 'next';
 import ClientLayout from './components/ClientLayout';
 import { AuthProvider } from '@/contexts/AuthContext';
+import StructuredData from './components/StructuredData';
 
 export const metadata: Metadata = {
   title: 'Comunidad Programadores Argentina',
@@ -19,6 +20,11 @@ export default function RootLayout({
   return (
     <html lang="es-AR" className='no-js agntix-dark'>
       <body className="tp-magic-cursor">
+        {/* Datos estructurados para navegación - ayuda a Google a generar sitelinks */}
+        <StructuredData 
+          type="SiteNavigationElement" 
+          data={{}}
+        />
         {/* Cargar CSS dinámicamente */}
         <Script
           id="load-css"
