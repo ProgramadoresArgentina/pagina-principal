@@ -118,9 +118,6 @@ export default function MedallasPage() {
                         <p className="text-white mb-3" style={{ fontSize: '16px', lineHeight: '1.6', opacity: '0.9' }}>
                           Los pines se pueden exhibir en tu perfil de GitHub <img src="/assets/images/github-icon.svg" alt="GitHub Icon" style={{ width: '56px', height: '56px', margin: '0px 30px', verticalAlign: 'middle', filter: 'brightness(0) invert(1)' }} /> (se actualiza automáticamente cada vez que ganas un nuevo pin).
                         </p>
-                        <p className="text-white" style={{ fontSize: '16px', lineHeight: '1.6', opacity: '0.9' }}>
-                          Para ver tus pines adquiridos, visitá <a href="/mi-cuenta?tab=badges" className="text-decoration-none" style={{ color: '#D0FF71', fontWeight: 'bold' }}>Mi Cuenta</a>.
-                        </p>
                       </div>
 
                       <div className="tp-blog-shape">
@@ -147,31 +144,74 @@ export default function MedallasPage() {
                         }
                       `}</style>
                       {/* Grid de medallas con HoloCard */}
-                      <div className="row" style={{ paddingTop: '130px', paddingBottom: '300px', gap: '40px' }}>
-                        {pins.map((pin, index) => (
-                          <div
-                            key={pin.id}
-                            className="col-12 col-md-3 d-flex flex-column align-items-center mb-6"
-                          >
-                            <HoloCard 
-                              url={pin.imageUrl} 
-                              height={300}
-                              showSparkles={false}
-                            />
-                            <div className="text-center mt-3" style={{ maxWidth: '200px' }}>
-                              <p style={{ 
-                                fontSize: '14px',
-                                lineHeight: '1.4',
-                                color: '#FFFFFF',
-                                margin: '0',
-                                fontWeight: '500'
-                              }}>
-                                {pin.description || 'Contactá a los administradores de la comunidad para más información.'}
-                              </p>
+                      {pins.length > 0 ? (
+                        <div className="row" style={{ paddingTop: '130px', paddingBottom: '300px', gap: '40px' }}>
+                          {pins.map((pin, index) => (
+                            <div
+                              key={pin.id}
+                              className="col-12 col-md-3 d-flex flex-column align-items-center mb-6"
+                            >
+                              <HoloCard 
+                                url={pin.imageUrl} 
+                                height={300}
+                                showSparkles={false}
+                              />
+                              <div className="text-center mt-3" style={{ maxWidth: '300px' }}>
+                                <p style={{ 
+                                  fontSize: '14px',
+                                  lineHeight: '1.4',
+                                  color: '#FFFFFF',
+                                  margin: '0 0 8px 0',
+                                  fontWeight: '500'
+                                }}>
+                                  {pin.description || 'Contactá a los administradores de la comunidad para más información.'}
+                                </p>
+                                {/* Mostrar cómo conseguirlo si menciona Club o Bienvenido pero no explica cómo */}
+                                {(pin.name.toLowerCase().includes('club') || 
+                                  pin.description?.toLowerCase().includes('club') ||
+                                  (pin.description?.toLowerCase().includes('bienvenido') && pin.description?.toLowerCase().includes('club'))) && 
+                                  !pin.description?.toLowerCase().includes('cómo') && 
+                                  !pin.description?.toLowerCase().includes('como') && 
+                                  !pin.description?.toLowerCase().includes('conseguir') && 
+                                  !pin.description?.toLowerCase().includes('obtener') &&
+                                  !pin.description?.toLowerCase().includes('suscríbete') &&
+                                  !pin.description?.toLowerCase().includes('suscribete') && (
+                                  <p style={{ 
+                                    fontSize: '12px',
+                                    lineHeight: '1.4',
+                                    color: '#D0FF71',
+                                    margin: '8px 0 0 0',
+                                    fontWeight: '500'
+                                  }}>
+                                    💡 Cómo conseguirlo: Suscríbete al Club en <a href="/club" style={{ color: '#D0FF71', textDecoration: 'underline' }}>programadoresargentina.com/club</a>
+                                  </p>
+                                )}
+                                {/* Mostrar cómo conseguir el pin de invitación */}
+                                {(pin.name.toLowerCase().includes('invitación') || pin.name.toLowerCase().includes('invitacion')) && 
+                                  !pin.description?.toLowerCase().includes('cómo') && 
+                                  !pin.description?.toLowerCase().includes('como') && 
+                                  !pin.description?.toLowerCase().includes('referido') && (
+                                  <p style={{ 
+                                    fontSize: '12px',
+                                    lineHeight: '1.4',
+                                    color: '#D0FF71',
+                                    margin: '8px 0 0 0',
+                                    fontWeight: '500'
+                                  }}>
+                                    💡 Cómo conseguirlo: Comparte tu enlace de referido desde Mi Cuenta → Referidos
+                                  </p>
+                                )}
+                              </div>
                             </div>
-                          </div>
-                        ))}
-                      </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-center" style={{ paddingTop: '130px', paddingBottom: '300px' }}>
+                          <p style={{ color: '#a0a0a0', fontSize: '16px' }}>
+                            No hay pines disponibles en este momento.
+                          </p>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>

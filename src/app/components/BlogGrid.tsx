@@ -11,8 +11,9 @@ interface BlogPost {
   author: string;
   authorImage: string;
   category: string;
-  image: string;
+  image: string | null | undefined;
   isPublic: boolean;
+  isSubscriberOnly?: boolean;
   excerpt: string;
   content: string;
 }
@@ -123,7 +124,32 @@ export default function BlogGrid({ posts }: BlogGridProps): JSX.Element {
                           <h4 className="tp-blog-masonry-title">
                             <a className="tp-line-white" href={`/articulos/${post.slug}`}>
                               {post.title}
-                              {!post.isPublic && (
+                              {post.isSubscriberOnly && (
+                                <svg 
+                                  xmlns="http://www.w3.org/2000/svg" 
+                                  width="18" 
+                                  height="18" 
+                                  viewBox="0 0 24 24" 
+                                  fill="none" 
+                                  style={{ 
+                                    marginLeft: '8px', 
+                                    display: 'inline-block',
+                                    verticalAlign: 'middle',
+                                    filter: 'drop-shadow(0 0 2px rgba(255, 215, 0, 0.5))'
+                                  }}
+                                  aria-label="Solo para miembros del Club"
+                                >
+                                  <title>Solo para miembros del Club</title>
+                                  <path 
+                                    d="M6 10V8C6 5.79086 7.79086 4 10 4H14C16.2091 4 18 5.79086 18 8V10M6 10H4C2.89543 10 2 10.8954 2 12V20C2 21.1046 2.89543 22 4 22H20C21.1046 22 22 21.1046 22 20V12C22 10.8954 21.1046 10 20 10H18M6 10H18" 
+                                    stroke="#FFD700" 
+                                    strokeWidth="2" 
+                                    strokeLinecap="round" 
+                                    strokeLinejoin="round"
+                                  />
+                                </svg>
+                              )}
+                              {!post.isPublic && !post.isSubscriberOnly && (
                                 <svg 
                                   xmlns="http://www.w3.org/2000/svg" 
                                   width="16" 
@@ -168,7 +194,32 @@ export default function BlogGrid({ posts }: BlogGridProps): JSX.Element {
                         <div className="tp-blog-masonry-item-text">
                           <span>
                             {post.excerpt}
-                            {!post.isPublic && (
+                            {post.isSubscriberOnly && (
+                              <svg 
+                                xmlns="http://www.w3.org/2000/svg" 
+                                width="16" 
+                                height="16" 
+                                viewBox="0 0 24 24" 
+                                fill="none" 
+                                style={{ 
+                                  marginLeft: '6px', 
+                                  display: 'inline-block',
+                                  verticalAlign: 'middle',
+                                  filter: 'drop-shadow(0 0 2px rgba(255, 215, 0, 0.5))'
+                                }}
+                                aria-label="Solo para miembros del Club"
+                              >
+                                <title>Solo para miembros del Club</title>
+                                <path 
+                                  d="M6 10V8C6 5.79086 7.79086 4 10 4H14C16.2091 4 18 5.79086 18 8V10M6 10H4C2.89543 10 2 10.8954 2 12V20C2 21.1046 2.89543 22 4 22H20C21.1046 22 22 21.1046 22 20V12C22 10.8954 21.1046 10 20 10H18M6 10H18" 
+                                  stroke="#FFD700" 
+                                  strokeWidth="2" 
+                                  strokeLinecap="round" 
+                                  strokeLinejoin="round"
+                                />
+                              </svg>
+                            )}
+                            {!post.isPublic && !post.isSubscriberOnly && (
                               <svg 
                                 xmlns="http://www.w3.org/2000/svg" 
                                 width="14" 

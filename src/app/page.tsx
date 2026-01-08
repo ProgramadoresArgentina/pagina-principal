@@ -142,7 +142,7 @@ export default function Home(): JSX.Element {
                 </span>
               </div>
               <div className="ar-about-us-4-shape">
-                <img src="/assets/images/logo-club.png" alt="Logo Club Programadores Argentina" width="210" height="240" />
+                <img src="/assets/images/logo-club.png" alt="Logo Club Programadores Argentina" />
               </div>
               <div className="container container-1830">
                 <div className="row justify-content-center">

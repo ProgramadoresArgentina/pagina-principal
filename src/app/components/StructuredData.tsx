@@ -76,18 +76,12 @@ export default function StructuredData({ type, data }: StructuredDataProps): JSX
               {
                 "@type": "ListItem",
                 "position": 4,
-                "name": "Foro",
-                "url": "https://programadoresargentina.com/foro"
-              },
-              {
-                "@type": "ListItem",
-                "position": 5,
                 "name": "Libros Exclusivos",
                 "url": "https://programadoresargentina.com/club/libros"
               },
               {
                 "@type": "ListItem",
-                "position": 6,
+                "position": 5,
                 "name": "Pines",
                 "url": "https://programadoresargentina.com/pines"
               }
@@ -101,10 +95,11 @@ export default function StructuredData({ type, data }: StructuredDataProps): JSX
           "@type": "Article",
           "headline": data.title,
           "description": data.description,
-          "image": data.image,
+          "image": Array.isArray(data.image) ? data.image : (data.image ? [data.image] : []),
           "author": {
-            "@type": "Organization",
-            "name": "Programadores Argentina"
+            "@type": data.authorType || "Organization",
+            "name": data.authorName || "Programadores Argentina",
+            ...(data.authorUrl && { "url": data.authorUrl })
           },
           "publisher": {
             "@type": "Organization",
@@ -115,13 +110,13 @@ export default function StructuredData({ type, data }: StructuredDataProps): JSX
             }
           },
           "datePublished": data.publishedTime,
-          "dateModified": data.modifiedTime,
+          "dateModified": data.modifiedTime || data.publishedTime,
           "mainEntityOfPage": {
             "@type": "WebPage",
             "@id": data.url
           },
           "articleSection": data.section,
-          "keywords": data.keywords
+          "keywords": Array.isArray(data.keywords) ? data.keywords : (data.keywords ? [data.keywords] : [])
         };
 
       case 'WebPage':
@@ -163,11 +158,6 @@ export default function StructuredData({ type, data }: StructuredDataProps): JSX
               "@type": "SiteNavigationElement",
               "name": "Cotizar Proyecto",
               "url": "https://programadoresargentina.com/cotizador"
-            },
-            {
-              "@type": "SiteNavigationElement",
-              "name": "Foro",
-              "url": "https://programadoresargentina.com/foro"
             },
             {
               "@type": "SiteNavigationElement",

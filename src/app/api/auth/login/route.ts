@@ -43,6 +43,14 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Verificar que el usuario tenga contraseña (no es OAuth)
+    if (!user.password) {
+      return NextResponse.json(
+        { error: 'Credenciales inválidas' },
+        { status: 401 }
+      )
+    }
+
     // Verificar contraseña
     const isValidPassword = await verifyPassword(password, user.password)
     if (!isValidPassword) {

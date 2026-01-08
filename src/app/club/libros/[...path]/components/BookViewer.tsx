@@ -2,40 +2,8 @@
 
 import { useAuth } from '@/contexts/AuthContext';
 import { usePathname } from 'next/navigation';
-import Link from 'next/link';
 import { Book } from '@/lib/books';
-import dynamic from 'next/dynamic';
 import React from 'react';
-
-type PDFReaderProps = {
-  url: string | { url: string; withCredentials?: boolean };
-  page?: number;
-  scale?: number;
-  width?: number;
-  showAllPage?: boolean;
-  onDocumentComplete?: (totalPage: number) => void;
-};
-
-type MobilePDFReaderProps = {
-  url: string | { url: string; withCredentials?: boolean };
-  page?: number;
-  scale?: 'auto' | number;
-  minScale?: number;
-  maxScale?: number;
-  isShowHeader?: boolean;
-  isShowFooter?: boolean;
-  onDocumentComplete?: (totalPage: number, title: string, otherObj: unknown) => void;
-};
-
-const PDFReader = dynamic<PDFReaderProps>(
-  () => import('react-read-pdf').then((mod) => mod.PDFReader as unknown as React.ComponentType<PDFReaderProps>),
-  { ssr: false }
-);
-
-const MobilePDFReader = dynamic<MobilePDFReaderProps>(
-  () => import('react-read-pdf').then((mod) => mod.MobilePDFReader as unknown as React.ComponentType<MobilePDFReaderProps>),
-  { ssr: false }
-);
 
 interface BookViewerProps {
   book: Book;
@@ -44,46 +12,12 @@ interface BookViewerProps {
 export default function BookViewer({ book }: BookViewerProps) {
   const { user, isAuthenticated, token } = useAuth();
   const pathname = usePathname();
-  const [isMobile, setIsMobile] = React.useState(false);
-  const [desktopWidth, setDesktopWidth] = React.useState<number | undefined>(undefined);
-  const [totalPages, setTotalPages] = React.useState<number | undefined>(undefined);
   const [currentPage, setCurrentPage] = React.useState<number>(1);
+  const [totalPages, setTotalPages] = React.useState<number | undefined>(undefined);
   const [resumePage, setResumePage] = React.useState<number | null>(null);
-  const [viewerKey, setViewerKey] = React.useState<number>(0);
   const timeSpentRef = React.useRef<number>(0);
   const saveTimeoutRef = React.useRef<number | null>(null);
-
-  React.useEffect(() => {
-    const checkMobile = () => {
-      if (typeof window === 'undefined') return false;
-      const mq = window.matchMedia('(max-width: 768px)');
-      return mq.matches;
-    };
-    setIsMobile(checkMobile());
-    const listener = () => setIsMobile(checkMobile());
-    if (typeof window !== 'undefined') {
-      window.addEventListener('resize', listener);
-    }
-    return () => {
-      if (typeof window !== 'undefined') {
-        window.removeEventListener('resize', listener);
-      }
-    };
-  }, []);
-
-  React.useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const recalc = () => {
-      if (!isMobile) {
-        setDesktopWidth(Math.floor(window.innerWidth * 0.5));
-      } else {
-        setDesktopWidth(undefined);
-      }
-    };
-    recalc();
-    window.addEventListener('resize', recalc);
-    return () => window.removeEventListener('resize', recalc);
-  }, [isMobile]);
+  const iframeRef = React.useRef<HTMLIFrameElement>(null);
 
   // Cargar progreso guardado
   React.useEffect(() => {
@@ -98,57 +32,189 @@ export default function BookViewer({ book }: BookViewerProps) {
           const progress = data?.progress;
           if (progress && typeof progress.currentPage === 'number' && progress.currentPage > 1) {
             setResumePage(progress.currentPage);
+            setCurrentPage(progress.currentPage);
             if (progress.totalPages) setTotalPages(progress.totalPages);
+          } else {
+            // Si no hay progreso guardado, guardar página inicial
+            setCurrentPage(1);
           }
+        } else {
+          // Si hay error, empezar desde página 1
+          setCurrentPage(1);
         }
       } catch (e) {
         console.error('Error obteniendo progreso del libro', e);
+        setCurrentPage(1);
       }
     };
     fetchProgress();
   }, [book.filename, isAuthenticated, token, user?.isSubscribed]);
 
-  // Listener de cambio de página del visor (pdf.js emite 'pagechange')
+  // Detectar cambios de página y guardar progreso periódicamente
   React.useEffect(() => {
-    const handler = (evt: any) => {
-      const pageNum = (evt && (evt.pageNumber || evt.detail?.pageNumber)) as number | undefined;
-      if (typeof pageNum === 'number') {
-        setCurrentPage(pageNum);
-        // Programar guardado con debounce
-        if (saveTimeoutRef.current) {
-          window.clearTimeout(saveTimeoutRef.current);
+    if (!iframeRef.current || !isAuthenticated || !user?.isSubscribed || !token) return;
+
+    let lastSavedPage = currentPage;
+    let scrollTimeout: number | null = null;
+
+    const saveProgress = async (page: number, force = false) => {
+      // Guardar si es forzado, si cambió la página, o si es la primera vez
+      if (!force && page === lastSavedPage && lastSavedPage !== 0) return;
+      
+      try {
+        const response = await fetch('/api/books/progress', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            bookTitle: book.title,
+            bookFilename: book.filename,
+            currentPage: page,
+            totalPages: totalPages,
+            timeSpent: timeSpentRef.current || undefined,
+          }),
+        });
+
+        if (response.ok) {
+          lastSavedPage = page;
+          console.log('✅ Progreso guardado:', { page, totalPages, bookFilename: book.filename });
+        } else {
+          const errorText = await response.text();
+          console.error('❌ Error guardando progreso:', errorText);
         }
-        saveTimeoutRef.current = window.setTimeout(() => {
-          // Enviar progreso
-          if (isAuthenticated && user?.isSubscribed && token) {
-            void fetch('/api/books/progress', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}`,
-              },
-              body: JSON.stringify({
-                bookTitle: book.title,
-                bookFilename: book.filename,
-                currentPage: pageNum,
-                totalPages: totalPages,
-                timeSpent: timeSpentRef.current || undefined,
-              }),
-            }).catch(() => {}).finally(() => {
-              timeSpentRef.current = 0; // reset parcial tras enviar
-            });
-          }
-        }, 800);
+      } catch (error) {
+        console.error('❌ Error guardando progreso:', error);
+      } finally {
+        // No resetear timeSpent aquí, solo cuando se guarde exitosamente
       }
     };
-    document.addEventListener('pagechange', handler as EventListener);
-    return () => {
-      document.removeEventListener('pagechange', handler as EventListener);
-      if (saveTimeoutRef.current) window.clearTimeout(saveTimeoutRef.current);
-    };
-  }, [book.filename, book.title, isAuthenticated, token, totalPages, user?.isSubscribed]);
 
-  // Contador de tiempo invertido leyendo mientras el visor está montado
+    const handleScroll = () => {
+      if (scrollTimeout) {
+        window.clearTimeout(scrollTimeout);
+      }
+
+      scrollTimeout = window.setTimeout(() => {
+        try {
+          const iframe = iframeRef.current;
+          if (!iframe) return;
+
+          const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
+          if (!iframeDoc) {
+            // Si no podemos acceder al documento (CORS), usar estimación basada en tiempo
+            // Incrementar página cada cierto tiempo de lectura
+            if (timeSpentRef.current > 0 && timeSpentRef.current % 30 === 0) {
+              const estimatedPage = Math.min((totalPages || 100), currentPage + 1);
+              if (estimatedPage !== currentPage) {
+                setCurrentPage(estimatedPage);
+                saveProgress(estimatedPage);
+              }
+            }
+            return;
+          }
+
+          const scrollTop = iframeDoc.documentElement.scrollTop || iframeDoc.body.scrollTop;
+          const scrollHeight = iframeDoc.documentElement.scrollHeight || iframeDoc.body.scrollHeight;
+          const clientHeight = iframeDoc.documentElement.clientHeight || iframeDoc.body.clientHeight;
+
+          // Calcular página aproximada basada en scroll
+          if (scrollHeight > clientHeight && totalPages) {
+            const scrollPercent = scrollTop / (scrollHeight - clientHeight);
+            const estimatedPage = Math.max(1, Math.min(totalPages, Math.ceil(scrollPercent * totalPages)));
+            
+            if (estimatedPage !== currentPage) {
+              setCurrentPage(estimatedPage);
+              saveProgress(estimatedPage);
+            }
+          }
+        } catch (e) {
+          // Cross-origin puede bloquear acceso al documento
+          // Guardar progreso periódicamente de todas formas
+        }
+      }, 1000);
+    };
+
+    // Intentar agregar listener al iframe
+    try {
+      const iframeWindow = iframeRef.current.contentWindow;
+      if (iframeWindow) {
+        iframeWindow.addEventListener('scroll', handleScroll, true);
+        iframeWindow.addEventListener('wheel', handleScroll, true);
+      }
+    } catch (e) {
+      // Si hay restricciones CORS, usar un intervalo para guardar periódicamente
+      console.log('⚠️ CORS detectado, usando guardado periódico');
+    }
+
+    // Guardar progreso periódicamente cada 30 segundos
+    const periodicSave = window.setInterval(() => {
+      if (currentPage > 0) {
+        saveProgress(currentPage, currentPage === lastSavedPage); // Forzar guardado periódico
+      }
+    }, 30000);
+
+    // Guardar inicialmente después de 2 segundos de carga
+    const initialSave = window.setTimeout(() => {
+      if (currentPage > 0) {
+        saveProgress(currentPage, true);
+      }
+    }, 2000);
+
+    // Guardar cuando el usuario sale de la página
+    const handleBeforeUnload = () => {
+      if (currentPage > 0 && currentPage !== lastSavedPage) {
+        // Usar fetch con keepalive para guardar antes de cerrar
+        fetch('/api/books/progress', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            bookTitle: book.title,
+            bookFilename: book.filename,
+            currentPage: currentPage,
+            totalPages: totalPages,
+            timeSpent: timeSpentRef.current || undefined,
+          }),
+          keepalive: true, // Permite que la petición continúe después de cerrar la página
+        }).catch(() => {});
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('visibilitychange', () => {
+      if (document.hidden && currentPage > 0) {
+        saveProgress(currentPage);
+      }
+    });
+
+    return () => {
+      try {
+        const iframeWindow = iframeRef.current?.contentWindow;
+        if (iframeWindow) {
+          iframeWindow.removeEventListener('scroll', handleScroll, true);
+          iframeWindow.removeEventListener('wheel', handleScroll, true);
+        }
+      } catch (e) {
+        // Ignorar errores
+      }
+      if (scrollTimeout) window.clearTimeout(scrollTimeout);
+      window.clearInterval(periodicSave);
+      window.clearTimeout(initialSave);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      // Guardar antes de desmontar
+      if (currentPage > 0) {
+        saveProgress(currentPage, true);
+      }
+    };
+  }, [currentPage, totalPages, isAuthenticated, user?.isSubscribed, token, book.filename, book.title]);
+
+  // Este efecto ahora está integrado en el efecto de detección de scroll arriba
+
+  // Contador de tiempo invertido leyendo
   React.useEffect(() => {
     if (!(isAuthenticated && user?.isSubscribed)) return;
     const interval = window.setInterval(() => {
@@ -157,21 +223,48 @@ export default function BookViewer({ book }: BookViewerProps) {
     return () => window.clearInterval(interval);
   }, [isAuthenticated, user?.isSubscribed]);
 
-  // Si el usuario está autenticado y suscrito, mostrar el PDF con react-read-pdf
+  // Scroll a la página guardada cuando se carga el PDF
+  React.useEffect(() => {
+    if (!resumePage || !iframeRef.current) return;
+
+    const scrollToPage = () => {
+      try {
+        const iframe = iframeRef.current;
+        if (!iframe) return;
+
+        const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
+        if (!iframeDoc || !totalPages) return;
+
+        // Calcular posición de scroll para la página guardada
+        const scrollHeight = iframeDoc.documentElement.scrollHeight || iframeDoc.body.scrollHeight;
+        const clientHeight = iframeDoc.documentElement.clientHeight || iframeDoc.body.clientHeight;
+        const scrollPercent = (resumePage - 1) / totalPages;
+        const targetScroll = scrollPercent * (scrollHeight - clientHeight);
+
+        iframeDoc.documentElement.scrollTop = targetScroll;
+        iframeDoc.body.scrollTop = targetScroll;
+      } catch (e) {
+        // Ignorar errores de CORS
+      }
+    };
+
+    // Esperar a que el PDF se cargue
+    const timeout = window.setTimeout(scrollToPage, 2000);
+    return () => window.clearTimeout(timeout);
+  }, [resumePage, totalPages]);
+
+  // Si el usuario está autenticado y suscrito, mostrar el PDF
   if (isAuthenticated && user?.isSubscribed) {
+    // URL del PDF con hash para página inicial si existe
+    const pdfUrl = resumePage && resumePage > 1 
+      ? `${book.pdfUrl}#page=${resumePage}`
+      : book.pdfUrl;
+
     return (
       <div
         className="relative w-full h-full"
         onContextMenu={(e) => e.preventDefault()}
         onDragStart={(e) => e.preventDefault()}
-        onKeyDown={(e) => {
-          const isCmdOrCtrl = e.ctrlKey || e.metaKey;
-          const key = e.key.toLowerCase();
-          if (isCmdOrCtrl && (key === 's' || key === 'p')) {
-            e.preventDefault();
-            e.stopPropagation();
-          }
-        }}
         style={{ 
           userSelect: 'none', 
           WebkitUserSelect: 'none', 
@@ -183,162 +276,37 @@ export default function BookViewer({ book }: BookViewerProps) {
           overflow: 'hidden'
         }}
       >
-        {/* Barra flotante superior con acciones del lector */}
-        <div 
-          style={{ 
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            zIndex: 1000,
-            background: 'rgba(26, 27, 30, 0.95)',
-            backdropFilter: 'blur(10px)',
-            borderBottom: '1px solid rgba(208, 255, 113, 0.2)',
-            padding: '12px 20px',
-            display: 'flex',
-            justifyContent: 'flex-start',
-            alignItems: 'center',
-            gap: '16px',
-            boxShadow: '0 2px 10px rgba(0, 0, 0, 0.3)',
-            flexWrap: 'wrap'
-          }}
-        >
-          <Link 
-            href="/club/libros"
-            style={{
-              background: 'linear-gradient(135deg, #D0FF71 0%, #a8d65a 100%)',
-              color: '#1a1b1e',
-              border: 'none',
-              borderRadius: '20px',
-              padding: '8px 16px',
-              fontSize: 13,
-              fontWeight: '700',
-              textDecoration: 'none',
-              whiteSpace: 'nowrap',
-              transition: 'transform 0.2s ease',
-              display: 'inline-block'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'scale(1.05)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'scale(1)';
-            }}
-          >
-            ← Volver a la biblioteca
-          </Link>
-          
-          {totalPages ? (
-            <span style={{ fontSize: 13, color: '#a0a0a0', whiteSpace: 'nowrap' }}>
-              📖 Progreso: {Math.min(100, Math.max(0, Math.round((currentPage / totalPages) * 100)))}% • Página {currentPage} de {totalPages}
-            </span>
-          ) : (
-            <span style={{ fontSize: 13, color: '#a0a0a0' }}>
-              📄 Página {currentPage}
-            </span>
-          )}
-          
-          {resumePage && resumePage > 1 && currentPage < resumePage && (
-            <button
-              type="button"
-              onClick={() => {
-                setViewerKey((k) => k + 1);
-                setCurrentPage(resumePage);
-              }}
-              style={{
-                background: 'linear-gradient(135deg, #FFA500 0%, #FF8C00 100%)',
-                color: '#1a1b1e',
-                border: 'none',
-                borderRadius: '20px',
-                padding: '6px 14px',
-                fontSize: 12,
-                fontWeight: '700',
-                cursor: 'pointer',
-                whiteSpace: 'nowrap',
-                transition: 'transform 0.2s ease'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'scale(1.05)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'scale(1)';
-              }}
-            >
-              📖 Continuar donde quedaste
-            </button>
-          )}
-        </div>
-        
-        {/* Espaciador para compensar la barra flotante */}
-        <div style={{ height: '60px' }} />
-        {/* Ocultar cualquier toolbar/acciones de pdf.js viewer */}
-        <style jsx global>{`
-          #toolbarContainer,
-          #secondaryToolbar,
-          .toolbar,
-          .secondaryToolbar,
-          .download,
-          .openFile,
-          .print,
-          .toolbarButton#download,
-          .toolbarButton#print,
-          .toolbarButton#openFile,
-          .editorModeButtons,
-          .spreadModeButtons {
-            display: none !important;
-          }
-          
-          /* Eliminar margin/padding en mobile */
-          @media (max-width: 768px) {
-            body, html {
-              margin: 0 !important;
-              padding: 0 !important;
-              overflow: hidden !important;
-            }
-            #smooth-wrapper, #smooth-content {
-              margin: 0 !important;
-              padding: 0 !important;
-            }
-          }
-        `}</style>
-        {isMobile ? (
-          <div style={{ 
-            height: 'calc(100vh - 60px)', 
-            width: '100vw', 
-            overflow: 'auto',
+        {/* Visor de PDF simple con iframe */}
+        <iframe
+          ref={iframeRef}
+          src={pdfUrl}
+          style={{
+            width: '100%',
+            height: '100vh',
+            border: 'none',
             margin: 0,
             padding: 0,
-            position: 'fixed',
-            top: '60px',
-            left: 0
-          }}>
-            <MobilePDFReader
-              key={viewerKey}
-              url={book.pdfUrl}
-              page={resumePage && resumePage > 1 ? resumePage : undefined}
-              scale="auto"
-              minScale={0.25}
-              maxScale={10}
-              isShowHeader={false}
-              isShowFooter={false}
-              onDocumentComplete={(tp) => setTotalPages(tp)}
-            />
-          </div>
-        ) : (
-          <div style={{ width: '50%', margin: '0 auto', height: 'calc(100vh - 60px)', overflow: 'auto' }}>
-            <MobilePDFReader
-              key={viewerKey}
-              url={book.pdfUrl}
-              page={resumePage && resumePage > 1 ? resumePage : undefined}
-              scale="auto"
-              minScale={0.25}
-              maxScale={10}
-              isShowHeader={false}
-              isShowFooter={false}
-              onDocumentComplete={(tp) => setTotalPages(tp)}
-            />
-          </div>
-        )}
+          }}
+          title={`Lector de ${book.title}`}
+          onLoad={() => {
+            // Intentar obtener el número total de páginas desde el iframe
+            if (iframeRef.current && !totalPages) {
+              try {
+                const iframe = iframeRef.current;
+                const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
+                if (iframeDoc) {
+                  // Buscar elementos que indiquen el total de páginas
+                  const pageElements = iframeDoc.querySelectorAll('[data-page-number], .page, canvas');
+                  if (pageElements.length > 0) {
+                    setTotalPages(pageElements.length);
+                  }
+                }
+              } catch (e) {
+                // Ignorar errores de CORS
+              }
+            }
+          }}
+        />
       </div>
     );
   }
@@ -420,4 +388,3 @@ export default function BookViewer({ book }: BookViewerProps) {
     </div>
   );
 }
-

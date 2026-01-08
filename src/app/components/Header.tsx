@@ -38,9 +38,6 @@ export default function Header(): JSX.Element {
                         <Link href="/cotizador">Cotizar proyecto</Link>
                       </li>
                       <li>
-                        <Link href="/foro">Foro</Link>
-                      </li>
-                      <li>
                         <Link href="/club/libros">Libros Exclusivos</Link>
                       </li>
                       <li>

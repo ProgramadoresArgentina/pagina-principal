@@ -5,7 +5,7 @@ import Header from "../components/Header";
 import MobileHeader from "../components/MobileHeader";
 import Footer from "../components/Footer";
 import InfiniteScrollBlog from "../components/InfiniteScrollBlog";
-import { getPublicPaginatedPosts } from "@/lib/blog";
+import { getPaginatedArticles } from "@/lib/articles";
 
 
 export const metadata: Metadata = {
@@ -111,7 +111,29 @@ function formatDate(dateString: string): string {
 }
 
 export default async function Articulos(): Promise<JSX.Element> {
-  const paginatedData = await getPublicPaginatedPosts(1);
+  const paginatedData = await getPaginatedArticles(1);
+  
+  // Convertir a formato compatible con BlogPost
+  const posts = paginatedData.articles.map(article => ({
+    slug: article.slug,
+    title: article.title,
+    description: article.description || '',
+    date: article.publishedAt?.toISOString() || article.createdAt.toISOString(),
+    author: article.authorUser?.name || article.author,
+    authorImage: article.authorUser?.avatar || article.authorImage || '/assets/images/perfiles/club-programadores-argentina.png',
+    category: article.category,
+    image: article.image || null, // No usar imagen por defecto si no existe
+    isPublic: article.isPublic,
+    isSubscriberOnly: article.isSubscriberOnly || false,
+    excerpt: article.excerpt || article.description || '',
+    content: JSON.stringify(article.content),
+  }));
+  
+  const paginatedPosts = {
+    posts,
+    hasNextPage: paginatedData.pagination.hasNextPage,
+    currentPage: paginatedData.pagination.page,
+  };
 
   return (
     <>
@@ -186,9 +208,9 @@ export default async function Articulos(): Promise<JSX.Element> {
 
             {/* blog masonry area start */}
             <InfiniteScrollBlog 
-              initialPosts={paginatedData.posts}
-              initialHasNextPage={paginatedData.hasNextPage}
-              initialCurrentPage={paginatedData.currentPage}
+              initialPosts={paginatedPosts.posts}
+              initialHasNextPage={paginatedPosts.hasNextPage}
+              initialCurrentPage={paginatedPosts.currentPage}
             />
             {/* blog masonry area end */}
           </main>

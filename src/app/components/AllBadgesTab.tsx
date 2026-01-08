@@ -172,18 +172,52 @@ export default function AllBadgesTab({ token, userPins }: AllBadgesTabProps) {
                 {pin.name}
               </h6>
               
-              <p style={{ 
-                color: '#a0a0a0', 
-                fontSize: '12px',
-                marginBottom: '0',
-                lineHeight: '1.4',
-                overflow: 'hidden',
-                display: '-webkit-box',
-                WebkitLineClamp: 3,
-                WebkitBoxOrient: 'vertical'
-              }}>
-                {pin.description}
-              </p>
+              <div style={{ flex: 1 }}>
+                <p style={{ 
+                  color: '#a0a0a0', 
+                  fontSize: '12px',
+                  marginBottom: '8px',
+                  lineHeight: '1.4',
+                }}>
+                  {pin.description || 'Pin de la comunidad de Programadores Argentina'}
+                </p>
+                {/* Mostrar cómo conseguirlo si menciona Club o Bienvenido pero no explica cómo */}
+                {(pin.name.toLowerCase().includes('club') || 
+                  pin.description?.toLowerCase().includes('club') ||
+                  pin.description?.toLowerCase().includes('bienvenido')) && 
+                  !pin.description?.toLowerCase().includes('cómo') && 
+                  !pin.description?.toLowerCase().includes('como') && 
+                  !pin.description?.toLowerCase().includes('conseguir') && 
+                  !pin.description?.toLowerCase().includes('obtener') &&
+                  !pin.description?.toLowerCase().includes('suscríbete') &&
+                  !pin.description?.toLowerCase().includes('suscribete') &&
+                  !pin.description?.toLowerCase().includes('referido') && (
+                  <p style={{ 
+                    color: '#D0FF71', 
+                    fontSize: '11px',
+                    marginBottom: '0',
+                    lineHeight: '1.4',
+                    fontWeight: '500'
+                  }}>
+                    💡 Cómo conseguirlo: Suscríbete al Club en <a href="/club" style={{ color: '#D0FF71', textDecoration: 'underline' }}>programadoresargentina.com/club</a>
+                  </p>
+                )}
+                {/* Mostrar cómo conseguir el pin de invitación */}
+                {(pin.name.toLowerCase().includes('invitación') || pin.name.toLowerCase().includes('invitacion')) && 
+                  !pin.description?.toLowerCase().includes('cómo') && 
+                  !pin.description?.toLowerCase().includes('como') && 
+                  !pin.description?.toLowerCase().includes('referido') && (
+                  <p style={{ 
+                    color: '#D0FF71', 
+                    fontSize: '11px',
+                    marginBottom: '0',
+                    lineHeight: '1.4',
+                    fontWeight: '500'
+                  }}>
+                    💡 Cómo conseguirlo: Comparte tu enlace de referido desde Mi Cuenta → Referidos
+                  </p>
+                )}
+              </div>
             </div>
             
           </div>

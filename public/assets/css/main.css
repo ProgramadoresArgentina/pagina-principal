@@ -15871,6 +15871,17 @@ body.tp-magic-cursor #magic-cursor {
   position: absolute;
   top: 31%;
   right: 10%;
+  width: 210px;
+  height: 210px;
+  border-radius: 50%;
+  overflow: hidden;
+  aspect-ratio: 1 / 1;
+}
+.ar-about-us-4-shape img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
 }
 @media (max-width: 767px) {
   .ar-about-us-4-shape {

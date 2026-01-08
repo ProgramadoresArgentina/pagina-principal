@@ -80,13 +80,20 @@ export default function MiCuentaPage() {
                   <div className="tp-login-top mb-30">
                     <div>
                       <h3 className="tp-login-title" style={{ color: '#ffffff' }}>Mi Cuenta</h3>
-                      {user?.isSubscribed ? (
-                        <p className="mt-10" style={{ color: '#D0FF71' }}>
-                          ✨ Miembro del Club · {subscriptionMonths} {subscriptionMonths === 1 ? 'mes' : 'meses'}
+                      {isLoading || !user ? (
+                        <div className="mt-10 d-flex align-items-center gap-2" style={{ color: '#a0a0a0', fontSize: '14px' }}>
+                          <div className="spinner-border spinner-border-sm" role="status" style={{ width: '14px', height: '14px', borderWidth: '2px' }}>
+                            <span className="visually-hidden">Cargando...</span>
+                          </div>
+                          <span>Cargando...</span>
+                        </div>
+                      ) : user.isSubscribed ? (
+                        <p className="mt-10" style={{ color: '#a0a0a0', fontSize: '14px' }}>
+                          Miembro del Club · {subscriptionMonths} {subscriptionMonths === 1 ? 'mes' : 'meses'}
                         </p>
                       ) : (
-                        <p className="mt-10" style={{ color: '#a0a0a0' }}>
-                          Usuario sin suscripción — <a href="/club" style={{ color: '#D0FF71', textDecoration: 'underline' }}>Unite al Club</a>
+                        <p className="mt-10" style={{ color: '#a0a0a0', fontSize: '14px' }}>
+                          Usuario sin suscripción — <a href="/club" style={{ color: '#ffffff', textDecoration: 'underline' }}>Unite al Club</a>
                         </p>
                       )}
                     </div>
@@ -108,8 +115,8 @@ export default function MiCuentaPage() {
                       style={{
                         background: 'transparent',
                         border: 'none',
-                        borderBottom: activeTab === 'general' ? '2px solid #D0FF71' : '2px solid transparent',
-                        color: activeTab === 'general' ? '#D0FF71' : '#a0a0a0',
+                        borderBottom: activeTab === 'general' ? '2px solid #ffffff' : '2px solid transparent',
+                        color: activeTab === 'general' ? '#ffffff' : '#a0a0a0',
                         padding: '12px 16px',
                         fontSize: '14px',
                         fontWeight: '600',
@@ -130,7 +137,7 @@ export default function MiCuentaPage() {
                         }
                       }}
                     >
-                      👤 General
+                      General
                       </button>
                       <button
                         onClick={() => handleTabChange('ofertas')}
@@ -138,8 +145,8 @@ export default function MiCuentaPage() {
                       style={{
                         background: 'transparent',
                         border: 'none',
-                        borderBottom: activeTab === 'ofertas' ? '2px solid #D0FF71' : '2px solid transparent',
-                        color: activeTab === 'ofertas' ? '#D0FF71' : '#a0a0a0',
+                        borderBottom: activeTab === 'ofertas' ? '2px solid #ffffff' : '2px solid transparent',
+                        color: activeTab === 'ofertas' ? '#ffffff' : '#a0a0a0',
                         padding: '12px 16px',
                         fontSize: '14px',
                         fontWeight: '600',
@@ -160,7 +167,7 @@ export default function MiCuentaPage() {
                         }
                       }}
                     >
-                      💼 Ofertas Laborales
+                      Ofertas Laborales
                       </button>
                       <button
                         onClick={() => handleTabChange('badges')}
@@ -168,8 +175,8 @@ export default function MiCuentaPage() {
                       style={{
                         background: 'transparent',
                         border: 'none',
-                        borderBottom: activeTab === 'badges' ? '2px solid #D0FF71' : '2px solid transparent',
-                        color: activeTab === 'badges' ? '#D0FF71' : '#a0a0a0',
+                        borderBottom: activeTab === 'badges' ? '2px solid #ffffff' : '2px solid transparent',
+                        color: activeTab === 'badges' ? '#ffffff' : '#a0a0a0',
                         padding: '12px 16px',
                         fontSize: '14px',
                         fontWeight: '600',
@@ -190,7 +197,7 @@ export default function MiCuentaPage() {
                         }
                       }}
                     >
-                      🏆 Badges
+                      Badges
                       </button>
                       <button
                       disabled
@@ -199,129 +206,60 @@ export default function MiCuentaPage() {
                       style={{
                         background: 'transparent',
                         border: 'none',
-                        borderBottom: activeTab === 'referidos' ? '2px solid #D0FF71' : '2px solid transparent',
-                        color: activeTab === 'referidos' ? '#D0FF71' : '#a0a0a0',
+                        borderBottom: activeTab === 'referidos' ? '2px solid #ffffff' : '2px solid transparent',
+                        color: activeTab === 'referidos' ? '#ffffff' : '#6c757d',
                         padding: '12px 16px',
                         fontSize: '14px',
                         fontWeight: '600',
-                        cursor: 'pointer',
+                        cursor: 'not-allowed',
                         transition: 'all 0.3s ease',
                         marginBottom: '-2px',
                         whiteSpace: 'nowrap',
                         minWidth: 'fit-content'
                       }}
-                      onMouseEnter={(e) => {
-                        if (activeTab !== 'referidos') {
-                          e.currentTarget.style.color = '#ffffff';
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        if (activeTab !== 'referidos') {
-                          e.currentTarget.style.color = '#a0a0a0';
-                        }
-                      }}
                     >
-                      🤝 Referidos (próximamente)
+                      Referidos (próximamente)
                       </button>
                   </div>
 
                   {activeTab === 'general' && (
                     <div className="mt-20">
                       {/* Información personal */}
-                      <div className="card mb-4" style={{ background: '#1a1b1e', border: '1px solid #3a3b3f' }}>
-                        <div className="card-body p-4">
-                          <h5 className="card-title mb-4" style={{ color: '#D0FF71' }}>
-                            📋 Información Personal
-                          </h5>
-                          <div className="row g-4">
-                        <div className="col-md-6">
-                              <label className="form-label" style={{ color: '#a0a0a0', fontSize: '13px', marginBottom: '8px' }}>
-                                Nombre completo
-                              </label>
-                              <input 
-                                className="form-control" 
-                                defaultValue={user?.name ?? ''} 
-                                disabled 
-                                style={{
-                                  background: '#2d2e32',
-                                  border: '1px solid #3a3b3f',
-                                  color: '#ffffff',
-                                  padding: '12px'
-                                }}
-                              />
-                        </div>
-                        <div className="col-md-6">
-                              <label className="form-label" style={{ color: '#a0a0a0', fontSize: '13px', marginBottom: '8px' }}>
-                                Nombre de usuario
-                              </label>
-                              <input 
-                                className="form-control" 
-                                defaultValue={user?.username ?? ''} 
-                                disabled 
-                                style={{
-                                  background: '#2d2e32',
-                                  border: '1px solid #3a3b3f',
-                                  color: '#ffffff',
-                                  padding: '12px'
-                                }}
-                              />
-                            </div>
-                            <div className="col-12">
-                              <label className="form-label" style={{ color: '#a0a0a0', fontSize: '13px', marginBottom: '8px' }}>
-                                Email
-                              </label>
-                              <input 
-                                className="form-control" 
-                                defaultValue={user?.email ?? ''} 
-                                disabled 
-                                style={{
-                                  background: '#2d2e32',
-                                  border: '1px solid #3a3b3f',
-                                  color: '#ffffff',
-                                  padding: '12px'
-                                }}
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      </div>
+                      <PersonalInfoForm user={user} token={token} />
 
                       {/* Suscripción */}
                       <div className="card mb-4" style={{ background: '#1a1b1e', border: '1px solid #3a3b3f' }}>
                         <div className="card-body p-4">
-                          <h5 className="card-title mb-3" style={{ color: '#D0FF71' }}>
-                            ✨ Estado de Suscripción
+                          <h5 className="card-title mb-3" style={{ color: '#ffffff', fontSize: '18px', fontWeight: '600' }}>
+                            Estado de Suscripción
                           </h5>
                           {user?.isSubscribed ? (
                             <div style={{ 
-                              background: 'linear-gradient(135deg, rgba(208, 255, 113, 0.1) 0%, rgba(168, 214, 90, 0.1) 100%)',
-                              border: '1px solid rgba(208, 255, 113, 0.3)',
+                              background: '#2d2e32',
+                              border: '1px solid #3a3b3f',
                               borderRadius: '8px',
                               padding: '16px'
                             }}>
-                              <div className="d-flex align-items-center gap-2">
-                                <span style={{ fontSize: '24px' }}>🎉</span>
-                                <div>
-                                  <p className="mb-1" style={{ color: '#D0FF71', fontWeight: '600', fontSize: '16px' }}>
-                                    Miembro activo del Club
-                                  </p>
-                                  <p className="mb-0" style={{ color: '#a0a0a0', fontSize: '13px' }}>
-                                    {subscriptionMonths} {subscriptionMonths === 1 ? 'mes' : 'meses'} suscrito · Acceso completo a todos los beneficios
-                                  </p>
-                                </div>
+                              <div>
+                                <p className="mb-1" style={{ color: '#ffffff', fontWeight: '600', fontSize: '16px' }}>
+                                  Miembro activo del Club
+                                </p>
+                                <p className="mb-0" style={{ color: '#a0a0a0', fontSize: '14px' }}>
+                                  {subscriptionMonths} {subscriptionMonths === 1 ? 'mes' : 'meses'} suscrito · Acceso completo a todos los beneficios
+                                </p>
                               </div>
                             </div>
                           ) : (
                             <div style={{ 
-                              background: 'rgba(255, 165, 0, 0.1)',
-                              border: '1px solid rgba(255, 165, 0, 0.3)',
+                              background: '#2d2e32',
+                              border: '1px solid #3a3b3f',
                               borderRadius: '8px',
                               padding: '16px'
                             }}>
-                              <p className="mb-2" style={{ color: '#FFA500', fontWeight: '600' }}>
+                              <p className="mb-2" style={{ color: '#ffffff', fontWeight: '600' }}>
                                 Sin suscripción activa
                               </p>
-                              <p className="mb-3" style={{ color: '#a0a0a0', fontSize: '13px' }}>
+                              <p className="mb-3" style={{ color: '#a0a0a0', fontSize: '14px' }}>
                                 Únete al Club para acceder a la biblioteca, ofertas laborales y más
                               </p>
                               <a href="/club" className="tp-btn-black btn-green-light-bg">
@@ -335,8 +273,8 @@ export default function MiCuentaPage() {
                       {/* Seguridad */}
                       <div className="card" style={{ background: '#1a1b1e', border: '1px solid #3a3b3f' }}>
                         <div className="card-body p-4">
-                          <h5 className="card-title mb-3" style={{ color: '#D0FF71' }}>
-                            🔒 Seguridad
+                          <h5 className="card-title mb-3" style={{ color: '#ffffff', fontSize: '18px', fontWeight: '600' }}>
+                            Seguridad
                           </h5>
                           <ChangePasswordForm token={token} />
                         </div>
@@ -600,7 +538,7 @@ function OfertasLaboralesForm({ token }: { token: string | null }) {
       }
       
       // Éxito: mostrar mensaje
-      setModalSuccess('✅ WhatsApp enlazado y notificaciones activadas')
+      setModalSuccess('WhatsApp enlazado y notificaciones activadas')
       
       // Esperar 1.5 segundos para que el usuario vea el mensaje y recargar
       setTimeout(() => {
@@ -645,7 +583,7 @@ function OfertasLaboralesForm({ token }: { token: string | null }) {
         setErrorMsg(data?.error || 'No se pudo guardar')
         return
       }
-      setSuccessMsg('✅ Preferencias guardadas correctamente')
+      setSuccessMsg('Preferencias guardadas correctamente')
     } catch (e) {
       setErrorMsg('Error de red al guardar')
     } finally {
@@ -655,7 +593,7 @@ function OfertasLaboralesForm({ token }: { token: string | null }) {
 
   return (
     <div style={{ background: '#1a1b1e', border: '1px solid #3a3b3f', borderRadius: '12px', padding: '24px' }}>
-      <h5 className="mb-4" style={{ color: '#D0FF71' }}>
+      <h5 className="mb-4" style={{ color: '#ffffff', fontSize: '18px', fontWeight: '600' }}>
         Configuración de Ofertas Laborales
       </h5>
       
@@ -667,8 +605,8 @@ function OfertasLaboralesForm({ token }: { token: string | null }) {
           borderRadius: '8px',
           padding: '16px'
         }}>
-          <label className="form-label" style={{ color: '#D0FF71', fontSize: '14px', fontWeight: '600' }}>
-            ✅ WhatsApp Enlazado
+          <label className="form-label" style={{ color: '#ffffff', fontSize: '14px', fontWeight: '600' }}>
+            WhatsApp Enlazado
           </label>
           <p className="text-muted mb-0" style={{ fontSize: '13px' }}>
             Tu número de WhatsApp está enlazado correctamente.
@@ -697,7 +635,7 @@ function OfertasLaboralesForm({ token }: { token: string | null }) {
             }}
           />
           <label className="form-check-label ms-2" htmlFor="switch-notif" style={{ cursor: 'pointer', color: '#ffffff', fontWeight: '600' }}>
-            🔔 Recibir notificaciones de ofertas laborales
+            Recibir notificaciones de ofertas laborales
           </label>
         </div>
         
@@ -709,9 +647,9 @@ function OfertasLaboralesForm({ token }: { token: string | null }) {
       </div>
 
       <div className="mb-4">
-        <label className="form-label" style={{ color: '#a0a0a0', fontSize: '13px', marginBottom: '12px' }}>
-          💻 Tecnologías y Roles {technologies.length > 0 && (
-            <span style={{ color: '#D0FF71', marginLeft: '8px' }}>
+        <label className="form-label" style={{ color: '#ffffff', fontSize: '14px', fontWeight: '600', marginBottom: '12px' }}>
+          Tecnologías y Roles {technologies.length > 0 && (
+            <span style={{ color: '#a0a0a0', marginLeft: '8px', fontWeight: '400' }}>
               ({technologies.length} seleccionada{technologies.length !== 1 ? 's' : ''})
             </span>
           )}
@@ -738,7 +676,7 @@ function OfertasLaboralesForm({ token }: { token: string | null }) {
               transition: 'all 0.2s ease'
             }}
           >
-            ✨ Todos {technologies.length > 0 && `(${technologies.length})`}
+            Todos {technologies.length > 0 && `(${technologies.length})`}
           </button>
           {Object.keys(techsByCategory).map(category => {
             const categoryTechs = techsByCategory[category as keyof typeof techsByCategory] || []
@@ -811,8 +749,8 @@ function OfertasLaboralesForm({ token }: { token: string | null }) {
       </div>
 
       <div className="mb-4">
-        <label className="form-label" style={{ color: '#a0a0a0', fontSize: '13px', marginBottom: '8px' }}>
-          📊 Seniority (opcional)
+        <label className="form-label" style={{ color: '#ffffff', fontSize: '14px', fontWeight: '600', marginBottom: '8px' }}>
+          Seniority (opcional)
         </label>
         <select 
           className="form-select" 
@@ -834,8 +772,8 @@ function OfertasLaboralesForm({ token }: { token: string | null }) {
       </div>
 
       <div className="mb-4">
-        <label className="form-label" style={{ color: '#a0a0a0', fontSize: '13px', marginBottom: '12px' }}>
-          📍 Provincias (opcional, si no agregas ninguna no tendrá filtros y tomará tambien remoto)
+        <label className="form-label" style={{ color: '#ffffff', fontSize: '14px', fontWeight: '600', marginBottom: '12px' }}>
+          Provincias (opcional, si no agregas ninguna no tendrá filtros y tomará también remoto)
         </label>
         <div className="d-flex flex-wrap gap-2">
           {provincias.map(p => {
@@ -903,7 +841,7 @@ function OfertasLaboralesForm({ token }: { token: string | null }) {
           marginTop: '16px'
         }}
       >
-        {isSyncing ? '⏳ Guardando...' : '💾 Guardar preferencias'}
+        {isSyncing ? 'Guardando...' : 'Guardar preferencias'}
       </button>
 
       {/* Modal para enlazar WhatsApp */}
@@ -940,8 +878,8 @@ function OfertasLaboralesForm({ token }: { token: string | null }) {
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            <h4 style={{ color: '#D0FF71', marginBottom: '16px', fontSize: '20px', fontWeight: '700' }}>
-              📱 Enlazar WhatsApp
+            <h4 style={{ color: '#ffffff', marginBottom: '16px', fontSize: '20px', fontWeight: '600' }}>
+              Enlazar WhatsApp
             </h4>
             
             <p style={{ color: '#a0a0a0', fontSize: '14px', marginBottom: '20px', lineHeight: '1.6' }}>
@@ -1072,7 +1010,7 @@ function OfertasLaboralesForm({ token }: { token: string | null }) {
                   cursor: (isLinking || modalSuccess) ? 'not-allowed' : 'pointer',
                 }}
               >
-                {isLinking ? '⏳ Enlazando...' : (modalSuccess ? '✅ Enlazado' : '🔗 Enlazar')}
+                {isLinking ? 'Enlazando...' : (modalSuccess ? 'Enlazado' : 'Enlazar')}
               </button>
             </div>
           </div>
@@ -1093,6 +1031,168 @@ interface UserPin {
     imageUrl: string;
     category: string | null;
   };
+}
+
+function PersonalInfoForm({ user, token }: { user: any, token: string | null }) {
+  const [name, setName] = useState(user?.name || '')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState<string | null>(null)
+
+  useEffect(() => {
+    setName(user?.name || '')
+  }, [user?.name])
+
+  const handleSave = async () => {
+    setError(null)
+    setSuccess(null)
+
+    if (!token) {
+      setError('Sesión inválida. Iniciá sesión nuevamente.')
+      return
+    }
+
+    if (!name.trim()) {
+      setError('El nombre no puede estar vacío')
+      return
+    }
+
+    try {
+      setLoading(true)
+      const res = await fetch('/api/me/update-profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ name: name.trim() }),
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        setError(data.error || 'Error al actualizar el nombre')
+        return
+      }
+
+      setSuccess('Nombre actualizado exitosamente')
+      // Recargar la página para actualizar el contexto de autenticación
+      setTimeout(() => {
+        window.location.reload()
+      }, 1000)
+    } catch (error) {
+      setError('Error de red al actualizar el nombre')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="card mb-4" style={{ background: '#1a1b1e', border: '1px solid #3a3b3f' }}>
+      <div className="card-body p-4">
+        <h5 className="card-title mb-4" style={{ color: '#ffffff', fontSize: '18px', fontWeight: '600' }}>
+          Información Personal
+        </h5>
+        <div className="row g-4">
+          <div className="col-md-6">
+            <label className="form-label" style={{ color: '#a0a0a0', fontSize: '13px', marginBottom: '8px' }}>
+              Nombre completo
+            </label>
+            <input 
+              className="form-control" 
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              style={{
+                background: '#2d2e32',
+                border: '1px solid #3a3b3f',
+                color: '#ffffff',
+                padding: '12px'
+              }}
+            />
+          </div>
+          <div className="col-md-6">
+            <label className="form-label" style={{ color: '#a0a0a0', fontSize: '13px', marginBottom: '8px' }}>
+              Nombre de usuario
+            </label>
+            <input 
+              className="form-control" 
+              defaultValue={user?.username ?? ''} 
+              disabled 
+              style={{
+                background: '#2d2e32',
+                border: '1px solid #3a3b3f',
+                color: '#ffffff',
+                padding: '12px'
+              }}
+            />
+          </div>
+          <div className="col-12">
+            <label className="form-label" style={{ color: '#a0a0a0', fontSize: '13px', marginBottom: '8px' }}>
+              Email
+            </label>
+            <input 
+              className="form-control" 
+              defaultValue={user?.email ?? ''} 
+              disabled 
+              style={{
+                background: '#2d2e32',
+                border: '1px solid #3a3b3f',
+                color: '#ffffff',
+                padding: '12px'
+              }}
+            />
+          </div>
+        </div>
+        
+        {error && (
+          <div className="alert alert-danger mt-3" style={{ 
+            background: 'rgba(220, 53, 69, 0.1)',
+            border: '1px solid rgba(220, 53, 69, 0.3)',
+            color: '#dc3545',
+            fontSize: '13px',
+            padding: '12px',
+            borderRadius: '8px'
+          }}>
+            {error}
+          </div>
+        )}
+
+        {success && (
+          <div className="alert alert-success mt-3" style={{ 
+            background: 'rgba(40, 167, 69, 0.1)',
+            border: '1px solid rgba(40, 167, 69, 0.3)',
+            color: '#28a745',
+            fontSize: '13px',
+            padding: '12px',
+            borderRadius: '8px'
+          }}>
+            {success}
+          </div>
+        )}
+
+        <button
+          onClick={handleSave}
+          disabled={loading || name.trim() === (user?.name || '').trim()}
+          style={{
+            background: (loading || name.trim() === (user?.name || '').trim())
+              ? '#6c757d'
+              : 'linear-gradient(135deg, #D0FF71 0%, #a8d65a 100%)',
+            color: '#1a1b1e',
+            border: 'none',
+            borderRadius: '8px',
+            padding: '12px 24px',
+            fontSize: '14px',
+            fontWeight: '600',
+            cursor: (loading || name.trim() === (user?.name || '').trim()) ? 'not-allowed' : 'pointer',
+            transition: 'all 0.3s ease',
+            marginTop: '16px'
+          }}
+        >
+          {loading ? 'Guardando...' : 'Guardar cambios'}
+        </button>
+      </div>
+    </div>
+  )
 }
 
 function ChangePasswordForm({ token }: { token: string | null }) {
@@ -1144,7 +1244,7 @@ function ChangePasswordForm({ token }: { token: string | null }) {
         return
       }
 
-      setSuccess('✅ Contraseña actualizada exitosamente')
+      setSuccess('Contraseña actualizada exitosamente')
       setCurrentPassword('')
       setNewPassword('')
       setConfirmPassword('')
@@ -1264,7 +1364,7 @@ function ChangePasswordForm({ token }: { token: string | null }) {
           transition: 'all 0.3s ease',
         }}
       >
-        {loading ? '⏳ Cambiando...' : '🔒 Cambiar contraseña'}
+        {loading ? 'Cambiando...' : 'Cambiar contraseña'}
       </button>
     </form>
   )
@@ -1323,7 +1423,7 @@ function BadgesTab({ token, username }: { token: string | null, username: string
       {/* Todos los Badges Disponibles */}
       <div className="card mb-4" style={{ background: '#1a1b1e', border: '1px solid #3a3b3f' }}>
         <div className="card-body p-4">
-          <h5 className="card-title mb-3" style={{ color: '#D0FF71' }}>
+          <h5 className="card-title mb-3" style={{ color: '#ffffff', fontSize: '18px', fontWeight: '600' }}>
             Pines Disponibles
           </h5>
           
@@ -1339,8 +1439,8 @@ function BadgesTab({ token, username }: { token: string | null, username: string
       {pins.length > 0 && username && (
         <div className="card mb-4" style={{ background: '#1a1b1e', border: '1px solid #3a3b3f' }}>
           <div className="card-body p-4">
-            <h5 className="card-title mb-3" style={{ color: '#D0FF71' }}>
-              🔗 Compartir mis Badges
+            <h5 className="card-title mb-3" style={{ color: '#ffffff', fontSize: '18px', fontWeight: '600' }}>
+              Compartir mis Badges
             </h5>
             
             <p style={{ color: '#a0a0a0', fontSize: '14px', marginBottom: '20px' }}>
@@ -1399,8 +1499,8 @@ function BadgesTab({ token, username }: { token: string | null, username: string
 
             {/* URL de la imagen */}
             <div className="mb-3">
-              <label className="form-label" style={{ color: '#ffffff', fontSize: '13px', marginBottom: '8px', display: 'block' }}>
-                🌐 URL de la imagen
+              <label className="form-label" style={{ color: '#ffffff', fontSize: '14px', fontWeight: '600', marginBottom: '8px', display: 'block' }}>
+                URL de la imagen
               </label>
               <div style={{ display: 'flex', gap: '8px' }}>
                 <input 
@@ -1432,15 +1532,15 @@ function BadgesTab({ token, username }: { token: string | null, username: string
                     whiteSpace: 'nowrap'
                   }}
                 >
-                  {copied === 'url' ? '✓ Copiado' : '📋 Copiar'}
+                  {copied === 'url' ? 'Copiado' : 'Copiar'}
                 </button>
               </div>
             </div>
 
             {/* Código Markdown */}
             <div className="mb-3">
-              <label className="form-label" style={{ color: '#ffffff', fontSize: '13px', marginBottom: '8px', display: 'block' }}>
-                📝 Código Markdown (para GitHub README)
+              <label className="form-label" style={{ color: '#ffffff', fontSize: '14px', fontWeight: '600', marginBottom: '8px', display: 'block' }}>
+                Código Markdown (para GitHub README)
               </label>
               <div style={{ display: 'flex', gap: '8px' }}>
                 <input 
@@ -1473,15 +1573,15 @@ function BadgesTab({ token, username }: { token: string | null, username: string
                     whiteSpace: 'nowrap'
                   }}
                 >
-                  {copied === 'markdown' ? '✓ Copiado' : '📋 Copiar'}
+                  {copied === 'markdown' ? 'Copiado' : 'Copiar'}
                 </button>
               </div>
             </div>
 
             {/* Código HTML */}
             <div className="mb-3">
-              <label className="form-label" style={{ color: '#ffffff', fontSize: '13px', marginBottom: '8px', display: 'block' }}>
-                🔧 Código HTML
+              <label className="form-label" style={{ color: '#ffffff', fontSize: '14px', fontWeight: '600', marginBottom: '8px', display: 'block' }}>
+                Código HTML
               </label>
               <div style={{ display: 'flex', gap: '8px' }}>
                 <input 
@@ -1514,7 +1614,7 @@ function BadgesTab({ token, username }: { token: string | null, username: string
                     whiteSpace: 'nowrap'
                   }}
                 >
-                  {copied === 'html' ? '✓ Copiado' : '📋 Copiar'}
+                  {copied === 'html' ? 'Copiado' : 'Copiar'}
                 </button>
               </div>
             </div>
@@ -1524,8 +1624,8 @@ function BadgesTab({ token, username }: { token: string | null, username: string
               onClick={() => setShowInstructions(!showInstructions)}
               style={{
                 background: 'transparent',
-                color: '#D0FF71',
-                border: '1px solid #D0FF71',
+                color: '#ffffff',
+                border: '1px solid #3a3b3f',
                 borderRadius: '8px',
                 padding: '10px 20px',
                 fontSize: '13px',
@@ -1547,8 +1647,8 @@ function BadgesTab({ token, username }: { token: string | null, username: string
                 padding: '20px',
                 marginTop: '16px'
               }}>
-                <h6 style={{ color: '#D0FF71', marginBottom: '16px', fontSize: '14px' }}>
-                  📚 Paso a paso para agregar badges a tu README de GitHub:
+                <h6 style={{ color: '#ffffff', marginBottom: '16px', fontSize: '16px', fontWeight: '600' }}>
+                  Paso a paso para agregar badges a tu README de GitHub:
                 </h6>
                 
                 <ol style={{ color: '#a0a0a0', fontSize: '13px', lineHeight: '1.8', paddingLeft: '20px' }}>
@@ -1559,7 +1659,7 @@ function BadgesTab({ token, username }: { token: string | null, username: string
                     Editá el archivo <code style={{ background: '#1a1b1e', padding: '2px 6px', borderRadius: '4px' }}>README.md</code> (o crealo si no existe)
                   </li>
                   <li style={{ marginBottom: '12px' }}>
-                    Copiá el <strong style={{ color: '#D0FF71' }}>código Markdown</strong> de arriba
+                    Copiá el <strong style={{ color: '#ffffff' }}>código Markdown</strong> de arriba
                   </li>
                   <li style={{ marginBottom: '12px' }}>
                     Pegalo donde quieras que aparezcan tus badges (típicamente al principio o en una sección &quot;Badges&quot; o &quot;Logros&quot;)
@@ -1568,21 +1668,21 @@ function BadgesTab({ token, username }: { token: string | null, username: string
                     Hacé commit de los cambios
                   </li>
                   <li style={{ marginBottom: '0' }}>
-                    ¡Listo! Tus badges se mostrarán automáticamente y se actualizarán cada vez que ganes un nuevo badge 🎉
+                    ¡Listo! Tus badges se mostrarán automáticamente y se actualizarán cada vez que ganes un nuevo badge.
                   </li>
                 </ol>
 
                 <div style={{
-                  background: 'rgba(208, 255, 113, 0.1)',
-                  border: '1px solid rgba(208, 255, 113, 0.3)',
+                  background: '#2d2e32',
+                  border: '1px solid #3a3b3f',
                   borderRadius: '8px',
                   padding: '12px',
                   marginTop: '16px'
                 }}>
-                  <p style={{ color: '#D0FF71', fontSize: '12px', marginBottom: '4px', fontWeight: '600' }}>
-                    💡 Tip:
+                  <p style={{ color: '#ffffff', fontSize: '13px', marginBottom: '4px', fontWeight: '600' }}>
+                    Tip:
                   </p>
-                  <p style={{ color: '#a0a0a0', fontSize: '12px', marginBottom: '0', lineHeight: '1.6' }}>
+                  <p style={{ color: '#a0a0a0', fontSize: '13px', marginBottom: '0', lineHeight: '1.6' }}>
                     La imagen se actualiza automáticamente cada vez que ganás un nuevo badge. No necesitás cambiar el código en GitHub.
                   </p>
                 </div>
@@ -1594,10 +1694,10 @@ function BadgesTab({ token, username }: { token: string | null, username: string
 
       {/* Mensaje si no tiene username */}
       {pins.length > 0 && !username && (
-        <div className="card" style={{ background: '#1a1b1e', border: '1px solid #FFA500' }}>
+        <div className="card" style={{ background: '#1a1b1e', border: '1px solid #3a3b3f' }}>
           <div className="card-body p-4">
-            <h6 style={{ color: '#FFA500', marginBottom: '8px' }}>
-              ⚠️ Necesitás un nombre de usuario
+            <h6 style={{ color: '#ffffff', marginBottom: '8px', fontSize: '16px', fontWeight: '600' }}>
+              Necesitás un nombre de usuario
             </h6>
             <p style={{ color: '#a0a0a0', fontSize: '13px', marginBottom: '0' }}>
               Para compartir tus badges, necesitás tener un nombre de usuario configurado. Contactá a un administrador para que te asigne uno.

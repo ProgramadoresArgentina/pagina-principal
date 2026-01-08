@@ -49,6 +49,14 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Verificar que el usuario tenga contraseña (no es OAuth)
+    if (!user.password) {
+      return NextResponse.json(
+        { error: 'Este usuario no tiene contraseña configurada' },
+        { status: 400 }
+      )
+    }
+
     // Verificar contraseña actual
     const isValidPassword = await verifyPassword(currentPassword, user.password)
     if (!isValidPassword) {

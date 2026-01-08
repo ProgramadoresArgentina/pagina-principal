@@ -102,15 +102,21 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    // Asignar pin de bienvenida "Ritual de Iniciación" automáticamente
+    // Asignar pin de bienvenida "Iniciación" automáticamente
     try {
-      await prisma.userPin.create({
-        data: {
-          userId: user.id,
-          pinId: 'cmh12pybq0000i8i0ert555oq', // ID del pin "Ritual de Iniciación"
-          reason: 'Bienvenido a la comunidad de Programadores Argentina',
-        },
+      const initiationPin = await prisma.pin.findUnique({
+        where: { name: 'Iniciación' },
       })
+
+      if (initiationPin) {
+        await prisma.userPin.create({
+          data: {
+            userId: user.id,
+            pinId: initiationPin.id,
+            reason: 'Bienvenido a la comunidad de Programadores Argentina',
+          },
+        })
+      }
     } catch (pinError) {
       // Si hay error al asignar el pin, no fallar el registro
       console.error('Error al asignar pin de bienvenida:', pinError)

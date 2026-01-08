@@ -108,11 +108,8 @@ export async function GET(
         console.error('Error cargando imágenes:', error);
       }
 
-      // Determinar si es suscriptor y texto dinámico
-      const isSubscriber = user.isSubscribed;
-      const subscriptionText = isSubscriber 
-        ? 'ESTE USUARIO APOYA A LA COMUNIDAD IT DE ARGENTINA ❤️'
-        : 'ESTE USUARIO APOYA A LA COMUNIDAD IT DE ARGENTINA ❤️';
+      // Texto del mensaje
+      const subscriptionText = 'Apoyo a la comunidad de Programadores Argentina';
 
       const svg = `
         <svg width="${svgWidth}" height="${svgHeight}" xmlns="http://www.w3.org/2000/svg">
@@ -122,20 +119,20 @@ export async function GET(
             <stop offset="50%" style="stop-color:#a8d65a" />
             <stop offset="100%" style="stop-color:#D0FF71" />
           </linearGradient>
+          <filter id="svg-shadow">
+            <feGaussianBlur in="SourceAlpha" stdDeviation="8"/>
+            <feOffset dx="0" dy="4" result="offsetblur"/>
+            <feComponentTransfer>
+              <feFuncA type="linear" slope="0.4"/>
+            </feComponentTransfer>
+            <feMerge>
+              <feMergeNode/>
+              <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+          </filter>
         </defs>
-        ${wallpaperDataUrl ? `
-        <image 
-          href="${wallpaperDataUrl}" 
-          x="0" 
-          y="0" 
-          width="${svgWidth}" 
-          height="${svgHeight}"
-          preserveAspectRatio="xMidYMid slice"
-        />
-        ` : `
-        <rect width="${svgWidth}" height="${svgHeight}" fill="#1a1b1e"/>
-        `}
-        <rect x="1" y="1" width="${svgWidth - 2}" height="${svgHeight - 2}" fill="none" stroke="url(#border)" stroke-width="2"/>
+        <rect width="${svgWidth}" height="${svgHeight}" fill="#252a32" rx="12" ry="12" filter="url(#svg-shadow)"/>
+        <rect x="1" y="1" width="${svgWidth - 2}" height="${svgHeight - 2}" fill="none" stroke="url(#border)" stroke-width="2" rx="12" ry="12"/>
           <text x="${svgWidth/2}" y="${svgHeight/2}" font-family="Arial, sans-serif" font-size="32" font-weight="bold" fill="#a0a0a0" text-anchor="middle">
             Sin badges aún
           </text>
@@ -146,7 +143,7 @@ export async function GET(
             <rect 
               x="0" 
               y="0" 
-              width="450" 
+              width="380" 
               height="40" 
               rx="8" 
               ry="8" 
@@ -199,12 +196,12 @@ export async function GET(
           ` : ''}
           
           <!-- Branding en esquina inferior derecha -->
-          <g transform="translate(${svgWidth - 320}, ${svgHeight - 60})">
+          <g transform="translate(${svgWidth - 450}, ${svgHeight - 60})">
             <!-- Fondo del label -->
             <rect 
               x="0" 
               y="0" 
-              width="300" 
+              width="430" 
               height="50" 
               rx="8" 
               ry="8" 
@@ -212,33 +209,15 @@ export async function GET(
               stroke="#3a3a3a" 
               stroke-width="1"
             />
-            ${logoDataUrl ? `
-            <image 
-              href="${logoDataUrl}" 
-              x="8" 
-              y="8" 
-              width="24" 
-              height="24"
-            />
-            ` : `
-            <rect 
-              x="8" 
-              y="8" 
-              width="24" 
-              height="24" 
-              fill="#D0FF71" 
-              rx="4"
-            />
-            `}
             <text 
-              x="40" 
+              x="12" 
               y="28" 
               font-family="'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif" 
               font-size="14" 
               font-weight="600" 
               fill="#D0FF71"
             >
-              programadoresargentina.com/pines
+              Consigue tus pines en programadoresargentina/pines
             </text>
           </g>
         </svg>
@@ -285,22 +264,119 @@ export async function GET(
           const dataUrl = `data:${mimeType};base64,${base64}`;
 
           pinElements += `
-            <image 
-              href="${dataUrl}" 
-              x="${x}" 
-              y="${y}" 
-              width="${pinSize}" 
-              height="${pinSize}"
-            />
+            <g>
+              <defs>
+                <filter id="shadow-${i}" x="-50%" y="-50%" width="200%" height="200%">
+                  <feGaussianBlur in="SourceAlpha" stdDeviation="6"/>
+                  <feOffset dx="0" dy="6" result="offsetblur"/>
+                  <feComponentTransfer>
+                    <feFuncA type="linear" slope="0.4"/>
+                  </feComponentTransfer>
+                  <feMerge>
+                    <feMergeNode/>
+                    <feMergeNode in="SourceGraphic"/>
+                  </feMerge>
+                </filter>
+                <clipPath id="pin-clip-${i}">
+                  <rect x="${x}" y="${y}" width="${pinSize}" height="${pinSize}" rx="12" ry="12"/>
+                </clipPath>
+              </defs>
+              <!-- Sombra del pin -->
+              <rect 
+                x="${x + 2}" 
+                y="${y + 6}" 
+                width="${pinSize}" 
+                height="${pinSize}" 
+                rx="12" 
+                ry="12" 
+                fill="#000000" 
+                opacity="0.3"
+              />
+              <!-- Imagen del pin con bordes redondeados -->
+              <image 
+                href="${dataUrl}" 
+                x="${x}" 
+                y="${y}" 
+                width="${pinSize}" 
+                height="${pinSize}"
+                clip-path="url(#pin-clip-${i})"
+              />
+              <!-- Borde del pin -->
+              <rect 
+                x="${x}" 
+                y="${y}" 
+                width="${pinSize}" 
+                height="${pinSize}" 
+                rx="12" 
+                ry="12" 
+                fill="none" 
+                stroke="#D0FF71" 
+                stroke-width="2"
+              />
+            </g>
           `;
         } else {
           // Fallback si no se puede cargar la imagen
           pinElements += `
+            <g>
+              <!-- Sombra del pin -->
+              <rect 
+                x="${x + 2}" 
+                y="${y + 6}" 
+                width="${pinSize}" 
+                height="${pinSize}" 
+                rx="12" 
+                ry="12" 
+                fill="#000000" 
+                opacity="0.3"
+              />
+              <rect 
+                x="${x}" 
+                y="${y}" 
+                width="${pinSize}" 
+                height="${pinSize}" 
+                rx="12"
+                ry="12"
+                fill="#3a3b3f" 
+                stroke="#D0FF71" 
+                stroke-width="2"
+              />
+              <text 
+                x="${x + pinSize/2}" 
+                y="${y + pinSize/2 + 5}" 
+                font-family="Arial, sans-serif" 
+                font-size="12" 
+                fill="#D0FF71" 
+                text-anchor="middle"
+              >
+                ${userPin.pin.name.substring(0, 8)}
+              </text>
+            </g>
+          `;
+        }
+      } catch (error) {
+        console.error(`Error cargando imagen para pin ${i}:`, error);
+        // Fallback si hay error
+        pinElements += `
+          <g>
+            <!-- Sombra del pin -->
+            <rect 
+              x="${x + 2}" 
+              y="${y + 6}" 
+              width="${pinSize}" 
+              height="${pinSize}" 
+              rx="12" 
+              ry="12" 
+              fill="#000000" 
+              opacity="0.3"
+            />
             <rect 
               x="${x}" 
               y="${y}" 
               width="${pinSize}" 
               height="${pinSize}" 
+              rx="12"
+              ry="12"
               fill="#3a3b3f" 
               stroke="#D0FF71" 
               stroke-width="2"
@@ -315,31 +391,7 @@ export async function GET(
             >
               ${userPin.pin.name.substring(0, 8)}
             </text>
-          `;
-        }
-      } catch (error) {
-        console.error(`Error cargando imagen para pin ${i}:`, error);
-        // Fallback si hay error
-        pinElements += `
-          <rect 
-            x="${x}" 
-            y="${y}" 
-            width="${pinSize}" 
-            height="${pinSize}" 
-            fill="#3a3b3f" 
-            stroke="#D0FF71" 
-            stroke-width="2"
-          />
-          <text 
-            x="${x + pinSize/2}" 
-            y="${y + pinSize/2 + 5}" 
-            font-family="Arial, sans-serif" 
-            font-size="12" 
-            fill="#D0FF71" 
-            text-anchor="middle"
-          >
-            ${userPin.pin.name.substring(0, 8)}
-          </text>
+          </g>
         `;
       }
     }
@@ -388,11 +440,8 @@ export async function GET(
       console.error('Error cargando imágenes:', error);
     }
 
-    // Determinar si es suscriptor y texto dinámico
-    const isSubscriber = user.isSubscribed;
-    const subscriptionText = isSubscriber 
-      ? 'ESTE USUARIO APOYA A LA COMUNIDAD IT DE ARGENTINA ❤️'
-      : 'ESTE USUARIO APOYA A LA COMUNIDAD IT DE ARGENTINA ❤️';
+    // Texto del mensaje
+    const subscriptionText = 'Apoyo a la comunidad de Programadores Argentina';
 
     const svg = `
       <svg width="${svgWidth}" height="${svgHeight}" xmlns="http://www.w3.org/2000/svg">
@@ -402,20 +451,20 @@ export async function GET(
             <stop offset="50%" style="stop-color:#a8d65a" />
             <stop offset="100%" style="stop-color:#D0FF71" />
           </linearGradient>
+          <filter id="svg-shadow">
+            <feGaussianBlur in="SourceAlpha" stdDeviation="8"/>
+            <feOffset dx="0" dy="4" result="offsetblur"/>
+            <feComponentTransfer>
+              <feFuncA type="linear" slope="0.4"/>
+            </feComponentTransfer>
+            <feMerge>
+              <feMergeNode/>
+              <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+          </filter>
         </defs>
-        ${wallpaperDataUrl ? `
-        <image 
-          href="${wallpaperDataUrl}" 
-          x="0" 
-          y="0" 
-          width="${svgWidth}" 
-          height="${svgHeight}"
-          preserveAspectRatio="xMidYMid slice"
-        />
-        ` : `
-        <rect width="${svgWidth}" height="${svgHeight}" fill="#1a1b1e"/>
-        `}
-        <rect x="1" y="1" width="${svgWidth - 2}" height="${svgHeight - 2}" fill="none" stroke="url(#border)" stroke-width="2"/>
+        <rect width="${svgWidth}" height="${svgHeight}" fill="#252a32" rx="12" ry="12" filter="url(#svg-shadow)"/>
+        <rect x="1" y="1" width="${svgWidth - 2}" height="${svgHeight - 2}" fill="none" stroke="url(#border)" stroke-width="2" rx="12" ry="12"/>
         ${pinElements}
         
         <!-- Branding del club en esquina superior izquierda -->
@@ -424,7 +473,7 @@ export async function GET(
           <rect 
             x="0" 
             y="0" 
-            width="450" 
+            width="380" 
             height="40" 
             rx="8" 
             ry="8" 
@@ -464,12 +513,12 @@ export async function GET(
         
         
         <!-- Branding en esquina inferior derecha -->
-        <g transform="translate(${svgWidth - 320}, ${svgHeight - 60})">
+        <g transform="translate(${svgWidth - 450}, ${svgHeight - 60})">
           <!-- Fondo del label -->
           <rect 
             x="0" 
             y="0" 
-            width="300" 
+            width="430" 
             height="50" 
             rx="8" 
             ry="8" 
@@ -477,33 +526,15 @@ export async function GET(
             stroke="#3a3a3a" 
             stroke-width="1"
           />
-            ${logoDataUrl ? `
-            <image 
-              href="${logoDataUrl}" 
-              x="8" 
-              y="8" 
-              width="24" 
-              height="24"
-            />
-            ` : `
-            <rect 
-              x="8" 
-              y="8" 
-              width="24" 
-              height="24" 
-              fill="#D0FF71" 
-              rx="4"
-            />
-            `}
           <text 
-            x="40" 
+            x="12" 
             y="28" 
             font-family="'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif" 
             font-size="15" 
             font-weight="600" 
             fill="#D0FF71"
           >
-            programadoresargentina.com/pines
+            Consigue tus pines en programadoresargentina/pines
           </text>
         </g>
       </svg>

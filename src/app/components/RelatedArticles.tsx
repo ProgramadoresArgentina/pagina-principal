@@ -11,7 +11,7 @@ interface BlogPost {
   excerpt: string;
   date: string;
   category: string;
-  image?: string;
+  image?: string | null;
   author: string;
 }
 

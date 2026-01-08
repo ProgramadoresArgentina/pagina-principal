@@ -170,6 +170,26 @@ export async function POST(request: NextRequest) {
       },
     })
 
+    // Asignar pin de iniciación automáticamente
+    try {
+      const initiationPin = await prisma.pin.findUnique({
+        where: { name: 'Iniciación' },
+      })
+
+      if (initiationPin) {
+        await prisma.userPin.create({
+          data: {
+            userId: user.id,
+            pinId: initiationPin.id,
+            reason: 'Bienvenido a la comunidad de Programadores Argentina',
+          },
+        })
+      }
+    } catch (pinError) {
+      // Si hay error al asignar el pin, no fallar la creación del usuario
+      console.error('Error al asignar pin de bienvenida:', pinError)
+    }
+
     return NextResponse.json(user, { status: 201 })
   } catch (error) {
     console.error('Error creating user:', error)

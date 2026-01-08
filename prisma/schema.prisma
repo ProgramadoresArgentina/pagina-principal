@@ -10,7 +10,7 @@ datasource db {
 model User {
   id                String          @id @default(cuid())
   email             String          @unique
-  password          String
+  password          String? // Opcional para usuarios OAuth
   name              String?
   username          String?         @unique
   avatar            String?
@@ -25,6 +25,9 @@ model User {
   updatedAt         DateTime        @updatedAt
   roleId            String
   lid               String?         @unique
+  emailVerified     DateTime? // Para OAuth
+  accounts          Account[]
+  sessions          Session[]
   bookProgress      BookProgress[]
   chatBansModerated ChatBan[]       @relation("ChatBanModerator")
   chatBans          ChatBan[]       @relation("ChatBanUser")
@@ -36,9 +39,50 @@ model User {
   referidoPor       Referido[]      @relation("UserReferido")
   referidosHechos   Referido[]      @relation("UserReferidos")
   pins              UserPin[]
+  articles          Article[]
+  articleLikes     ArticleLike[]
+  articleComments  ArticleComment[]
   role              Role            @relation(fields: [roleId], references: [id])
 
   @@map("users")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
 }
 
 model JobPreference {
@@ -253,18 +297,76 @@ enum Seniority {
 }
 
 model ProjectQuote {
-  id            String   @id @default(cuid())
-  email         String
-  answers       Json
+  id             String    @id @default(cuid())
+  email          String
+  answers        Json
   estimateMinUsd Int
   estimateMaxUsd Int
-  responded     Boolean  @default(false)
-  respondedAt   DateTime?
-  adminNote     String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  responded      Boolean   @default(false)
+  respondedAt    DateTime?
+  adminNote      String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
   @@index([createdAt])
   @@index([responded, createdAt])
   @@map("project_quotes")
+}
+
+model Article {
+  id              String    @id @default(cuid())
+  title           String
+  slug            String    @unique
+  description     String?   @db.Text
+  content         Json // Contenido en formato Plate/Slate
+  excerpt         String?   @db.Text
+  image           String?
+  category        String    @default("General")
+  author          String    @default("Programadores Argentina")
+  authorImage     String?
+  isPublic        Boolean   @default(true)
+  isSubscriberOnly Boolean  @default(false) // Solo para miembros del club
+  publishedAt     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  authorId        String?
+  authorUser      User?     @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  likes           ArticleLike[]
+  comments        ArticleComment[]
+
+  @@index([slug])
+  @@index([isPublic, publishedAt])
+  @@index([category])
+  @@index([isSubscriberOnly])
+  @@map("articles")
+}
+
+model ArticleLike {
+  id        String   @id @default(cuid())
+  articleId String
+  userId    String
+  createdAt DateTime @default(now())
+  article   Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([articleId, userId])
+  @@index([articleId])
+  @@index([userId])
+  @@map("article_likes")
+}
+
+model ArticleComment {
+  id        String   @id @default(cuid())
+  articleId String
+  userId    String
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  article   Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([articleId])
+  @@index([userId])
+  @@index([createdAt])
+  @@map("article_comments")
 }

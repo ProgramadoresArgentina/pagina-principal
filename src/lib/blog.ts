@@ -9,8 +9,9 @@ export interface BlogPost {
   author: string;
   authorImage: string;
   category: string;
-  image: string;
+  image: string | null | undefined;
   isPublic: boolean;
+  isSubscriberOnly?: boolean;
   excerpt: string;
   content: string;
   lastModified?: Date; // Fecha de última modificación del archivo

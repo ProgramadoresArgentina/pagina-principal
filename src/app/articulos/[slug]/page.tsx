@@ -11,9 +11,11 @@ import LockedContent from "../../components/LockedContent";
 import MarkdownRenderer from "../../components/MarkdownRenderer";
 import TableOfContents from "../../components/TableOfContents";
 import ReadingProgress from "../../components/ReadingProgress";
-import ReadingTools from "../../components/ReadingTools";
 import RelatedArticles from "../../components/RelatedArticles";
-import { getPostBySlug, getAllPosts } from "@/lib/blog";
+import ArticleLikes from "../../components/ArticleLikes";
+import ArticleComments from "../../components/ArticleComments";
+import { getArticleBySlug, getAllArticles } from "@/lib/articles";
+import PlateRenderer from "../../components/PlateRenderer";
 import "./ArticlePage.css";
 
 // Función para formatear fechas de manera concisa
@@ -32,16 +34,36 @@ interface BlogPostPageProps {
   }>;
 }
 
-export async function generateStaticParams() {
-  const posts = await getAllPosts();
-  return posts.map((post) => ({
-    slug: post.slug,
-  }));
-}
+// Comentado para permitir rutas dinámicas en tiempo de ejecución
+// export async function generateStaticParams() {
+//   const articles = await getAllArticles();
+//   return articles.map((article) => ({
+//     slug: article.slug,
+//   }));
+// }
+
+// Forzar renderizado dinámico
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 export async function generateMetadata({ params }: BlogPostPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const post = await getPostBySlug(slug);
+  const article = await getArticleBySlug(slug);
+  
+  // Convertir a formato compatible
+  const post = article ? {
+    slug: article.slug,
+    title: article.title,
+    description: article.description || '',
+    date: article.publishedAt?.toISOString() || article.createdAt.toISOString(),
+    author: article.author,
+    authorImage: article.authorImage || '/assets/images/perfiles/club-programadores-argentina.png',
+    category: article.category,
+    image: article.image || '/assets/images/articulos/default.webp',
+    isPublic: article.isPublic,
+    excerpt: article.excerpt || article.description || '',
+    content: JSON.stringify(article.content),
+  } : null;
 
   if (!post) {
     return {
@@ -69,8 +91,8 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
   ];
 
   // URL de imagen con fallback y validación para SEO
-  const getValidImageUrl = (imageUrl: string | undefined) => {
-    // Si no hay imagen, usar fallback
+  const getValidImageUrl = (imageUrl: string | null | undefined) => {
+    // Si no hay imagen, usar logo como fallback para SEO
     if (!imageUrl) {
       return "https://programadoresargentina.com/assets/images/logo.png";
     }
@@ -180,10 +202,41 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
 
 export default async function BlogPostPage({ params }: BlogPostPageProps): Promise<JSX.Element> {
   const { slug } = await params;
-  const post = await getPostBySlug(slug);
-  const allPosts = await getAllPosts();
+  const article = await getArticleBySlug(slug);
+  const allArticles = await getAllArticles();
+  
+  // Convertir a formato compatible
+  const post = article ? {
+    slug: article.slug,
+    title: article.title,
+    description: article.description || '',
+    date: article.publishedAt?.toISOString() || article.createdAt.toISOString(),
+    author: article.authorUser?.name || article.author,
+    authorImage: article.authorUser?.avatar || article.authorImage || '/assets/images/perfiles/club-programadores-argentina.png',
+    category: article.category,
+    image: article.image || null, // No usar imagen por defecto si no existe
+    isPublic: article.isPublic,
+    isSubscriberOnly: article.isSubscriberOnly || false,
+    excerpt: article.excerpt || article.description || '',
+    content: JSON.stringify(article.content),
+  } : null;
+  
+  const allPosts = allArticles.map(a => ({
+    slug: a.slug,
+    title: a.title,
+    description: a.description || '',
+    date: a.publishedAt?.toISOString() || a.createdAt.toISOString(),
+    author: a.authorUser?.name || a.author,
+    authorImage: a.authorUser?.avatar || a.authorImage || '/assets/images/perfiles/club-programadores-argentina.png',
+    category: a.category,
+    image: a.image || null, // No usar imagen por defecto si no existe
+    isPublic: a.isPublic,
+    isSubscriberOnly: a.isSubscriberOnly || false,
+    excerpt: a.excerpt || a.description || '',
+    content: JSON.stringify(a.content),
+  }));
 
-  if (!post) {
+  if (!post || !article) {
     notFound();
   }
 
@@ -192,8 +245,8 @@ export default async function BlogPostPage({ params }: BlogPostPageProps): Promi
     description: post.description,
     image: post.image,
     url: `https://programadoresargentina.com/articulos/${post.slug}`,
-    publishedTime: post.date,
-    modifiedTime: post.date,
+    publishedTime: article?.publishedAt?.toISOString() || article?.createdAt.toISOString() || post.date,
+    modifiedTime: article?.updatedAt.toISOString() || post.date,
     section: post.category,
     keywords: [post.category],
   };
@@ -281,26 +334,26 @@ export default async function BlogPostPage({ params }: BlogPostPageProps): Promi
                       </article>
                       
                       <div className="col-12 col-md-10 col-lg-8 mx-auto article-content-container">
-                        {/* Herramientas del lector */}
-                        <ReadingTools 
-                          content={post.content}
-                          title={post.title}
-                          slug={post.slug}
-                          author={post.author}
-                        />
-
                         {/* Tabla de Contenidos */}
                         <TableOfContents content={post.content} isPublic={post.isPublic} />
 
                         <LockedContent 
                             isPublic={post.isPublic}
+                            isSubscriberOnly={post.isSubscriberOnly}
                             excerpt={post.excerpt}
                             title={post.title}
+                            content={article?.content}
                         >
                             <div className="postbox-details-text article-content pt-0">
-                              <MarkdownRenderer content={post.content} slug={post.slug} />
+                              {article && <PlateRenderer content={article.content} />}
                             </div>
                         </LockedContent>
+
+                        {/* Likes */}
+                        <ArticleLikes articleSlug={post.slug} />
+
+                        {/* Comentarios */}
+                        <ArticleComments articleSlug={post.slug} />
 
                         {/* Artículos relacionados */}
                         <RelatedArticles 
