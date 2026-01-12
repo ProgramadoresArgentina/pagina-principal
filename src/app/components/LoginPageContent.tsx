@@ -24,6 +24,7 @@ export default function LoginPageContent() {
   return (
     <>
       <Header />
+      <MobileHeader />
 
       {/* Main Content */}
       <main>

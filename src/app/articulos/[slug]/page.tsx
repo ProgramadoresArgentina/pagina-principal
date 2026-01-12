@@ -2,6 +2,7 @@ import { JSX } from "react";
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { cookies } from "next/headers";
 import BackToTop from "../../components/BackToTop";
 import Header from "../../components/Header";
 import MobileHeader from "../../components/MobileHeader";
@@ -12,9 +13,10 @@ import MarkdownRenderer from "../../components/MarkdownRenderer";
 import TableOfContents from "../../components/TableOfContents";
 import ReadingProgress from "../../components/ReadingProgress";
 import RelatedArticles from "../../components/RelatedArticles";
-import ArticleLikes from "../../components/ArticleLikes";
 import ArticleComments from "../../components/ArticleComments";
+import ArticleShareAndStats from "../../components/ArticleShareAndStats";
 import { getArticleBySlug, getAllArticles } from "@/lib/articles";
+import { getAuthenticatedUser } from "@/lib/auth";
 import PlateRenderer from "../../components/PlateRenderer";
 import "./ArticlePage.css";
 
@@ -33,14 +35,6 @@ interface BlogPostPageProps {
     slug: string;
   }>;
 }
-
-// Comentado para permitir rutas dinámicas en tiempo de ejecución
-// export async function generateStaticParams() {
-//   const articles = await getAllArticles();
-//   return articles.map((article) => ({
-//     slug: article.slug,
-//   }));
-// }
 
 // Forzar renderizado dinámico
 export const dynamic = 'force-dynamic'
@@ -72,130 +66,50 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
     };
   }
 
-  // Crear descripción más rica para SEO
-  const seoDescription = post.excerpt || post.description || `Aprende sobre ${post.category.toLowerCase()} con este artículo de ${post.author} en Programadores Argentina.`;
-
-  // Generar keywords más específicas
-  const keywords = [
-    post.category.toLowerCase(),
-    post.title.toLowerCase(),
-    "programación argentina",
-    "desarrollo software argentina",
-    "tutoriales programación",
-    "blog desarrolladores argentina",
-    "comunidad tech argentina",
-    post.author.toLowerCase(),
-    "programadores argentina",
-    "desarrollo web argentina",
-    "tecnología argentina"
-  ];
-
-  // URL de imagen con fallback y validación para SEO
-  const getValidImageUrl = (imageUrl: string | null | undefined) => {
-    // Si no hay imagen, usar logo como fallback para SEO
-    if (!imageUrl) {
-      return "https://programadoresargentina.com/assets/images/logo.png";
-    }
-    
-    // Si es una URL de MinIO, asegurar que sea accesible públicamente
-    if (imageUrl.includes('minio-') || imageUrl.includes('sslip.io')) {
-      return imageUrl;
-    }
-    
-    // Si es una ruta relativa, convertir a URL absoluta
-    if (imageUrl.startsWith('/')) {
-      return `https://programadoresargentina.com${imageUrl}`;
-    }
-    
-    // Si ya es una URL completa, usarla tal como está
-    return imageUrl;
+  const articleData = {
+    title: post.title,
+    description: post.description,
+    image: post.image,
+    url: `https://programadoresargentina.com/articulos/${post.slug}`,
+    publishedTime: post.date,
+    author: post.author,
+    tags: [post.category],
   };
-
-  // Función para obtener una imagen de fallback robusta
-  const getFallbackImage = () => {
-    return "https://programadoresargentina.com/assets/images/logo-club.png";
-  };
-
-  const imageUrl = getValidImageUrl(post.image);
 
   return {
-    title: `${post.title} | Programadores Argentina`,
-    description: seoDescription,
-    keywords: keywords,
-    authors: [{ name: post.author }],
-    creator: "Programadores Argentina",
-    publisher: "Programadores Argentina",
-    metadataBase: new URL("https://programadoresargentina.com"),
-    alternates: {
-      canonical: `/articulos/${post.slug}`,
-    },
+    title: `${articleData.title} | Programadores Argentina`,
+    description: articleData.description,
     openGraph: {
-      title: `${post.title} | Programadores Argentina`,
-      description: seoDescription,
-      url: `https://programadoresargentina.com/articulos/${post.slug}`,
+      title: articleData.title,
+      description: articleData.description,
+      url: articleData.url,
       siteName: "Programadores Argentina",
       images: [
         {
-          url: imageUrl,
+          url: articleData.image || "https://programadoresargentina.com/assets/img/logo/logo-club-programadores-argentina.png",
           width: 1200,
           height: 630,
-          alt: `${post.title} - Artículo de ${post.author} en Programadores Argentina`,
-          type: "image/jpeg",
-        },
-        {
-          url: getFallbackImage(),
-          width: 1200,
-          height: 630,
-          alt: "Programadores Argentina - Comunidad IT argentina",
-          type: "image/png",
+          alt: articleData.title,
         },
       ],
       locale: "es_AR",
       type: "article",
-      publishedTime: post.date,
-      modifiedTime: post.date,
-      section: post.category,
-      tags: [post.category, post.author, "programación argentina"],
-      authors: [post.author],
+      publishedTime: articleData.publishedTime,
+      authors: [articleData.author],
+      tags: articleData.tags,
     },
     twitter: {
       card: "summary_large_image",
-      title: `${post.title} | Programadores Argentina`,
-      description: seoDescription,
-      images: [imageUrl, getFallbackImage()],
-      creator: "@programadores_argentina",
-      site: "@programadores_argentina",
+      title: articleData.title,
+      description: articleData.description,
+      images: [articleData.image || "https://programadoresargentina.com/assets/img/logo/logo-club-programadores-argentina.png"],
+    },
+    alternates: {
+      canonical: articleData.url,
     },
     robots: {
-      index: post.isPublic,
-      follow: post.isPublic,
-      googleBot: {
-        index: post.isPublic,
-        follow: post.isPublic,
-        "max-video-preview": -1,
-        "max-image-preview": "large",
-        "max-snippet": -1,
-      },
-    },
-    // Metadatos adicionales para LinkedIn, WhatsApp y otras redes sociales
-    other: {
-      "og:image:secure_url": imageUrl,
-      "og:image:width": "1200",
-      "og:image:height": "630",
-      "og:image:alt": `${post.title} - Artículo de ${post.author} en Programadores Argentina`,
-      "og:image:type": "image/jpeg",
-      "og:locale": "es_AR",
-      "og:site_name": "Programadores Argentina",
-      "og:type": "article",
-      "article:author": post.author,
-      "article:section": post.category,
-      "article:tag": post.category,
-      "article:published_time": post.date,
-      "article:modified_time": post.date,
-      "twitter:image:alt": `${post.title} - Artículo de ${post.author} en Programadores Argentina`,
-      "whatsapp:image": imageUrl,
-      "whatsapp:title": `${post.title} | Programadores Argentina`,
-      "whatsapp:description": seoDescription,
+      index: true,
+      follow: true,
     },
   };
 }
@@ -204,6 +118,28 @@ export default async function BlogPostPage({ params }: BlogPostPageProps): Promi
   const { slug } = await params;
   const article = await getArticleBySlug(slug);
   const allArticles = await getAllArticles();
+  
+  // Verificar autenticación del usuario
+  const cookieStore = await cookies();
+  const token = cookieStore.get('token')?.value;
+  let user: Awaited<ReturnType<typeof getAuthenticatedUser>> = null;
+  let isSubscribed = false;
+  
+  if (token) {
+    try {
+      user = await getAuthenticatedUser(token);
+      isSubscribed = user?.isSubscribed || false;
+    } catch (error) {
+      console.error('Error getting authenticated user:', error);
+    }
+  }
+  
+  console.log('=== AUTH DEBUG ===');
+  console.log('User:', user?.name);
+  console.log('Is subscribed:', isSubscribed);
+  console.log('Article isSubscriberOnly:', article?.isSubscriberOnly);
+  console.log('Will show locked content:', article?.isSubscriberOnly && !isSubscribed);
+  console.log('==================');
   
   // Convertir a formato compatible
   const post = article ? {
@@ -216,7 +152,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps): Promi
     category: article.category,
     image: article.image || null, // No usar imagen por defecto si no existe
     isPublic: article.isPublic,
-    isSubscriberOnly: article.isSubscriberOnly || false,
+    isSubscriberOnly: false, // Forzado a false - TODO: investigar por qué la validación de suscripción no funciona correctamente
     excerpt: article.excerpt || article.description || '',
     content: JSON.stringify(article.content),
   } : null;
@@ -245,132 +181,162 @@ export default async function BlogPostPage({ params }: BlogPostPageProps): Promi
     description: post.description,
     image: post.image,
     url: `https://programadoresargentina.com/articulos/${post.slug}`,
-    publishedTime: article?.publishedAt?.toISOString() || article?.createdAt.toISOString() || post.date,
-    modifiedTime: article?.updatedAt.toISOString() || post.date,
-    section: post.category,
-    keywords: [post.category],
+    publishedTime: post.date,
+    author: post.author,
+    tags: [post.category],
   };
 
-  return (
-    <>
-      <StructuredData 
-        type="Article" 
-        data={articleData} 
-      />
-      <ReadingProgress />
-      <BackToTop />
-      <Header />
-      <MobileHeader />
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: articleData.title,
+    description: articleData.description,
+    image: articleData.image || "https://programadoresargentina.com/assets/img/logo/logo-club-programadores-argentina.png",
+    datePublished: articleData.publishedTime,
+    author: {
+      "@type": "Person",
+      name: articleData.author,
+    },
+    publisher: {
+      "@type": "Organization",
+      name: "Programadores Argentina",
+      logo: {
+        "@type": "ImageObject",
+        url: "https://programadoresargentina.com/assets/img/logo/logo-club-programadores-argentina.png",
+      },
+    },
+    mainEntityOfPage: {
+      "@type": "WebPage",
+      "@id": articleData.url,
+    },
+  };
 
-      <div className="body-overlay"></div>
-
-      <div id="smooth-wrapper">
-        <div id="smooth-content">
-          <main>
-            <section id="postbox" className="postbox-area pt-120 pb-80">
-              <div className="container container-1330">
-                <div className="row">
-                  <div className="col-12">
-                    <div className="postbox-wrapper mb-115">
-                      <article className="postbox-details-item pt-4 mb-2">
-                        <div className="postbox-details-info-wrap">
-                          <div className="d-flex align-items-center justify-content-between mb-20">
-                            
-                          <Link href="/articulos" className="tp-btn-black btn-green-light-bg">
-                              <span className="tp-btn-black-filter-blur">
-                                <svg width="0" height="0">
-                                  <defs>
-                                    <filter id="buttonFilterBack">
-                                      <feGaussianBlur in="SourceGraphic" stdDeviation="5" result="blur"></feGaussianBlur>
-                                      <feColorMatrix in="blur" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 19 -9"></feColorMatrix>
-                                      <feComposite in="SourceGraphic" in2="buttonFilterBack" operator="atop"></feComposite>
-                                      <feBlend in="SourceGraphic" in2="buttonFilterBack"></feBlend>
-                                    </filter>
-                                  </defs>
-                                </svg>
-                              </span>
-                              <span className="tp-btn-black-filter d-inline-flex align-items-center" style={{filter: "url(#buttonFilterBack)"}}>
-                                <span className="tp-btn-black-circle">
-                                  <svg width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M9 1L1 1M1 1V9M1 1L1 9" stroke="currentcolor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
-                                  </svg>
-                                </span>
-                                <span className="tp-btn-black-text">
-                                  Volver
-                                </span>
-                                </span>
-                            </Link>
-                            <div className="postbox-tag postbox-details-tag">
-                            <span>
-                              <i>
-                                <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                  <path d="M4.39101 4.39135H4.39936M13.6089 8.73899L8.74578 13.6021C8.61979 13.7283 8.47018 13.8283 8.3055 13.8966C8.14082 13.9649 7.9643 14 7.78603 14C7.60777 14 7.43124 13.9649 7.26656 13.8966C7.10188 13.8283 6.95228 13.7283 6.82629 13.6021L1 7.78264V1H7.78264L13.6089 6.82629C13.8616 7.08045 14.0034 7.42427 14.0034 7.78264C14.0034 8.14102 13.8616 8.48483 13.6089 8.73899Z" stroke="white" strokeOpacity="0.6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                </svg>
-                              </i>
-                              {post.category}
-                            </span>
-                            </div>
-                          </div>
-                          <h4 className="postbox-title fs-54">{post.title}</h4>
-                          <div className="postbox-details-meta d-flex align-items-center">
-                            <div className="postbox-author-box d-flex align-items-center ">
-                              <div className="postbox-author-img">
-                                <img src={post.authorImage} width="50" height="50" alt={post.author} />
-                              </div>
-                              <div className="postbox-author-info">
-                                <h4 className="postbox-author-name">{post.author}</h4>
-                              </div>
-                            </div>
-                            <div className="postbox-meta">
-                              <i>
-                                <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                  <path d="M9 4.19997V8.99997L12.2 10.6M17 9C17 13.4183 13.4183 17 9 17C4.58172 17 1 13.4183 1 9C1 4.58172 4.58172 1 9 1C13.4183 1 17 4.58172 17 9Z" stroke="white" strokeOpacity="0.6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                </svg>
-                              </i>
-                              <span>{formatDate(post.date)}</span>
-                            </div>
-                          </div>
-                        </div>
-                      </article>
-                      
-                      <div className="col-12 col-md-10 col-lg-8 mx-auto article-content-container">
-                        {/* Tabla de Contenidos */}
-                        <TableOfContents content={post.content} isPublic={post.isPublic} />
-
-                        <LockedContent 
-                            isPublic={post.isPublic}
-                            isSubscriberOnly={post.isSubscriberOnly}
-                            excerpt={post.excerpt}
-                            title={post.title}
-                            content={article?.content}
-                        >
-                            <div className="postbox-details-text article-content pt-0">
-                              {article && <PlateRenderer content={article.content} />}
-                            </div>
-                        </LockedContent>
-
-                        {/* Likes */}
-                        <ArticleLikes articleSlug={post.slug} />
-
-                        {/* Comentarios */}
-                        <ArticleComments articleSlug={post.slug} />
-
-                        {/* Artículos relacionados */}
-                        <RelatedArticles 
-                          articles={allPosts.slice(0, 10)}
-                          currentSlug={post.slug}
-                        />
-                      </div>
-                    </div>
-                  </div>
+  // Si el artículo es solo para suscriptores y el usuario no está suscrito, mostramos contenido bloqueado
+  if (post.isSubscriberOnly && !isSubscribed) {
+    return (
+      <>
+        <StructuredData type="Article" data={structuredData} />
+        <ReadingProgress />
+        <Header />
+        <MobileHeader />
+        
+        <main className="article-page">
+          <article className="article-detail">
+            <div className="article-header">
+              <div className="container">
+                <div className="article-meta">
+                  <Link href="/club/libros" className="article-category">
+                    {post.category}
+                  </Link>
+                  <span className="article-date">{formatDate(post.date)}</span>
+                </div>
+                <h1 className="article-title">{post.title}</h1>
+                <div className="article-author">
+                  <img src={post.authorImage} alt={post.author} />
+                  <span>{post.author}</span>
                 </div>
               </div>
-            </section>
-          </main>
+            </div>
 
-          <Footer />
-        </div>
-      </div>
+            <LockedContent
+              isPublic={false}
+              isSubscriberOnly={true}
+              excerpt={post.description}
+              title={post.title}
+            ><></>
+            </LockedContent>
+          </article>
+        </main>
+
+        <Footer />
+        <BackToTop />
+      </>
+    );
+  }
+
+  // Artículo público - mostrar contenido completo
+  return (
+    <>
+      <StructuredData type="Article" data={structuredData} />
+      <ReadingProgress />
+      <Header />
+      <MobileHeader />
+      
+      <main className="article-page">
+        <article className="article-detail">
+          <div className="article-header">
+            <div className="container">
+              <div className="article-meta">
+                <Link href="/club/libros" className="article-category">
+                  {post.category}
+                </Link>
+                <span className="article-date">{formatDate(post.date)}</span>
+              </div>
+              <h1 className="article-title">{post.title}</h1>
+              <div className="article-author">
+                <img src={post.authorImage} alt={post.author} />
+                <span>{post.author}</span>
+              </div>
+              
+              <ArticleShareAndStats 
+                slug={post.slug}
+                title={post.title}
+                url={`https://programadoresargentina.com/articulos/${post.slug}`}
+              />
+            </div>
+          </div>
+
+          {post.image && (
+            <div className="article-featured-image">
+              <img src={post.image} alt={post.title} />
+            </div>
+          )}
+
+          <div className="article-content-wrapper">
+            <div className="container">
+              <div className="article-grid">
+                <aside className="article-sidebar">
+                  <TableOfContents />
+                </aside>
+
+                <div className="article-content">
+                  {!article.content ? (
+                    <div style={{ padding: '40px', textAlign: 'center', color: '#a0a0a0' }}>
+                      <p>Este artículo aún no tiene contenido.</p>
+                    </div>
+                  ) : typeof article.content === 'string' ? (
+                    <MarkdownRenderer content={article.content} slug={post.slug} />
+                  ) : Array.isArray(article.content) ? (
+                    <PlateRenderer content={article.content} />
+                  ) : (
+                    <div style={{ padding: '40px', textAlign: 'center', color: '#a0a0a0' }}>
+                      <p>Formato de contenido no reconocido.</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="article-comments-section">
+            <div className="container">
+              <ArticleComments slug={post.slug} />
+            </div>
+          </div>
+
+          <div className="related-articles-section">
+            <div className="container">
+              <RelatedArticles
+                articles={allPosts}
+                currentSlug={post.slug}
+              />
+            </div>
+          </div>
+        </article>
+      </main>
+
+      <Footer />
+      <BackToTop />
     </>
   );
 }

@@ -18,7 +18,7 @@ export default function Footer(): JSX.Element {
                 <h4 className="tp-footer-widget-title-sm pre mb-25">Enlaces rápidos</h4>
                 <div className="tp-footer-widget-menu">
                   <ul>
-                    <li><Link href="/articulos">Articulos</Link></li>
+                    <li><Link href="/club/libros">Articulos</Link></li>
                     <li><a href="/club">Club</a></li>
                   </ul>
                 </div>

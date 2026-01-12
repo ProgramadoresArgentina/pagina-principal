@@ -26,7 +26,7 @@ export default function NotFound() {
             <Link href="/" className="nf-btn nf-btn--primary" aria-label="Volver al inicio">
               Volver al inicio
             </Link>
-            <Link href="/articulos" className="nf-btn nf-btn--ghost" aria-label="Ver artículos">
+            <Link href="/club/libros" className="nf-btn nf-btn--ghost" aria-label="Ver artículos">
               Ver artículos
             </Link>
             <Link href="/club" className="nf-btn nf-btn--ghost" aria-label="Ir al club">

@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import RegisterForm from '@/app/components/RegisterForm'
 import Header from '@/app/components/Header'
+import MobileHeader from '@/app/components/MobileHeader'
 import Footer from '@/app/components/Footer'
 
 export default function RegisterPageContent() {
@@ -23,6 +24,7 @@ export default function RegisterPageContent() {
   return (
     <>
       <Header />
+      <MobileHeader />
 
       {/* Main Content */}
       <main>

@@ -6,6 +6,7 @@ import Header from "./components/Header";
 import MobileHeader from "./components/MobileHeader";
 // import ForumPostsSlider from "./components/ForumPostsSlider";
 import PublicGroups from "./components/PublicGroups";
+import BooksSlider from "./components/BooksSlider";
 import Footer from "./components/Footer";
 import StructuredData from "./components/StructuredData";
 
@@ -172,7 +173,7 @@ export default function Home(): JSX.Element {
                     </a>
                   </div>
                   <div className="tp_fade_anim" data-delay=".7" data-fade-from="top" data-ease="bounce">
-                    <Link className="tp-btn-black-radius btn-blue-bg btn-border d-inline-flex align-items-center justify-content-between" href="/articulos">
+                    <Link className="tp-btn-black-radius btn-blue-bg btn-border d-inline-flex align-items-center justify-content-between" href="/club/libros">
                       <span>
                         <span className="text-1">Ver Artículos</span>
                         <span className="text-2">Leer</span>
@@ -278,9 +279,11 @@ export default function Home(): JSX.Element {
 
             <PublicGroups />
 
+            <BooksSlider />
+
             <div className="pp-about-area pp-about-ptb p-relative pt-160 pb-160">
               <div className="pp-about-shape">
-                <img data-speed=".8" src="/assets/img/home-14/about/about-shape.png" alt="" style={{ translate: 'none', rotate: 'none', scale: 'none', transform: 'translate(0px, -44.3991px)', willChange: 'transform' }} data-lag="0" />
+                <img height={300} data-speed=".8" src="/assets/img/home-14/about/about-shape.png" alt="" style={{ translate: 'none', rotate: 'none', scale: 'none', transform: 'translate(-100px, -44.3991px)', willChange: 'transform' }} data-lag="0" />
               </div>
               <div className="container container-1430">
                 <div className="row">

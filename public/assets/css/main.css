@@ -929,7 +929,7 @@ input[type=color] {
 /*----------------------------------------*/
 .back-to-top-wrapper {
   position: fixed;
-  right: 170px;
+  right: 40px;
   bottom: 0;
   height: 44px;
   width: 44px;
@@ -942,7 +942,7 @@ input[type=color] {
 }
 @media (max-width: 767px) {
   .back-to-top-wrapper {
-    right: 100px;
+    right: 20px;
     bottom: 100px;
   }
 }

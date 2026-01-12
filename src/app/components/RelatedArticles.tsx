@@ -21,6 +21,11 @@ interface RelatedArticlesProps {
 }
 
 export default function RelatedArticles({ articles, currentSlug }: RelatedArticlesProps) {
+  // Validar que articles existe y es un array
+  if (!articles || !Array.isArray(articles)) {
+    return null;
+  }
+
   // Filtrar el artículo actual
   const relatedArticles = articles
     .filter(article => article.slug !== currentSlug)

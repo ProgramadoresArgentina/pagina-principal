@@ -56,7 +56,28 @@ export default function MobileHeader(): JSX.Element {
           </div>
           <div className="tp-offcanvas-main">
             <div className="tp-offcanvas-menu d-xl-none">
-              <nav></nav>
+              <nav className="tp-mobile-menu-active">
+                <ul>
+                  <li>
+                    <Link href="/">Inicio</Link>
+                  </li>
+                  <li>
+                    <Link href="/club/libros">Libros y Artículos</Link>
+                  </li>
+                  <li>
+                    <Link href="/cotizador">Cotizar proyecto</Link>
+                  </li>
+                  <li>
+                    <Link href="/pines">🏅 Conseguir Pines</Link>
+                  </li>
+                  <li>
+                    <Link href="/club">Unirse al Club</Link>
+                  </li>
+                  <li>
+                    <Link href="/ingresar">Ingresar</Link>
+                  </li>
+                </ul>
+              </nav>
             </div>
             <div className="tp-offcanvas-gallery d-none d-xl-block">
               <div className="row gx-2">

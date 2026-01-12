@@ -5,10 +5,10 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
 
 interface ArticleLikesProps {
-  articleSlug: string
+  slug: string
 }
 
-export default function ArticleLikes({ articleSlug }: ArticleLikesProps) {
+export default function ArticleLikes({ slug }: ArticleLikesProps) {
   const { isAuthenticated, token } = useAuth()
   const router = useRouter()
   const [likes, setLikes] = useState(0)
@@ -18,7 +18,7 @@ export default function ArticleLikes({ articleSlug }: ArticleLikesProps) {
 
   useEffect(() => {
     loadLikes()
-  }, [articleSlug, isAuthenticated, token])
+  }, [slug, isAuthenticated, token])
 
   const loadLikes = async () => {
     try {
@@ -27,7 +27,7 @@ export default function ArticleLikes({ articleSlug }: ArticleLikesProps) {
         headers['Authorization'] = `Bearer ${token}`
       }
 
-      const res = await fetch(`/api/articles/${articleSlug}/likes`, {
+      const res = await fetch(`/api/articles/${slug}/likes`, {
         headers
       })
 
@@ -54,7 +54,7 @@ export default function ArticleLikes({ articleSlug }: ArticleLikesProps) {
 
     try {
       setToggling(true)
-      const res = await fetch(`/api/articles/${articleSlug}/likes`, {
+      const res = await fetch(`/api/articles/${slug}/likes`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -5,7 +5,7 @@ import { Book } from '@/lib/books';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePathname } from 'next/navigation';
 
-const BOOKS_PER_PAGE = 12;
+const BOOKS_PER_PAGE = 5;
 
 export default function BooksList() {
   const [books, setBooks] = useState<Book[]>([]);
@@ -114,6 +114,29 @@ export default function BooksList() {
   const prevPage = () => goToPage(currentPage - 1);
   const nextPage = () => goToPage(currentPage + 1);
 
+  // Función para obtener el color de cada categoría
+  const getCategoryColor = (category: string): { bg: string; text: string } => {
+    const colors: Record<string, { bg: string; text: string }> = {
+      'JavaScript': { bg: 'rgba(247, 223, 30, 0.15)', text: '#f7df1e' },
+      'Python': { bg: 'rgba(55, 118, 171, 0.15)', text: '#3776ab' },
+      'TypeScript': { bg: 'rgba(49, 120, 198, 0.15)', text: '#3178c6' },
+      'React': { bg: 'rgba(97, 218, 251, 0.15)', text: '#61dafb' },
+      'Node.js': { bg: 'rgba(104, 160, 99, 0.15)', text: '#68a063' },
+      'DevOps': { bg: 'rgba(255, 107, 107, 0.15)', text: '#ff6b6b' },
+      'Database': { bg: 'rgba(255, 159, 64, 0.15)', text: '#ff9f40' },
+      'Web': { bg: 'rgba(108, 159, 255, 0.15)', text: '#6c9fff' },
+      'Mobile': { bg: 'rgba(156, 39, 176, 0.15)', text: '#9c27b0' },
+      'Design': { bg: 'rgba(233, 30, 99, 0.15)', text: '#e91e63' },
+      'Security': { bg: 'rgba(244, 67, 54, 0.15)', text: '#f44336' },
+      'AI': { bg: 'rgba(76, 175, 80, 0.15)', text: '#4caf50' },
+      'Backend': { bg: 'rgba(255, 152, 0, 0.15)', text: '#ff9800' },
+      'Frontend': { bg: 'rgba(0, 188, 212, 0.15)', text: '#00bcd4' },
+      'General': { bg: 'rgba(158, 158, 158, 0.15)', text: '#9e9e9e' },
+    };
+
+    return colors[category] || colors['General'];
+  };
+
   // Generar números de página para mostrar
   const getPageNumbers = () => {
     const pages: (number | string)[] = [];
@@ -204,9 +227,23 @@ export default function BooksList() {
     return (
       <div className="row">
         <div className="col-12">
-          {/* Buscador */}
-          <div className="search-container mb-4">
-            <div className="search-box" style={{ position: 'relative', maxWidth: '500px', margin: '0 auto' }}>
+          {/* Buscador + Dropdown en línea */}
+          <div className="search-filter-container mb-4" style={{ 
+            padding: '0 16px',
+            display: 'flex',
+            flexDirection: 'row',
+            gap: '12px',
+            maxWidth: '800px',
+            margin: '0 auto',
+            flexWrap: 'wrap',
+            justifyContent: 'center'
+          }}>
+            <div className="search-box" style={{ 
+              position: 'relative', 
+              flex: '1 1 300px',
+              maxWidth: '500px',
+              minWidth: '200px'
+            }}>
               <input
                 type="text"
                 placeholder="Buscar libros..."
@@ -214,19 +251,19 @@ export default function BooksList() {
                 onChange={(e) => setSearchTerm(e.target.value)}
                 style={{
                   width: '100%',
-                  padding: '14px 20px 14px 60px',
+                  padding: '12px 44px 12px 44px',
                   border: '2px solid #3a3b3f',
-                  borderRadius: '25px',
+                  borderRadius: '12px',
                   backgroundColor: '#2d2e32',
                   color: '#ffffff',
-                  fontSize: '16px',
+                  fontSize: '15px',
                   outline: 'none',
                   transition: 'border-color 0.3s ease',
-                  minHeight: '48px'
+                  height: '48px'
                 }}
                 className="search-input-placeholder-white"
                 onFocus={(e) => {
-                  e.target.style.borderColor = '#D0FF71';
+                  e.target.style.borderColor = '#6c9fff';
                 }}
                 onBlur={(e) => {
                   e.target.style.borderColor = '#3a3b3f';
@@ -235,50 +272,103 @@ export default function BooksList() {
               <div 
                 style={{
                   position: 'absolute',
-                  left: '20px',
+                  left: '14px',
                   top: '50%',
                   transform: 'translateY(-50%)',
-                  color: '#a0a0a0',
-                  pointerEvents: 'none'
+                  color: '#6c9fff',
+                  pointerEvents: 'none',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
                 }}
               >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M21 21L16.514 16.506L21 21ZM19 10.5C19 15.194 15.194 19 10.5 19C5.806 19 2 15.194 2 10.5C2 5.806 5.806 2 10.5 2C15.194 2 19 5.806 19 10.5Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2"/>
+                  <path d="M20 20L16.5 16.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
                 </svg>
               </div>
               
-              {/* Botón de limpiar búsqueda */}
               {searchTerm && (
                 <button
                   onClick={() => setSearchTerm('')}
                   style={{
                     position: 'absolute',
-                    right: '20px',
+                    right: '12px',
                     top: '50%',
                     transform: 'translateY(-50%)',
-                    background: 'none',
+                    background: 'rgba(255,255,255,0.1)',
                     border: 'none',
                     color: '#a0a0a0',
                     cursor: 'pointer',
-                    padding: '6px',
+                    padding: '4px',
                     borderRadius: '50%',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    transition: 'color 0.3s ease'
+                    transition: 'all 0.2s ease',
+                    width: '24px',
+                    height: '24px'
                   }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.color = '#ffffff';
+                    e.currentTarget.style.background = 'rgba(255,255,255,0.2)';
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.color = '#a0a0a0';
+                    e.currentTarget.style.background = 'rgba(255,255,255,0.1)';
                   }}
                 >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
                 </button>
               )}
+            </div>
+
+            <div style={{ position: 'relative', flex: '0 0 auto', minWidth: '160px' }}>
+              <select
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '12px 36px 12px 14px',
+                  backgroundColor: '#2d2e32',
+                  color: '#ffffff',
+                  border: '2px solid #3a3b3f',
+                  borderRadius: '12px',
+                  fontSize: '15px',
+                  fontWeight: '500',
+                  cursor: 'pointer',
+                  appearance: 'none',
+                  outline: 'none',
+                  transition: 'border-color 0.3s ease',
+                  height: '48px'
+                }}
+                onFocus={(e) => {
+                  e.target.style.borderColor = '#6c9fff';
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = '#3a3b3f';
+                }}
+              >
+                {categories.map((category) => (
+                  <option key={category} value={category} style={{ backgroundColor: '#2d2e32', color: '#ffffff' }}>
+                    {category}
+                  </option>
+                ))}
+              </select>
+              <div style={{
+                position: 'absolute',
+                right: '12px',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                pointerEvents: 'none',
+                color: '#6c9fff'
+              }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <path d="M6 9l6 6 6-6"/>
+                </svg>
+              </div>
             </div>
           </div>
           
@@ -299,9 +389,23 @@ export default function BooksList() {
     return (
       <div className="row">
         <div className="col-12">
-          {/* Buscador */}
-          <div className="search-container mb-4">
-            <div className="search-box" style={{ position: 'relative', maxWidth: '500px', margin: '0 auto' }}>
+          {/* Buscador + Dropdown en línea */}
+          <div className="search-filter-container mb-4" style={{ 
+            padding: '0 16px',
+            display: 'flex',
+            flexDirection: 'row',
+            gap: '12px',
+            maxWidth: '800px',
+            margin: '0 auto',
+            flexWrap: 'wrap',
+            justifyContent: 'center'
+          }}>
+            <div className="search-box" style={{ 
+              position: 'relative', 
+              flex: '1 1 300px',
+              maxWidth: '500px',
+              minWidth: '200px'
+            }}>
               <input
                 type="text"
                 placeholder="Buscar libros..."
@@ -309,19 +413,19 @@ export default function BooksList() {
                 onChange={(e) => setSearchTerm(e.target.value)}
                 style={{
                   width: '100%',
-                  padding: '14px 20px 14px 60px',
+                  padding: '12px 44px 12px 44px',
                   border: '2px solid #3a3b3f',
-                  borderRadius: '25px',
+                  borderRadius: '12px',
                   backgroundColor: '#2d2e32',
                   color: '#ffffff',
-                  fontSize: '16px',
+                  fontSize: '15px',
                   outline: 'none',
                   transition: 'border-color 0.3s ease',
-                  minHeight: '48px'
+                  height: '48px'
                 }}
                 className="search-input-placeholder-white"
                 onFocus={(e) => {
-                  e.target.style.borderColor = '#D0FF71';
+                  e.target.style.borderColor = '#6c9fff';
                 }}
                 onBlur={(e) => {
                   e.target.style.borderColor = '#3a3b3f';
@@ -330,57 +434,67 @@ export default function BooksList() {
               <div 
                 style={{
                   position: 'absolute',
-                  left: '20px',
+                  left: '14px',
                   top: '50%',
                   transform: 'translateY(-50%)',
-                  color: '#a0a0a0',
-                  pointerEvents: 'none'
+                  color: '#6c9fff',
+                  pointerEvents: 'none',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
                 }}
               >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M21 21L16.514 16.506L21 21ZM19 10.5C19 15.194 15.194 19 10.5 19C5.806 19 2 15.194 2 10.5C2 5.806 5.806 2 10.5 2C15.194 2 19 5.806 19 10.5Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2"/>
+                  <path d="M20 20L16.5 16.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
                 </svg>
               </div>
             </div>
-          </div>
 
-          {/* Filtros de categoría */}
-          <div className="mb-4" style={{ padding: '0 16px' }}>
-            <div className="d-flex flex-wrap gap-2 justify-content-center">
-              {categories.map((category) => (
-                <button
-                  key={category}
-                  onClick={() => setSelectedCategory(category)}
-                  style={{
-                    background: selectedCategory === category 
-                      ? 'linear-gradient(135deg, #D0FF71 0%, #a8d65a 100%)'
-                      : 'rgba(58, 59, 63, 0.5)',
-                    color: selectedCategory === category ? '#1a1b1e' : '#ffffff',
-                    border: '1px solid #3a3b3f',
-                    borderRadius: '20px',
-                    padding: '8px 16px',
-                    fontSize: '14px',
-                    fontWeight: '600',
-                    cursor: 'pointer',
-                    transition: 'all 0.3s ease',
-                    whiteSpace: 'nowrap'
-                  }}
-                  onMouseEnter={(e) => {
-                    if (selectedCategory !== category) {
-                      e.currentTarget.style.background = 'rgba(208, 255, 113, 0.2)';
-                      e.currentTarget.style.borderColor = '#D0FF71';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (selectedCategory !== category) {
-                      e.currentTarget.style.background = 'rgba(58, 59, 63, 0.5)';
-                      e.currentTarget.style.borderColor = '#3a3b3f';
-                    }
-                  }}
-                >
-                  {category}
-                </button>
-              ))}
+            <div style={{ position: 'relative', flex: '0 0 auto', minWidth: '160px' }}>
+              <select
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '12px 36px 12px 14px',
+                  backgroundColor: '#2d2e32',
+                  color: '#ffffff',
+                  border: '2px solid #3a3b3f',
+                  borderRadius: '12px',
+                  fontSize: '15px',
+                  fontWeight: '500',
+                  cursor: 'pointer',
+                  appearance: 'none',
+                  outline: 'none',
+                  transition: 'border-color 0.3s ease',
+                  height: '48px'
+                }}
+                onFocus={(e) => {
+                  e.target.style.borderColor = '#6c9fff';
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = '#3a3b3f';
+                }}
+              >
+                {categories.map((category) => (
+                  <option key={category} value={category} style={{ backgroundColor: '#2d2e32', color: '#ffffff' }}>
+                    {category}
+                  </option>
+                ))}
+              </select>
+              <div style={{
+                position: 'absolute',
+                right: '12px',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                pointerEvents: 'none',
+                color: '#6c9fff'
+              }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <path d="M6 9l6 6 6-6"/>
+                </svg>
+              </div>
             </div>
           </div>
           
@@ -420,14 +534,28 @@ export default function BooksList() {
         /* Estilos mobile para la biblioteca */
         @media (max-width: 768px) {
           .book-card {
-            min-height: 320px !important;
-            padding: 12px !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            text-align: center;
+            padding: 0 !important;
+          }
+          
+          .book-card .book-cover {
+            width: 100% !important;
+            min-width: 100% !important;
+            height: auto !important;
+            aspect-ratio: 3/4;
+            border-radius: 12px 12px 0 0 !important;
+          }
+          
+          .book-card .book-content {
+            padding: 16px !important;
+            width: 100%;
           }
           
           .book-title {
-            font-size: 14px !important;
-            line-height: 1.2 !important;
-            min-height: 2.4em !important;
+            font-size: 15px !important;
+            line-height: 1.3 !important;
           }
           
           .search-container {
@@ -439,26 +567,8 @@ export default function BooksList() {
           }
           
           .search-box input {
-            font-size: 16px !important; /* Previene zoom en iOS */
+            font-size: 16px !important;
             padding: 12px 20px 12px 45px !important;
-          }
-          
-          /* Estilos para portadas en mobile */
-          .book-cover {
-            height: 140px !important;
-            border-radius: 0 !important;
-          }
-        }
-        
-        /* Estilos para desktop */
-        @media (min-width: 769px) {
-          .book-cover {
-            height: 200px !important;
-            border-radius: 0 !important;
-          }
-          
-          .book-card {
-            min-height: 380px !important;
           }
         }
         
@@ -467,20 +577,6 @@ export default function BooksList() {
           .book-card {
             touch-action: manipulation;
             -webkit-tap-highlight-color: transparent;
-            flex-direction: column !important;
-            align-items: stretch !important;
-            text-align: center;
-          }
-          
-          .book-card .book-cover {
-            width: 100% !important;
-            min-width: 100% !important;
-            height: 200px !important;
-            margin-bottom: 12px;
-          }
-          
-          .book-card .book-cover img {
-            border-radius: 8px 8px 0 0 !important;
           }
           
           .search-box button {
@@ -490,13 +586,23 @@ export default function BooksList() {
         }
       `}</style>
       
-      {/* Buscador mobile-friendly */}
-      <div className="search-container mb-4">
+      {/* Buscador + Dropdown en una línea */}
+      <div className="search-filter-container mb-4" style={{ 
+        padding: '0 16px',
+        display: 'flex',
+        flexDirection: 'row',
+        gap: '12px',
+        maxWidth: '800px',
+        margin: '0 auto',
+        flexWrap: 'wrap',
+        justifyContent: 'center'
+      }}>
+        {/* Buscador */}
         <div className="search-box" style={{ 
           position: 'relative', 
-          maxWidth: '500px', 
-          margin: '0 auto',
-          padding: '0 16px' // Padding para mobile
+          flex: '1 1 300px',
+          maxWidth: '500px',
+          minWidth: '200px'
         }}>
           <input
             type="text"
@@ -505,19 +611,19 @@ export default function BooksList() {
             onChange={(e) => setSearchTerm(e.target.value)}
             style={{
               width: '100%',
-              padding: '14px 20px 14px 60px',
+              padding: '12px 44px 12px 44px',
               border: '2px solid #3a3b3f',
-              borderRadius: '25px',
+              borderRadius: '12px',
               backgroundColor: '#2d2e32',
               color: '#ffffff',
-              fontSize: '16px',
+              fontSize: '15px',
               outline: 'none',
               transition: 'border-color 0.3s ease',
-              minHeight: '48px' // Altura mínima para touch
+              height: '48px'
             }}
             className="search-input-placeholder-white"
             onFocus={(e) => {
-              e.target.style.borderColor = '#D0FF71';
+              e.target.style.borderColor = '#6c9fff';
             }}
             onBlur={(e) => {
               e.target.style.borderColor = '#3a3b3f';
@@ -526,15 +632,19 @@ export default function BooksList() {
           <div 
             style={{
               position: 'absolute',
-              left: '20px',
+              left: '14px',
               top: '50%',
               transform: 'translateY(-50%)',
-              color: '#a0a0a0',
-              pointerEvents: 'none'
+              color: '#6c9fff',
+              pointerEvents: 'none',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
             }}
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M21 21L16.514 16.506L21 21ZM19 10.5C19 15.194 15.194 19 10.5 19C5.806 19 2 15.194 2 10.5C2 5.806 5.806 2 10.5 2C15.194 2 19 5.806 19 10.5Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2"/>
+              <path d="M20 20L16.5 16.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
             </svg>
           </div>
           
@@ -544,72 +654,83 @@ export default function BooksList() {
               onClick={() => setSearchTerm('')}
               style={{
                 position: 'absolute',
-                right: '20px',
+                right: '12px',
                 top: '50%',
                 transform: 'translateY(-50%)',
-                background: 'none',
+                background: 'rgba(255,255,255,0.1)',
                 border: 'none',
                 color: '#a0a0a0',
                 cursor: 'pointer',
-                padding: '6px',
+                padding: '4px',
                 borderRadius: '50%',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                transition: 'color 0.3s ease'
+                transition: 'all 0.2s ease',
+                width: '24px',
+                height: '24px'
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.color = '#ffffff';
+                e.currentTarget.style.background = 'rgba(255,255,255,0.2)';
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.color = '#a0a0a0';
+                e.currentTarget.style.background = 'rgba(255,255,255,0.1)';
               }}
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </button>
           )}
         </div>
-      </div>
 
-      {/* Filtros de categoría */}
-      <div className="mb-4" style={{ padding: '0 16px' }}>
-        <div className="d-flex flex-wrap gap-2 justify-content-center">
-          {categories.map((category) => (
-            <button
-              key={category}
-              onClick={() => setSelectedCategory(category)}
-              style={{
-                background: selectedCategory === category 
-                  ? 'linear-gradient(135deg, #D0FF71 0%, #a8d65a 100%)'
-                  : 'rgba(58, 59, 63, 0.5)',
-                color: selectedCategory === category ? '#1a1b1e' : '#ffffff',
-                border: '1px solid #3a3b3f',
-                borderRadius: '20px',
-                padding: '8px 16px',
-                fontSize: '14px',
-                fontWeight: '600',
-                cursor: 'pointer',
-                transition: 'all 0.3s ease',
-                whiteSpace: 'nowrap'
-              }}
-              onMouseEnter={(e) => {
-                if (selectedCategory !== category) {
-                  e.currentTarget.style.background = 'rgba(208, 255, 113, 0.2)';
-                  e.currentTarget.style.borderColor = '#D0FF71';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (selectedCategory !== category) {
-                  e.currentTarget.style.background = 'rgba(58, 59, 63, 0.5)';
-                  e.currentTarget.style.borderColor = '#3a3b3f';
-                }
-              }}
-            >
-              {category}
-            </button>
-          ))}
+        {/* Dropdown de categoría */}
+        <div style={{ position: 'relative', flex: '0 0 auto', minWidth: '160px' }}>
+          <select
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
+            style={{
+              width: '100%',
+              padding: '12px 36px 12px 14px',
+              backgroundColor: '#2d2e32',
+              color: '#ffffff',
+              border: '2px solid #3a3b3f',
+              borderRadius: '12px',
+              fontSize: '15px',
+              fontWeight: '500',
+              cursor: 'pointer',
+              appearance: 'none',
+              outline: 'none',
+              transition: 'border-color 0.3s ease',
+              height: '48px'
+            }}
+            onFocus={(e) => {
+              e.target.style.borderColor = '#6c9fff';
+            }}
+            onBlur={(e) => {
+              e.target.style.borderColor = '#3a3b3f';
+            }}
+          >
+            {categories.map((category) => (
+              <option key={category} value={category} style={{ backgroundColor: '#2d2e32', color: '#ffffff' }}>
+                {category}
+              </option>
+            ))}
+          </select>
+          <div style={{
+            position: 'absolute',
+            right: '12px',
+            top: '50%',
+            transform: 'translateY(-50%)',
+            pointerEvents: 'none',
+            color: '#6c9fff'
+          }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <path d="M6 9l6 6 6-6"/>
+            </svg>
+          </div>
         </div>
       </div>
 
@@ -642,178 +763,157 @@ export default function BooksList() {
 
       {/* Lista de libros en filas */}
       <div className="books-list" style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '0 16px' }}>
-        {paginatedBooks.map((book, index) => (
-          <a 
-            key={book.filename}
-            href={book.pdfUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="book-card"
-            style={{
-              background: 'linear-gradient(135deg, #2d2e32 0%, #1a1b1e 100%)',
-              border: '1px solid #3a3b3f',
-              borderRadius: '12px',
-              padding: '16px',
-              cursor: 'pointer',
-              transition: 'all 0.3s ease',
-              position: 'relative',
-              overflow: 'hidden',
-              display: 'flex',
-              flexDirection: 'row',
-              alignItems: 'center',
-              gap: '20px',
-              textDecoration: 'none',
-              color: 'inherit',
-              width: '100%'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = '#D0FF71';
-              e.currentTarget.style.boxShadow = '0 8px 25px rgba(208, 255, 113, 0.3)';
-              e.currentTarget.style.transform = 'translateX(4px)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.borderColor = '#3a3b3f';
-              e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.3)';
-              e.currentTarget.style.transform = 'translateX(0)';
-            }}
-          >
-            {/* Portada del libro */}
-            <div 
-              className="book-cover"
+        {paginatedBooks.map((book, index) => {
+          const categoryColors = getCategoryColor(book.category || 'General');
+          return (
+            <a 
+              key={book.filename}
+              href={book.pdfUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="book-card"
               style={{
-                width: '80px',
-                minWidth: '80px',
-                height: '110px',
-                borderRadius: '8px',
-                overflow: 'hidden',
+                background: 'linear-gradient(135deg, #2d2e32 0%, #1a1b1e 100%)',
+                border: '1px solid #3a3b3f',
+                borderRadius: '12px',
+                padding: '0',
+                cursor: 'pointer',
                 position: 'relative',
-                background: 'transparent',
+                overflow: 'hidden',
                 display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0
+                flexDirection: 'row',
+                alignItems: 'stretch',
+                gap: '0',
+                textDecoration: 'none',
+                color: 'inherit',
+                width: '100%'
               }}
             >
-              {book.coverUrl ? (
-                <img
-                  src={book.coverUrl}
-                  alt={book.title}
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'cover',
-                    objectPosition: 'center',
-                    transition: 'transform 0.3s ease'
-                  }}
-                  onError={(e) => {
-                    e.currentTarget.style.display = 'none';
-                    e.currentTarget.nextElementSibling?.setAttribute('style', 'display: flex');
-                  }}
-                />
-              ) : null}
-              
-              {/* Icono por defecto cuando no hay portada */}
-              <div style={{
-                display: book.coverUrl ? 'none' : 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                width: '100%',
-                height: '100%',
-                background: 'rgba(208, 255, 113, 0.1)',
-                borderRadius: '8px'
-              }}>
-                <svg 
-                  width="32" 
-                  height="32" 
-                  viewBox="0 0 24 24" 
-                  fill="none" 
-                  xmlns="http://www.w3.org/2000/svg"
-                  style={{ color: '#D0FF71' }}
-                >
-                  <path 
-                    d="M4 19.5C4 18.1193 5.11929 17 6.5 17H20" 
-                    stroke="currentColor" 
-                    strokeWidth="1.5" 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round"
-                  />
-                  <path 
-                    d="M6.5 2H20V22H6.5C5.11929 22 4 20.8807 4 19.5V4.5C4 3.11929 5.11929 2 6.5 2Z" 
-                    stroke="currentColor" 
-                    strokeWidth="1.5" 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round"
-                  />
-                  <path 
-                    d="M8 7H16M8 11H16M8 15H12" 
-                    stroke="currentColor" 
-                    strokeWidth="1.5" 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </div>
-            </div>
-
-            {/* Contenido del libro */}
-            <div style={{ flex: 1, minWidth: 0 }}>
-              {/* Categoría */}
-              <span style={{
-                background: 'rgba(208, 255, 113, 0.2)',
-                color: '#D0FF71',
-                padding: '4px 8px',
-                borderRadius: '12px',
-                fontSize: '11px',
-                fontWeight: '600',
-                display: 'inline-block',
-                marginBottom: '8px'
-              }}>
-                {book.category || 'General'}
-              </span>
-
-              {/* Título del libro */}
-              <h5 
-                className="book-title"
+              {/* Portada del libro */}
+              <div 
+                className="book-cover"
                 style={{
-                  color: '#ffffff',
-                  fontSize: '16px',
-                  fontWeight: '600',
-                  lineHeight: '1.3',
-                  margin: '0 0 8px 0',
+                  width: '120px',
+                  minWidth: '120px',
+                  height: '160px',
                   overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap'
+                  position: 'relative',
+                  background: 'rgba(108, 159, 255, 0.05)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                  borderRadius: '12px 0 0 12px'
                 }}
               >
-                {book.title}
-              </h5>
-
-              {/* Información del libro */}
-              {book.size && (
-                <div style={{ 
-                  color: '#a0a0a0', 
-                  fontSize: '12px'
+                {book.coverUrl ? (
+                  <img
+                    src={book.coverUrl}
+                    alt={book.title}
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover',
+                      objectPosition: 'center'
+                    }}
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                      e.currentTarget.nextElementSibling?.setAttribute('style', 'display: flex');
+                    }}
+                  />
+                ) : null}
+                
+                {/* Icono por defecto cuando no hay portada */}
+                <div style={{
+                  display: book.coverUrl ? 'none' : 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '100%',
+                  height: '100%',
+                  background: 'rgba(108, 159, 255, 0.1)',
+                  borderRadius: '8px'
                 }}>
-                  📄 {(book.size / 1024 / 1024).toFixed(1)} MB
+                  <svg 
+                    width="32" 
+                    height="32" 
+                    viewBox="0 0 24 24" 
+                    fill="none" 
+                    xmlns="http://www.w3.org/2000/svg"
+                    style={{ color: '#6c9fff' }}
+                  >
+                    <path 
+                      d="M4 19.5C4 18.1193 5.11929 17 6.5 17H20" 
+                      stroke="currentColor" 
+                      strokeWidth="1.5" 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round"
+                    />
+                    <path 
+                      d="M6.5 2H20V22H6.5C5.11929 22 4 20.8807 4 19.5V4.5C4 3.11929 5.11929 2 6.5 2Z" 
+                      stroke="currentColor" 
+                      strokeWidth="1.5" 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round"
+                    />
+                    <path 
+                      d="M8 7H16M8 11H16M8 15H12" 
+                      stroke="currentColor" 
+                      strokeWidth="1.5" 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round"
+                    />
+                  </svg>
                 </div>
-              )}
-            </div>
+              </div>
 
-            {/* Flecha indicadora - solo desktop */}
-            <div 
-              className="d-none d-md-flex"
-              style={{ 
-                color: '#D0FF71', 
-                flexShrink: 0,
-                alignItems: 'center'
-              }}
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M9 18l6-6-6-6"/>
-              </svg>
-            </div>
-          </a>
-        ))}
+              {/* Contenido del libro */}
+              <div className="book-content" style={{ flex: 1, minWidth: 0, padding: '16px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                {/* Categoría con color distintivo */}
+                <span style={{
+                  background: categoryColors.bg,
+                  color: categoryColors.text,
+                  padding: '4px 10px',
+                  borderRadius: '12px',
+                  fontSize: '11px',
+                  fontWeight: '600',
+                  display: 'inline-block',
+                  marginBottom: '10px',
+                  width: 'fit-content'
+                }}>
+                  {book.category || 'General'}
+                </span>
+
+                {/* Título del libro */}
+                <h5 
+                  className="book-title"
+                  style={{
+                    color: '#ffffff',
+                    fontSize: '17px',
+                    fontWeight: '600',
+                    lineHeight: '1.4',
+                    margin: '0 0 8px 0',
+                    display: '-webkit-box',
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: 'vertical',
+                    overflow: 'hidden'
+                  }}
+                >
+                  {book.title}
+                </h5>
+
+                {/* Información del libro */}
+                {book.size && (
+                  <div style={{ 
+                    color: '#a0a0a0', 
+                    fontSize: '13px'
+                  }}>
+                    📄 {(book.size / 1024 / 1024).toFixed(1)} MB
+                  </div>
+                )}
+              </div>
+            </a>
+          );
+        })}
       </div>
 
       {/* Paginación */}
@@ -837,8 +937,8 @@ export default function BooksList() {
             disabled={currentPage === 1}
             style={{
               padding: '10px 16px',
-              backgroundColor: currentPage === 1 ? '#2d2e32' : '#D0FF71',
-              color: currentPage === 1 ? '#666' : '#1a1b1e',
+              backgroundColor: currentPage === 1 ? '#2d2e32' : '#6c9fff',
+              color: currentPage === 1 ? '#666' : '#ffffff',
               border: '1px solid #3a3b3f',
               borderRadius: '8px',
               cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
@@ -866,12 +966,12 @@ export default function BooksList() {
                 style={{
                   padding: '10px 14px',
                   backgroundColor: page === currentPage 
-                    ? '#D0FF71' 
+                    ? '#6c9fff' 
                     : page === '...' 
                       ? 'transparent' 
                       : '#2d2e32',
                   color: page === currentPage 
-                    ? '#1a1b1e' 
+                    ? '#ffffff' 
                     : page === '...' 
                       ? '#666' 
                       : '#ffffff',
@@ -885,8 +985,8 @@ export default function BooksList() {
                 }}
                 onMouseEnter={(e) => {
                   if (page !== currentPage && page !== '...') {
-                    e.currentTarget.style.backgroundColor = 'rgba(208, 255, 113, 0.2)';
-                    e.currentTarget.style.borderColor = '#D0FF71';
+                    e.currentTarget.style.backgroundColor = 'rgba(108, 159, 255, 0.2)';
+                    e.currentTarget.style.borderColor = '#6c9fff';
                   }
                 }}
                 onMouseLeave={(e) => {
@@ -907,8 +1007,8 @@ export default function BooksList() {
             disabled={currentPage === totalPages}
             style={{
               padding: '10px 16px',
-              backgroundColor: currentPage === totalPages ? '#2d2e32' : '#D0FF71',
-              color: currentPage === totalPages ? '#666' : '#1a1b1e',
+              backgroundColor: currentPage === totalPages ? '#2d2e32' : '#6c9fff',
+              color: currentPage === totalPages ? '#666' : '#ffffff',
               border: '1px solid #3a3b3f',
               borderRadius: '8px',
               cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',

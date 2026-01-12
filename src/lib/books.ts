@@ -112,10 +112,10 @@ export async function getBooks(): Promise<Book[]> {
       });
       
       // Construir URLs
-      // Para el visor de libros: /club/libros/ver?path=categoria/libro/book.pdf
+      // Para el visor de libros: /club/libros/categoria/libro
       // Para la API: /api/books/categoria/libro/book.pdf
       const fullPath = `${bookKey}/book.pdf`;
-      const viewerUrl = `/club/libros/ver?path=${encodeURIComponent(fullPath)}`;
+      const viewerUrl = `/club/libros/${bookKey}`;
       const apiUrl = `/api/books/${bookKey}/book.pdf`;
       const coverUrl = coverFile ? `/api/books/cover/${bookKey}/${coverFile.Key.split('/').pop()}` : undefined;
       

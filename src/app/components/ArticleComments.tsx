@@ -18,10 +18,10 @@ interface Comment {
 }
 
 interface ArticleCommentsProps {
-  articleSlug: string
+  slug: string
 }
 
-export default function ArticleComments({ articleSlug }: ArticleCommentsProps) {
+export default function ArticleComments({ slug }: ArticleCommentsProps) {
   const { isAuthenticated, token, user } = useAuth()
   const router = useRouter()
   const [comments, setComments] = useState<Comment[]>([])
@@ -29,14 +29,18 @@ export default function ArticleComments({ articleSlug }: ArticleCommentsProps) {
   const [submitting, setSubmitting] = useState(false)
   const [newComment, setNewComment] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const [deletingCommentId, setDeletingCommentId] = useState<string | null>(null)
+
+  // Verificar si el usuario es admin
+  const isAdmin = user?.role?.name === 'admin'
 
   useEffect(() => {
     loadComments()
-  }, [articleSlug])
+  }, [slug])
 
   const loadComments = async () => {
     try {
-      const res = await fetch(`/api/articles/${articleSlug}/comments`)
+      const res = await fetch(`/api/articles/${slug}/comments`)
       if (res.ok) {
         const data = await res.json()
         setComments(data.comments || [])
@@ -63,7 +67,7 @@ export default function ArticleComments({ articleSlug }: ArticleCommentsProps) {
       setSubmitting(true)
       setError(null)
 
-      const res = await fetch(`/api/articles/${articleSlug}/comments`, {
+      const res = await fetch(`/api/articles/${slug}/comments`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -89,6 +93,37 @@ export default function ArticleComments({ articleSlug }: ArticleCommentsProps) {
     }
   }
 
+  const handleDeleteComment = async (commentId: string) => {
+    if (!token || deletingCommentId) return
+
+    const confirmDelete = window.confirm('¿Estás seguro de que quieres eliminar este comentario?')
+    if (!confirmDelete) return
+
+    try {
+      setDeletingCommentId(commentId)
+      const res = await fetch(`/api/articles/comments/${commentId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+
+      if (res.ok) {
+        // Remover el comentario de la lista
+        setComments(prev => prev.filter(c => c.id !== commentId))
+      } else if (res.status === 401) {
+        router.push(`/ingresar?redirect=${encodeURIComponent(window.location.pathname)}`)
+      } else {
+        const errorData = await res.json()
+        alert(errorData.error || 'Error al eliminar comentario')
+      }
+    } catch (error) {
+      alert('Error de red al eliminar comentario')
+    } finally {
+      setDeletingCommentId(null)
+    }
+  }
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
     const now = new Date()
@@ -109,8 +144,7 @@ export default function ArticleComments({ articleSlug }: ArticleCommentsProps) {
   return (
     <div style={{ 
       marginTop: '3rem',
-      paddingTop: '3rem',
-      borderTop: '1px solid rgba(255, 255, 255, 0.1)'
+      paddingTop: '2rem'
     }}>
       <h3 style={{ 
         color: '#ffffff', 
@@ -131,6 +165,7 @@ export default function ArticleComments({ articleSlug }: ArticleCommentsProps) {
               placeholder="Escribe tu comentario..."
               rows={4}
               maxLength={2000}
+              className="comment-textarea"
               style={{
                 width: '100%',
                 background: '#2d2e32',
@@ -144,6 +179,11 @@ export default function ArticleComments({ articleSlug }: ArticleCommentsProps) {
                 minHeight: '100px'
               }}
             />
+            <style jsx>{`
+              .comment-textarea::placeholder {
+                color: rgba(255, 255, 255, 0.5) !important;
+              }
+            `}</style>
             <div style={{ 
               display: 'flex', 
               justifyContent: 'space-between',
@@ -226,8 +266,28 @@ export default function ArticleComments({ articleSlug }: ArticleCommentsProps) {
 
       {/* Lista de comentarios */}
       {loading ? (
-        <div style={{ textAlign: 'center', padding: '40px', color: '#a0a0a0' }}>
-          Cargando comentarios...
+        <div style={{ 
+          display: 'flex', 
+          flexDirection: 'column',
+          alignItems: 'center', 
+          justifyContent: 'center',
+          padding: '40px', 
+          gap: '16px'
+        }}>
+          <div style={{ 
+            width: '40px', 
+            height: '40px', 
+            border: '3px solid #3a3b3f',
+            borderTopColor: '#D0FF71',
+            borderRadius: '50%',
+            animation: 'spin 0.8s linear infinite'
+          }} />
+          <span style={{ color: '#a0a0a0', fontSize: '14px' }}>Cargando comentarios...</span>
+          <style jsx>{`
+            @keyframes spin {
+              to { transform: rotate(360deg); }
+            }
+          `}</style>
         </div>
       ) : comments.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '40px', color: '#a0a0a0' }}>
@@ -270,13 +330,50 @@ export default function ArticleComments({ articleSlug }: ArticleCommentsProps) {
                   )}
                 </div>
                 <div style={{ flex: 1 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                    <span style={{ color: '#ffffff', fontWeight: '600', fontSize: '14px' }}>
-                      {comment.user.name || comment.user.username || 'Usuario'}
-                    </span>
-                    <span style={{ color: '#a0a0a0', fontSize: '12px' }}>
-                      {formatDate(comment.createdAt)}
-                    </span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', justifyContent: 'space-between' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ color: '#ffffff', fontWeight: '600', fontSize: '14px' }}>
+                        {comment.user.name || comment.user.username || 'Usuario'}
+                      </span>
+                      <span style={{ color: '#a0a0a0', fontSize: '12px' }}>
+                        {formatDate(comment.createdAt)}
+                      </span>
+                    </div>
+                    {(isAdmin || comment.user.id === user?.id) && (
+                      <button
+                        onClick={() => handleDeleteComment(comment.id)}
+                        disabled={deletingCommentId === comment.id}
+                        style={{
+                          background: 'transparent',
+                          border: 'none',
+                          cursor: deletingCommentId === comment.id ? 'not-allowed' : 'pointer',
+                          padding: '4px 8px',
+                          borderRadius: '4px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          color: '#dc3545',
+                          fontSize: '12px',
+                          opacity: deletingCommentId === comment.id ? 0.5 : 1,
+                          transition: 'all 0.2s'
+                        }}
+                        onMouseEnter={(e) => {
+                          if (deletingCommentId !== comment.id) {
+                            e.currentTarget.style.background = 'rgba(220, 53, 69, 0.1)'
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.background = 'transparent'
+                        }}
+                        title="Eliminar comentario"
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <polyline points="3 6 5 6 21 6"></polyline>
+                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                        </svg>
+                        {deletingCommentId === comment.id ? 'Eliminando...' : 'Eliminar'}
+                      </button>
+                    )}
                   </div>
                   <p style={{ 
                     color: '#ffffff', 
