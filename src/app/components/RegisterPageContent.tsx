@@ -4,7 +4,7 @@ import { useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import RegisterForm from '@/app/components/RegisterForm'
-import Header from '@/app/components/Header'
+import Navigation from '@/app/components/Navigation'
 import MobileHeader from '@/app/components/MobileHeader'
 import Footer from '@/app/components/Footer'
 
@@ -23,8 +23,7 @@ export default function RegisterPageContent() {
 
   return (
     <>
-      <Header />
-      <MobileHeader />
+      <Navigation />
 
       {/* Main Content */}
       <main>

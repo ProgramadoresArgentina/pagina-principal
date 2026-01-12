@@ -2,8 +2,7 @@ import { JSX } from "react";
 import { Metadata } from "next";
 import Link from "next/link";
 import BackToTop from "./components/BackToTop";
-import Header from "./components/Header";
-import MobileHeader from "./components/MobileHeader";
+import Navigation from "./components/Navigation";
 // import ForumPostsSlider from "./components/ForumPostsSlider";
 import PublicGroups from "./components/PublicGroups";
 import BooksSlider from "./components/BooksSlider";
@@ -128,8 +127,7 @@ export default function Home(): JSX.Element {
         }} 
       />
       <BackToTop />
-      <Header />
-      <MobileHeader />
+      <Navigation />
 
       <div id="smooth-wrapper">
         <div id="smooth-content">
@@ -318,32 +316,6 @@ export default function Home(): JSX.Element {
               </div>
             </div>
 
-            <div className="tp-video-area black-bg mt-120 fix">
-              <div className="container-fluid p-0">
-                <div className="tp-video-thumb-wrap">
-                  <div className="tp-video-thumb d-none d-xl-block">
-                    <img src="/assets/images/pic-3.webp" alt="Desarrolladores trabajando en Argentina" height="500" />
-                  </div>
-                  <div className="tp-video-thumb mb-25">
-                    <video loop muted autoPlay playsInline>
-                      <source src="/assets/images/banner-landing-programadoresargentina.mp4" type="video/mp4" />
-                    </video>
-                  </div>
-                  <div className="tp-video-thumb d-none d-md-flex justify-content-center align-items-center mb-25">
-                    <img src="/assets/images/pc-programadoresargentina.webp" alt="Programadores Argentina - Comunidad Tech" style={{ height: '300px', objectFit: 'contain' }} />
-                  </div>
-                  <div className="tp-video-thumb d-none d-md-flex justify-content-center align-items-center mb-25">
-                    <img src="/assets/images/juguito-programadoresargentina.webp" alt="Comunidad de Desarrolladores Argentina" style={{ height: '300px', objectFit: 'contain' }} />
-                  </div>
-                  <div className="tp-video-thumb d-none d-xl-block">
-                    <img src="/assets/images/pic-2.webp" alt="Networking de programadores argentinos" />
-                  </div>
-                  <div className="tp-video-thumb d-none d-xl-block mb-25">
-                    <img src="/assets/images/pic-1.webp" alt="Oportunidades laborales para desarrolladores" />
-                  </div>
-                </div>
-              </div>
-            </div>
           </main>
 
           <Footer />

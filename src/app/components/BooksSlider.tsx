@@ -344,7 +344,7 @@ export default function BooksSlider() {
           </div>
           <div className="col-lg-9">
             <h2 className="tp-section-title-teko fs-80" style={{ color: '#ffffff' }}>
-              Libros <span style={{ color: '#6c9fff' }}>Exclusivos</span>
+              Biblioteca de la <span style={{ color: '#6c9fff' }}>Comunidad</span>
             </h2>
             <p style={{ color: '#a0a0a0', fontSize: '16px', marginTop: '10px' }}>
               Accede a nuestra biblioteca digital con recursos técnicos seleccionados para la comunidad

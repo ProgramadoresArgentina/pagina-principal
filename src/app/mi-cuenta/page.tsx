@@ -3,7 +3,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
-import Header from '@/app/components/Header'
+import Navigation from '@/app/components/Navigation'
 import MobileHeader from '@/app/components/MobileHeader'
 import Footer from '@/app/components/Footer'
 import AllBadgesTab from '@/app/components/AllBadgesTab'
@@ -69,8 +69,7 @@ export default function MiCuentaPage() {
 
   return (
     <>
-      <Header />
-      <MobileHeader />
+      <Navigation />
       <main style={{ background: '#0a0b0d', minHeight: '100vh' }}>
         <section className="tp-login-area pt-120 pb-140 p-relative z-index-1 fix" style={{ background: 'transparent' }}>
           <div className="container container-1230">

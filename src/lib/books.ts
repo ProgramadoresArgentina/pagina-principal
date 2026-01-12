@@ -111,11 +111,25 @@ export async function getBooks(): Promise<Book[]> {
         hasCover: !!coverFile
       });
       
+      // Normalizar nombres para URLs (reemplazar espacios y caracteres especiales)
+      const normalizeForUrl = (str: string) => {
+        return str
+          .toLowerCase()
+          .replace(/\s+/g, '-') // Reemplazar espacios con guiones
+          .replace(/[^\w\-]/g, '') // Remover caracteres especiales
+          .replace(/\-+/g, '-') // Múltiples guiones a uno solo
+          .trim();
+      };
+      
       // Construir URLs
       // Para el visor de libros: /club/libros/categoria/libro
       // Para la API: /api/books/categoria/libro/book.pdf
+      const normalizedCategory = normalizeForUrl(category);
+      const normalizedBookName = normalizeForUrl(bookName);
+      const normalizedBookKey = `${normalizedCategory}/${normalizedBookName}`;
+      
       const fullPath = `${bookKey}/book.pdf`;
-      const viewerUrl = `/club/libros/${bookKey}`;
+      const viewerUrl = `/club/libros/${normalizedBookKey}`;
       const apiUrl = `/api/books/${bookKey}/book.pdf`;
       const coverUrl = coverFile ? `/api/books/cover/${bookKey}/${coverFile.Key.split('/').pop()}` : undefined;
       
@@ -150,18 +164,45 @@ export async function getBooks(): Promise<Book[]> {
   }
 }
 
+// Función para normalizar strings para búsqueda
+function normalizeForComparison(str: string): string {
+  return str
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '') // Remover acentos
+    .replace(/\s+/g, '-') // Reemplazar espacios con guiones
+    .replace(/[^\w\-]/g, ''); // Remover caracteres especiales
+}
+
 // Función para obtener un libro específico
 export async function getBook(filename: string): Promise<Book | null> {
   try {
-    // Primero obtener todos los libros y buscar el específico
+    // Primero obtener todos los libros
     const books = await getBooks();
-    const book = books.find(b => b.filename === filename);
     
-    if (!book) {
-      return null;
+    // Intentar coincidencia exacta primero
+    let book = books.find(b => b.filename === filename);
+    
+    if (book) {
+      return book;
+    }
+    
+    // Si no hay coincidencia exacta, intentar buscar por ruta normalizada
+    // filename vendrá como "categoria/libro/book.pdf" (posiblemente normalizado)
+    const normalizedInput = normalizeForComparison(filename);
+    
+    book = books.find(b => {
+      const normalizedBook = normalizeForComparison(b.filename);
+      return normalizedBook === normalizedInput;
+    });
+    
+    if (book) {
+      console.log('📚 Book found via normalized search:', { input: filename, found: book.filename });
+      return book;
     }
 
-    return book;
+    console.log('📚 Book not found:', filename);
+    return null;
   } catch (error) {
     console.error(`Error fetching book ${filename} from MinIO:`, error);
     return null;

@@ -1,7 +1,7 @@
 import { JSX } from "react";
 import { Metadata } from "next";
 import BackToTop from "../components/BackToTop";
-import Header from "../components/Header";
+import Navigation from "../components/Navigation";
 import MobileHeader from "../components/MobileHeader";
 import Footer from "../components/Footer";
 import ForumPageContent from "@/app/components/ForumPageContent";
@@ -67,8 +67,7 @@ export default function ForoPage(): JSX.Element {
   return (
     <>
       <BackToTop />
-      <Header />
-      <MobileHeader />
+      <Navigation />
 
       <div id="smooth-wrapper">
         <div id="smooth-content">

@@ -3,8 +3,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import Header from '@/app/components/Header';
-import MobileHeader from '@/app/components/MobileHeader';
+import Navigation from '@/app/components/Navigation';
 import Footer from '@/app/components/Footer';
 import { formatUsdRange, getProjectQuoteSummary, type ProjectQuoteAnswers } from '@/lib/projectQuote';
 
@@ -185,8 +184,7 @@ export default function AdminCotizacionesPage() {
   if (isLoading || loading) {
     return (
       <>
-        <Header />
-        <MobileHeader />
+        <Navigation />
         <main style={{ background: '#0a0b0d', minHeight: '100vh', paddingTop: '120px' }}>
           <div className="container">
             <p style={{ color: '#a0a0a0', textAlign: 'center' }}>Cargando...</p>
@@ -200,8 +198,7 @@ export default function AdminCotizacionesPage() {
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: placeholderStyles }} />
-      <Header />
-      <MobileHeader />
+      <Navigation />
       <main style={{ background: '#0a0b0d', minHeight: '100vh' }}>
         <section className="pt-120 pb-140">
           <div className="container container-1230">

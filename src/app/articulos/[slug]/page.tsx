@@ -4,8 +4,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { cookies } from "next/headers";
 import BackToTop from "../../components/BackToTop";
-import Header from "../../components/Header";
-import MobileHeader from "../../components/MobileHeader";
+import Navigation from "../../components/Navigation";
 import Footer from "../../components/Footer";
 import StructuredData from "../../components/StructuredData";
 import LockedContent from "../../components/LockedContent";
@@ -217,8 +216,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps): Promi
       <>
         <StructuredData type="Article" data={structuredData} />
         <ReadingProgress />
-        <Header />
-        <MobileHeader />
+        <Navigation />
         
         <main className="article-page">
           <article className="article-detail">
@@ -259,8 +257,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps): Promi
     <>
       <StructuredData type="Article" data={structuredData} />
       <ReadingProgress />
-      <Header />
-      <MobileHeader />
+      <Navigation />
       
       <main className="article-page">
         <article className="article-detail">

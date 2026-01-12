@@ -76,7 +76,7 @@ export default function StructuredData({ type, data }: StructuredDataProps): JSX
               {
                 "@type": "ListItem",
                 "position": 4,
-                "name": "Libros Exclusivos",
+                "name": "Biblioteca de la Comunidad",
                 "url": "https://programadoresargentina.com/club/libros"
               },
               {
@@ -161,7 +161,7 @@ export default function StructuredData({ type, data }: StructuredDataProps): JSX
             },
             {
               "@type": "SiteNavigationElement",
-              "name": "Libros Exclusivos",
+              "name": "Biblioteca de la Comunidad",
               "url": "https://programadoresargentina.com/club/libros"
             },
             {

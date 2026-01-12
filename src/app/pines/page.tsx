@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
-import Header from '@/app/components/Header'
+import Navigation from '@/app/components/Navigation'
 import MobileHeader from '@/app/components/MobileHeader'
 import Footer from '@/app/components/Footer'
 import BackToTop from '@/app/components/BackToTop'
@@ -40,8 +40,7 @@ export default function MedallasPage() {
     return (
       <>
         <BackToTop />
-        <Header />
-        <MobileHeader />
+        <Navigation />
         <div className="body-overlay"></div>
         <div id="smooth-wrapper">
           <div id="smooth-content">
@@ -89,8 +88,7 @@ export default function MedallasPage() {
   return (
     <>
       <BackToTop />
-      <Header />
-      <MobileHeader />
+      <Navigation />
       <div className="body-overlay"></div>
       {/* offcanvas area end */}
     

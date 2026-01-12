@@ -336,31 +336,45 @@ export default function BibliotecaList() {
           </div>
 
           {/* Filtro de categoría */}
-          <select
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-            style={{
-              padding: '12px 16px',
-              border: '2px solid #3a3b3f',
-              borderRadius: '12px',
-              backgroundColor: '#2d2e32',
-              color: '#ffffff',
-              fontSize: '15px',
-              outline: 'none',
-              cursor: 'pointer',
-              transition: 'border-color 0.3s ease',
-              height: '48px',
-              minWidth: '160px'
-            }}
-            onFocus={(e) => e.target.style.borderColor = '#6c9fff'}
-            onBlur={(e) => e.target.style.borderColor = '#3a3b3f'}
-          >
-            {categories.map((category) => (
-              <option key={category} value={category}>
-                {category}
-              </option>
-            ))}
-          </select>
+          <div style={{ position: 'relative', minWidth: '160px' }}>
+            <select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              style={{
+                padding: '12px 16px',
+                border: '2px solid #3a3b3f',
+                borderRadius: '12px',
+                backgroundColor: '#2d2e32',
+                color: '#ffffff',
+                fontSize: '15px',
+                outline: 'none',
+                cursor: 'pointer',
+                transition: 'border-color 0.3s ease',
+                height: '48px',
+                minWidth: '160px',
+                appearance: 'none',
+                WebkitAppearance: 'none',
+                MozAppearance: 'none',
+                paddingRight: '40px',
+                backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236c9fff' stroke-width='2'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e")`,
+                backgroundRepeat: 'no-repeat',
+                backgroundPosition: 'right 10px center',
+                backgroundSize: '20px'
+              }}
+              onFocus={(e) => e.target.style.borderColor = '#6c9fff'}
+              onBlur={(e) => e.target.style.borderColor = '#3a3b3f'}
+            >
+              {categories && categories.length > 0 ? (
+                categories.map((category) => (
+                  <option key={category} value={category}>
+                    {category}
+                  </option>
+                ))
+              ) : (
+                <option value="Todas">Todas</option>
+              )}
+            </select>
+          </div>
         </div>
 
         {/* Contador de resultados */}
@@ -379,8 +393,8 @@ export default function BibliotecaList() {
           </div>
         ) : (
           <div className="biblioteca-list" style={{
-            display: 'flex',
-            flexDirection: 'column',
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
             gap: '20px',
             padding: '0 16px'
           }}>
@@ -398,17 +412,16 @@ export default function BibliotecaList() {
                     transition: 'transform 0.3s ease',
                     position: 'relative',
                     display: 'flex',
-                    flexDirection: 'row',
-                    minHeight: '120px'
+                    flexDirection: 'column',
+                    minHeight: '300px'
                   }}
                   className="biblioteca-item"
                 >
-                  {/* Imagen o icono (izquierda) */}
+                  {/* Imagen o icono (arriba) */}
                   {item.type === 'book' && item.imageUrl ? (
                     <div style={{
-                      width: '140px',
-                      minWidth: '140px',
-                      alignSelf: 'stretch',
+                      width: '100%',
+                      height: '160px',
                       overflow: 'hidden',
                       position: 'relative'
                     }}>
@@ -445,9 +458,8 @@ export default function BibliotecaList() {
                     </div>
                   ) : (
                     <div style={{
-                      width: '140px',
-                      minWidth: '140px',
-                      alignSelf: 'stretch',
+                      width: '100%',
+                      height: '160px',
                       background: 'linear-gradient(135deg, #2d2e32 0%, #3a3b3f 100%)',
                       display: 'flex',
                       alignItems: 'center',
@@ -492,19 +504,20 @@ export default function BibliotecaList() {
                     </div>
                   )}
 
-                  {/* Contenido (derecha) */}
-                  <div style={{ padding: '16px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                    {/* Badge de tipo y título en una fila */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px', flexWrap: 'wrap' }}>
-                      <span style={{
-                        display: 'inline-block',
-                        padding: '3px 10px',
-                        borderRadius: '5px',
-                        fontSize: '10px',
-                        fontWeight: '600',
-                        backgroundColor: item.type === 'book' ? 'rgba(108, 159, 255, 0.15)' : 'rgba(76, 175, 80, 0.15)',
-                        color: item.type === 'book' ? '#6c9fff' : '#4caf50',
-                        textTransform: 'uppercase',
+                  {/* Contenido (abajo) */}
+                  <div style={{ padding: '12px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                    {/* Badge de tipo y título en una columna */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '8px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                        <span style={{
+                          display: 'inline-block',
+                          padding: '3px 10px',
+                          borderRadius: '5px',
+                          fontSize: '10px',
+                          fontWeight: '600',
+                          backgroundColor: item.type === 'book' ? 'rgba(108, 159, 255, 0.15)' : 'rgba(76, 175, 80, 0.15)',
+                          color: item.type === 'book' ? '#6c9fff' : '#4caf50',
+                          textTransform: 'uppercase',
                         letterSpacing: '0.5px'
                       }}>
                         {item.type === 'book' ? 'Libro' : 'Artículo'}
@@ -543,6 +556,7 @@ export default function BibliotecaList() {
                           Club
                         </span>
                       )}
+                      </div>
                     </div>
 
                     {/* Título */}
@@ -682,7 +696,7 @@ export default function BibliotecaList() {
 
       <style jsx>{`
         .biblioteca-item:hover {
-          transform: translateX(4px);
+          transform: scale(1.02);
         }
         
         .search-input-placeholder-white::placeholder {
@@ -690,8 +704,14 @@ export default function BibliotecaList() {
         }
         
         @media (max-width: 768px) {
-          .biblioteca-item {
-            flex-direction: column !important;
+          .biblioteca-list {
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)) !important;
+          }
+        }
+        
+        @media (max-width: 480px) {
+          .biblioteca-list {
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)) !important;
           }
         }
       `}</style>

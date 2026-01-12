@@ -1,8 +1,7 @@
 import { JSX } from "react";
 import { Metadata } from "next";
 import BackToTop from "../components/BackToTop";
-import Header from "../components/Header";
-import MobileHeader from "../components/MobileHeader";
+import Navigation from "../components/Navigation";
 import Footer from "../components/Footer";
 
 export const metadata: Metadata = {
@@ -67,8 +66,7 @@ export default function Club(): JSX.Element {
   return (
     <>
       <BackToTop />
-      <Header />
-      <MobileHeader />
+      <Navigation />
 
       <div id="smooth-wrapper">
         <div id="smooth-content">
@@ -269,7 +267,7 @@ export default function Club(): JSX.Element {
                           </span>
                         </div>
                         <div className="it-benifit-content">
-                          <h4 className="it-benifit-title"><a href="#" style={{ color: 'goldenrod' }}>Canales de Networking Privados</a></h4>
+                          <h4 className="it-benifit-title"><a href="#" style={{ color: 'goldenrod' }}>Canales de Networking Exclusivos</a></h4>
                           <p>
                             Acceso exclusivo a grupos privados para conectar con otros profesionales del sector. Moderados activamente para mantener la calidad de las conversaciones.
                           </p>
@@ -292,7 +290,7 @@ export default function Club(): JSX.Element {
                         <div className="it-benifit-content">
                           <h4 className="it-benifit-title"><a href="#">Oportunidades Laborales</a></h4>
                           <p>
-                            Ofrecemos ofertas de trabajo exclusivas en tiempo real. Nuestro sistema automatizado recibe ofertas laborales de LinkedIn, Google Jobs, comunidades y grupos privados.
+                            Nuestro sistema automatizado recibe ofertas laborales de LinkedIn, Google Jobs, comunidades y grupos privados.
                             Nuestro BOT puede emparejar estas ofertas con tus preferencias, enviándote notificaciones por WhatsApp cuando se encuentren oportunidades que coincidan con tu perfil.
                           </p>
                         </div>
@@ -479,22 +477,7 @@ export default function Club(): JSX.Element {
                             <div id="collapseFive5" className="accordion-collapse collapse" data-bs-parent="#accordionExample1">
                               <div className="accordion-body">
                                 <p>
-                                  Sí, puedes cancelar tu suscripción en cualquier momento sin penalización. Simplemente accede a tu cuenta de mercadopago y selecciona la opción de cancelar. Mantendrás acceso hasta el final del período mensual pagado.
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                          <div className="accordion-items">
-                            <h2 className="accordion-header">
-                              <button className="accordion-buttons collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSix6" aria-expanded="false" aria-controls="collapseSix6">
-                                ¿Qué incluye el material exclusivo IT?
-                                <span className="accordion-icon"></span>
-                              </button>
-                            </h2>
-                            <div id="collapseSix6" className="accordion-collapse collapse" data-bs-parent="#accordionExample1">
-                              <div className="accordion-body">
-                                <p>
-                                  El material incluye análisis del mercado tech argentino, tendencias tecnológicas, tutoriales técnicos, casos de estudio de empresas locales, guías de mejores prácticas y contenido actualizado semanalmente por expertos del sector.
+                                  Puedes cancelar en cualquier momento desde tu cuenta de Mercado Pago. Mantendrás acceso hasta el final del período pagado.
                                 </p>
                               </div>
                             </div>

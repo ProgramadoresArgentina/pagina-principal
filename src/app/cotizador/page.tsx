@@ -1,8 +1,7 @@
 import { JSX } from 'react';
 import { Metadata } from 'next';
 import BackToTop from '../components/BackToTop';
-import Header from '../components/Header';
-import MobileHeader from '../components/MobileHeader';
+import Navigation from '../components/Navigation';
 import Footer from '../components/Footer';
 import CotizadorPageContent from './CotizadorPageContent';
 
@@ -66,8 +65,7 @@ export default function CotizadorPage(): JSX.Element {
   return (
     <>
       <BackToTop />
-      <Header />
-      <MobileHeader />
+      <Navigation />
 
       <div id="smooth-wrapper">
         <div id="smooth-content">

@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
-import Header from '@/app/components/Header'
+import Navigation from '@/app/components/Navigation'
 import MobileHeader from '@/app/components/MobileHeader'
 import Footer from '@/app/components/Footer'
 
@@ -165,8 +165,7 @@ export default function UserBadgesDetailPage() {
   if (isLoading || loading || !user) {
     return (
       <>
-        <Header />
-        <MobileHeader />
+        <Navigation />
         <main style={{ background: '#0a0b0d', minHeight: '100vh', paddingTop: '120px' }}>
           <div className="container">
             <p style={{ color: '#a0a0a0', textAlign: 'center' }}>Cargando...</p>
@@ -179,8 +178,7 @@ export default function UserBadgesDetailPage() {
 
   return (
     <>
-      <Header />
-      <MobileHeader />
+      <Navigation />
       <main style={{ background: '#0a0b0d', minHeight: '100vh' }}>
         <section className="pt-120 pb-140">
           <div className="container container-1230">
