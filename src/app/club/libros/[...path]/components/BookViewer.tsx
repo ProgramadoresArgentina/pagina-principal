@@ -2,6 +2,7 @@
 
 import { useAuth } from '@/contexts/AuthContext';
 import { usePathname } from 'next/navigation';
+import Link from 'next/link';
 import { Book } from '@/lib/books';
 import React from 'react';
 
@@ -10,303 +11,243 @@ interface BookViewerProps {
 }
 
 export default function BookViewer({ book }: BookViewerProps) {
-  const { user, isAuthenticated, token } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const pathname = usePathname();
-  const [currentPage, setCurrentPage] = React.useState<number>(1);
-  const [totalPages, setTotalPages] = React.useState<number | undefined>(undefined);
-  const [resumePage, setResumePage] = React.useState<number | null>(null);
-  const timeSpentRef = React.useRef<number>(0);
-  const saveTimeoutRef = React.useRef<number | null>(null);
-  const iframeRef = React.useRef<HTMLIFrameElement>(null);
+  const [isLoading, setIsLoading] = React.useState<boolean>(true);
+  const [isMobile, setIsMobile] = React.useState<boolean>(false);
 
-  // Cargar progreso guardado
+  // Detectar si es móvil
   React.useEffect(() => {
-    const fetchProgress = async () => {
-      try {
-        if (!isAuthenticated || !user?.isSubscribed || !token) return;
-        const res = await fetch(`/api/books/progress?bookFilename=${encodeURIComponent(book.filename)}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (res.ok) {
-          const data = await res.json();
-          const progress = data?.progress;
-          if (progress && typeof progress.currentPage === 'number' && progress.currentPage > 1) {
-            setResumePage(progress.currentPage);
-            setCurrentPage(progress.currentPage);
-            if (progress.totalPages) setTotalPages(progress.totalPages);
-          } else {
-            // Si no hay progreso guardado, guardar página inicial
-            setCurrentPage(1);
-          }
-        } else {
-          // Si hay error, empezar desde página 1
-          setCurrentPage(1);
-        }
-      } catch (e) {
-        console.error('Error obteniendo progreso del libro', e);
-        setCurrentPage(1);
-      }
+    const checkMobile = () => {
+      const userAgent = navigator.userAgent || navigator.vendor;
+      const isMobileDevice = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent.toLowerCase());
+      const isSmallScreen = window.innerWidth < 768;
+      setIsMobile(isMobileDevice || isSmallScreen);
     };
-    fetchProgress();
-  }, [book.filename, isAuthenticated, token, user?.isSubscribed]);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
-  // Detectar cambios de página y guardar progreso periódicamente
-  React.useEffect(() => {
-    if (!iframeRef.current || !isAuthenticated || !user?.isSubscribed || !token) return;
-
-    let lastSavedPage = currentPage;
-    let scrollTimeout: number | null = null;
-
-    const saveProgress = async (page: number, force = false) => {
-      // Guardar si es forzado, si cambió la página, o si es la primera vez
-      if (!force && page === lastSavedPage && lastSavedPage !== 0) return;
-      
-      try {
-        const response = await fetch('/api/books/progress', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            bookTitle: book.title,
-            bookFilename: book.filename,
-            currentPage: page,
-            totalPages: totalPages,
-            timeSpent: timeSpentRef.current || undefined,
-          }),
-        });
-
-        if (response.ok) {
-          lastSavedPage = page;
-          console.log('✅ Progreso guardado:', { page, totalPages, bookFilename: book.filename });
-        } else {
-          const errorText = await response.text();
-          console.error('❌ Error guardando progreso:', errorText);
-        }
-      } catch (error) {
-        console.error('❌ Error guardando progreso:', error);
-      } finally {
-        // No resetear timeSpent aquí, solo cuando se guarde exitosamente
-      }
-    };
-
-    const handleScroll = () => {
-      if (scrollTimeout) {
-        window.clearTimeout(scrollTimeout);
-      }
-
-      scrollTimeout = window.setTimeout(() => {
-        try {
-          const iframe = iframeRef.current;
-          if (!iframe) return;
-
-          const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
-          if (!iframeDoc) {
-            // Si no podemos acceder al documento (CORS), usar estimación basada en tiempo
-            // Incrementar página cada cierto tiempo de lectura
-            if (timeSpentRef.current > 0 && timeSpentRef.current % 30 === 0) {
-              const estimatedPage = Math.min((totalPages || 100), currentPage + 1);
-              if (estimatedPage !== currentPage) {
-                setCurrentPage(estimatedPage);
-                saveProgress(estimatedPage);
-              }
-            }
-            return;
-          }
-
-          const scrollTop = iframeDoc.documentElement.scrollTop || iframeDoc.body.scrollTop;
-          const scrollHeight = iframeDoc.documentElement.scrollHeight || iframeDoc.body.scrollHeight;
-          const clientHeight = iframeDoc.documentElement.clientHeight || iframeDoc.body.clientHeight;
-
-          // Calcular página aproximada basada en scroll
-          if (scrollHeight > clientHeight && totalPages) {
-            const scrollPercent = scrollTop / (scrollHeight - clientHeight);
-            const estimatedPage = Math.max(1, Math.min(totalPages, Math.ceil(scrollPercent * totalPages)));
-            
-            if (estimatedPage !== currentPage) {
-              setCurrentPage(estimatedPage);
-              saveProgress(estimatedPage);
-            }
-          }
-        } catch (e) {
-          // Cross-origin puede bloquear acceso al documento
-          // Guardar progreso periódicamente de todas formas
-        }
-      }, 1000);
-    };
-
-    // Intentar agregar listener al iframe
-    try {
-      const iframeWindow = iframeRef.current.contentWindow;
-      if (iframeWindow) {
-        iframeWindow.addEventListener('scroll', handleScroll, true);
-        iframeWindow.addEventListener('wheel', handleScroll, true);
-      }
-    } catch (e) {
-      // Si hay restricciones CORS, usar un intervalo para guardar periódicamente
-      console.log('⚠️ CORS detectado, usando guardado periódico');
-    }
-
-    // Guardar progreso periódicamente cada 30 segundos
-    const periodicSave = window.setInterval(() => {
-      if (currentPage > 0) {
-        saveProgress(currentPage, currentPage === lastSavedPage); // Forzar guardado periódico
-      }
-    }, 30000);
-
-    // Guardar inicialmente después de 2 segundos de carga
-    const initialSave = window.setTimeout(() => {
-      if (currentPage > 0) {
-        saveProgress(currentPage, true);
-      }
-    }, 2000);
-
-    // Guardar cuando el usuario sale de la página
-    const handleBeforeUnload = () => {
-      if (currentPage > 0 && currentPage !== lastSavedPage) {
-        // Usar fetch con keepalive para guardar antes de cerrar
-        fetch('/api/books/progress', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            bookTitle: book.title,
-            bookFilename: book.filename,
-            currentPage: currentPage,
-            totalPages: totalPages,
-            timeSpent: timeSpentRef.current || undefined,
-          }),
-          keepalive: true, // Permite que la petición continúe después de cerrar la página
-        }).catch(() => {});
-      }
-    };
-
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    window.addEventListener('visibilitychange', () => {
-      if (document.hidden && currentPage > 0) {
-        saveProgress(currentPage);
-      }
-    });
-
-    return () => {
-      try {
-        const iframeWindow = iframeRef.current?.contentWindow;
-        if (iframeWindow) {
-          iframeWindow.removeEventListener('scroll', handleScroll, true);
-          iframeWindow.removeEventListener('wheel', handleScroll, true);
-        }
-      } catch (e) {
-        // Ignorar errores
-      }
-      if (scrollTimeout) window.clearTimeout(scrollTimeout);
-      window.clearInterval(periodicSave);
-      window.clearTimeout(initialSave);
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-      // Guardar antes de desmontar
-      if (currentPage > 0) {
-        saveProgress(currentPage, true);
-      }
-    };
-  }, [currentPage, totalPages, isAuthenticated, user?.isSubscribed, token, book.filename, book.title]);
-
-  // Este efecto ahora está integrado en el efecto de detección de scroll arriba
-
-  // Contador de tiempo invertido leyendo
-  React.useEffect(() => {
-    if (!(isAuthenticated && user?.isSubscribed)) return;
-    const interval = window.setInterval(() => {
-      timeSpentRef.current += 1;
-    }, 1000);
-    return () => window.clearInterval(interval);
-  }, [isAuthenticated, user?.isSubscribed]);
-
-  // Scroll a la página guardada cuando se carga el PDF
-  React.useEffect(() => {
-    if (!resumePage || !iframeRef.current) return;
-
-    const scrollToPage = () => {
-      try {
-        const iframe = iframeRef.current;
-        if (!iframe) return;
-
-        const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
-        if (!iframeDoc || !totalPages) return;
-
-        // Calcular posición de scroll para la página guardada
-        const scrollHeight = iframeDoc.documentElement.scrollHeight || iframeDoc.body.scrollHeight;
-        const clientHeight = iframeDoc.documentElement.clientHeight || iframeDoc.body.clientHeight;
-        const scrollPercent = (resumePage - 1) / totalPages;
-        const targetScroll = scrollPercent * (scrollHeight - clientHeight);
-
-        iframeDoc.documentElement.scrollTop = targetScroll;
-        iframeDoc.body.scrollTop = targetScroll;
-      } catch (e) {
-        // Ignorar errores de CORS
-      }
-    };
-
-    // Esperar a que el PDF se cargue
-    const timeout = window.setTimeout(scrollToPage, 2000);
-    return () => window.clearTimeout(timeout);
-  }, [resumePage, totalPages]);
-
-  // Si el usuario está autenticado y suscrito, mostrar el PDF
+  // Si el usuario está autenticado y suscrito, mostrar el visor PDF
   if (isAuthenticated && user?.isSubscribed) {
-    // URL del PDF con hash para página inicial si existe
-    const pdfUrl = resumePage && resumePage > 1 
-      ? `${book.pdfUrl}#page=${resumePage}`
-      : book.pdfUrl;
-
     return (
       <div
-        className="relative w-full h-full"
+        className="pdf-viewer-container"
         onContextMenu={(e) => e.preventDefault()}
-        onDragStart={(e) => e.preventDefault()}
         style={{ 
           userSelect: 'none', 
-          WebkitUserSelect: 'none', 
-          MozUserSelect: 'none',
-          margin: 0,
-          padding: 0,
+          WebkitUserSelect: 'none',
+          display: 'flex',
+          flexDirection: 'column',
           width: '100%',
           height: '100vh',
-          overflow: 'hidden'
+          backgroundColor: '#1a1a1a',
+          overflow: 'hidden',
         }}
       >
-        {/* Visor de PDF simple con iframe */}
-        <iframe
-          ref={iframeRef}
-          src={pdfUrl}
+        {/* Barra de controles superior */}
+        <div 
+          className="pdf-controls"
           style={{
-            width: '100%',
-            height: '100vh',
-            border: 'none',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '10px 15px',
+            backgroundColor: '#2d2d2d',
+            borderBottom: '1px solid #444',
+            flexWrap: 'wrap',
+            gap: '10px',
+            minHeight: '60px',
+          }}
+        >
+          {/* Botón volver */}
+          <Link 
+            href="/club/libros"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '5px',
+              color: '#D0FF71',
+              textDecoration: 'none',
+              fontSize: '14px',
+              padding: '8px 12px',
+              borderRadius: '6px',
+              backgroundColor: 'rgba(208, 255, 113, 0.1)',
+            }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M19 12H5M12 19l-7-7 7-7"/>
+            </svg>
+            <span className="d-none d-sm-inline">Biblioteca</span>
+          </Link>
+
+          {/* Título del libro */}
+          <h1 style={{ 
+            color: '#fff', 
+            fontSize: '14px', 
             margin: 0,
-            padding: 0,
+            flex: 1,
+            textAlign: 'center',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+            padding: '0 10px',
+          }}>
+            {book.title}
+          </h1>
+
+          {/* Botón descargar directo (fallback) */}
+          <a
+            href={book.pdfUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '5px',
+              color: '#D0FF71',
+              textDecoration: 'none',
+              fontSize: '14px',
+              padding: '8px 12px',
+              borderRadius: '6px',
+              backgroundColor: 'rgba(208, 255, 113, 0.1)',
+            }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+            </svg>
+            <span className="d-none d-sm-inline">Abrir PDF</span>
+          </a>
+        </div>
+
+        {/* Área del PDF */}
+        <div 
+          style={{
+            flex: 1,
+            position: 'relative',
+            overflow: 'hidden',
           }}
-          title={`Lector de ${book.title}`}
-          onLoad={() => {
-            // Intentar obtener el número total de páginas desde el iframe
-            if (iframeRef.current && !totalPages) {
-              try {
-                const iframe = iframeRef.current;
-                const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
-                if (iframeDoc) {
-                  // Buscar elementos que indiquen el total de páginas
-                  const pageElements = iframeDoc.querySelectorAll('[data-page-number], .page, canvas');
-                  if (pageElements.length > 0) {
-                    setTotalPages(pageElements.length);
-                  }
-                }
-              } catch (e) {
-                // Ignorar errores de CORS
-              }
-            }
-          }}
-        />
+        >
+          {isMobile ? (
+            // En móvil, mostrar opciones para abrir el PDF directamente
+            <div style={{ 
+              display: 'flex', 
+              flexDirection: 'column',
+              alignItems: 'center', 
+              justifyContent: 'center',
+              height: '100%',
+              color: '#fff',
+              gap: '24px',
+              padding: '30px',
+              textAlign: 'center',
+            }}>
+              {/* Imagen de portada si existe */}
+              {book.coverUrl && (
+                <img 
+                  src={book.coverUrl} 
+                  alt={book.title}
+                  style={{
+                    maxWidth: '200px',
+                    maxHeight: '280px',
+                    borderRadius: '8px',
+                    boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+                  }}
+                />
+              )}
+              
+              <div>
+                <h2 style={{ margin: '0 0 8px 0', fontSize: '20px' }}>{book.title}</h2>
+                <p style={{ color: '#999', margin: 0, fontSize: '14px' }}>
+                  {book.category || 'General'}
+                </p>
+              </div>
+              
+              <p style={{ color: '#a0a0a0', margin: 0, maxWidth: '300px', fontSize: '14px', lineHeight: '1.5' }}>
+                Toca el botón para abrir el libro en el visor de PDF de tu dispositivo
+              </p>
+              
+              <a
+                href={book.pdfUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  padding: '16px 32px',
+                  backgroundColor: '#D0FF71',
+                  color: '#000',
+                  textDecoration: 'none',
+                  borderRadius: '12px',
+                  fontWeight: 'bold',
+                  fontSize: '16px',
+                  boxShadow: '0 4px 15px rgba(208, 255, 113, 0.3)',
+                }}
+              >
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                  <polyline points="14,2 14,8 20,8"/>
+                  <line x1="16" y1="13" x2="8" y2="13"/>
+                  <line x1="16" y1="17" x2="8" y2="17"/>
+                </svg>
+                Abrir Libro
+              </a>
+              
+              <p style={{ color: '#666', margin: '10px 0 0 0', fontSize: '12px' }}>
+                El PDF se abrirá en una nueva pestaña
+              </p>
+            </div>
+          ) : (
+            // En desktop, usar iframe directo
+            <>
+              {isLoading && (
+                <div style={{ 
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  display: 'flex', 
+                  flexDirection: 'column',
+                  alignItems: 'center', 
+                  justifyContent: 'center',
+                  color: '#fff',
+                  gap: '15px',
+                  zIndex: 1,
+                  backgroundColor: '#1a1a1a',
+                }}>
+                  <div style={{
+                    width: '40px',
+                    height: '40px',
+                    border: '3px solid #444',
+                    borderTop: '3px solid #D0FF71',
+                    borderRadius: '50%',
+                    animation: 'spin 1s linear infinite',
+                  }} />
+                  <span>Cargando libro...</span>
+                  <style>{`
+                    @keyframes spin {
+                      0% { transform: rotate(0deg); }
+                      100% { transform: rotate(360deg); }
+                    }
+                  `}</style>
+                </div>
+              )}
+              <iframe
+                src={book.pdfUrl}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  border: 'none',
+                }}
+                onLoad={() => setIsLoading(false)}
+                title={book.title}
+                allow="fullscreen"
+              />
+            </>
+          )}
+        </div>
       </div>
     );
   }

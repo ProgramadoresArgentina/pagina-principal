@@ -5,6 +5,8 @@ import { Book } from '@/lib/books';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePathname } from 'next/navigation';
 
+const BOOKS_PER_PAGE = 12;
+
 export default function BooksList() {
   const [books, setBooks] = useState<Book[]>([]);
   const [filteredBooks, setFilteredBooks] = useState<Book[]>([]);
@@ -13,6 +15,7 @@ export default function BooksList() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('Todas');
   const [categories, setCategories] = useState<string[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
   const { user, isAuthenticated, token } = useAuth();
   const pathname = usePathname();
 
@@ -91,7 +94,61 @@ export default function BooksList() {
   useEffect(() => {
     const filtered = filterBooks(books, searchTerm, selectedCategory);
     setFilteredBooks(filtered);
+    setCurrentPage(1); // Resetear a la primera página cuando cambia el filtro
   }, [books, searchTerm, selectedCategory]);
+
+  // Calcular libros paginados
+  const totalPages = Math.ceil(filteredBooks.length / BOOKS_PER_PAGE);
+  const startIndex = (currentPage - 1) * BOOKS_PER_PAGE;
+  const endIndex = startIndex + BOOKS_PER_PAGE;
+  const paginatedBooks = filteredBooks.slice(startIndex, endIndex);
+
+  // Funciones de navegación
+  const goToPage = (page: number) => {
+    const validPage = Math.min(Math.max(1, page), totalPages);
+    setCurrentPage(validPage);
+    // Scroll suave hacia arriba
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const prevPage = () => goToPage(currentPage - 1);
+  const nextPage = () => goToPage(currentPage + 1);
+
+  // Generar números de página para mostrar
+  const getPageNumbers = () => {
+    const pages: (number | string)[] = [];
+    const maxVisiblePages = 5;
+    
+    if (totalPages <= maxVisiblePages) {
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      if (currentPage <= 3) {
+        for (let i = 1; i <= 4; i++) {
+          pages.push(i);
+        }
+        pages.push('...');
+        pages.push(totalPages);
+      } else if (currentPage >= totalPages - 2) {
+        pages.push(1);
+        pages.push('...');
+        for (let i = totalPages - 3; i <= totalPages; i++) {
+          pages.push(i);
+        }
+      } else {
+        pages.push(1);
+        pages.push('...');
+        pages.push(currentPage - 1);
+        pages.push(currentPage);
+        pages.push(currentPage + 1);
+        pages.push('...');
+        pages.push(totalPages);
+      }
+    }
+    
+    return pages;
+  };
 
   // Eliminado el bloqueo - todos pueden ver la colección
 
@@ -410,6 +467,20 @@ export default function BooksList() {
           .book-card {
             touch-action: manipulation;
             -webkit-tap-highlight-color: transparent;
+            flex-direction: column !important;
+            align-items: stretch !important;
+            text-align: center;
+          }
+          
+          .book-card .book-cover {
+            width: 100% !important;
+            min-width: 100% !important;
+            height: 200px !important;
+            margin-bottom: 12px;
+          }
+          
+          .book-card .book-cover img {
+            border-radius: 8px 8px 0 0 !important;
           }
           
           .search-box button {
@@ -569,142 +640,136 @@ export default function BooksList() {
         </div>
       )}
 
-      {/* Grid responsive para libros */}
-      <div className="row">
-        {filteredBooks.map((book, index) => (
-          <div key={book.filename} className="col-12 col-md-6 col-lg-4 mb-4">
-            <a 
-              href={book.viewerUrl || `/club/libros/ver?path=${encodeURIComponent(book.filename)}`}
-              className="book-card"
+      {/* Lista de libros en filas */}
+      <div className="books-list" style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '0 16px' }}>
+        {paginatedBooks.map((book, index) => (
+          <a 
+            key={book.filename}
+            href={book.pdfUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="book-card"
+            style={{
+              background: 'linear-gradient(135deg, #2d2e32 0%, #1a1b1e 100%)',
+              border: '1px solid #3a3b3f',
+              borderRadius: '12px',
+              padding: '16px',
+              cursor: 'pointer',
+              transition: 'all 0.3s ease',
+              position: 'relative',
+              overflow: 'hidden',
+              display: 'flex',
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: '20px',
+              textDecoration: 'none',
+              color: 'inherit',
+              width: '100%'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = '#D0FF71';
+              e.currentTarget.style.boxShadow = '0 8px 25px rgba(208, 255, 113, 0.3)';
+              e.currentTarget.style.transform = 'translateX(4px)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = '#3a3b3f';
+              e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.3)';
+              e.currentTarget.style.transform = 'translateX(0)';
+            }}
+          >
+            {/* Portada del libro */}
+            <div 
+              className="book-cover"
               style={{
-                background: 'linear-gradient(135deg, #2d2e32 0%, #1a1b1e 100%)',
-                border: '1px solid #3a3b3f',
-                borderRadius: '12px',
-                padding: '16px',
-                cursor: 'pointer',
-                transition: 'all 0.3s ease',
-                position: 'relative',
+                width: '80px',
+                minWidth: '80px',
+                height: '110px',
+                borderRadius: '8px',
                 overflow: 'hidden',
-                display: 'block',
-                textDecoration: 'none',
-                color: 'inherit',
-                width: '100%',
-                height: '100%',
-                minHeight: '200px'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = '#D0FF71';
-                e.currentTarget.style.boxShadow = '0 8px 25px rgba(208, 255, 113, 0.3)';
-                e.currentTarget.style.transform = 'translateY(-4px)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = '#3a3b3f';
-                e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.3)';
-                e.currentTarget.style.transform = 'translateY(0)';
+                position: 'relative',
+                background: 'transparent',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0
               }}
             >
-              {/* Portada del libro */}
-              <div 
-                className="book-cover"
-                style={{
-                  width: '100%',
-                  height: '180px',
-                  marginBottom: '16px',
-                  borderRadius: '0',
-                  overflow: 'hidden',
-                  position: 'relative',
-                  background: 'transparent',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}
-              >
-                {book.coverUrl ? (
-                  <img
-                    src={book.coverUrl}
-                    alt={book.title}
-                    style={{
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'contain',
-                      objectPosition: 'center',
-                      transition: 'transform 0.3s ease'
-                    }}
-                    onError={(e) => {
-                      // Si la imagen falla, mostrar icono por defecto
-                      e.currentTarget.style.display = 'none';
-                      e.currentTarget.nextElementSibling?.setAttribute('style', 'display: flex');
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.transform = 'scale(1.05)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.transform = 'scale(1)';
-                    }}
+              {book.coverUrl ? (
+                <img
+                  src={book.coverUrl}
+                  alt={book.title}
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover',
+                    objectPosition: 'center',
+                    transition: 'transform 0.3s ease'
+                  }}
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                    e.currentTarget.nextElementSibling?.setAttribute('style', 'display: flex');
+                  }}
+                />
+              ) : null}
+              
+              {/* Icono por defecto cuando no hay portada */}
+              <div style={{
+                display: book.coverUrl ? 'none' : 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: '100%',
+                height: '100%',
+                background: 'rgba(208, 255, 113, 0.1)',
+                borderRadius: '8px'
+              }}>
+                <svg 
+                  width="32" 
+                  height="32" 
+                  viewBox="0 0 24 24" 
+                  fill="none" 
+                  xmlns="http://www.w3.org/2000/svg"
+                  style={{ color: '#D0FF71' }}
+                >
+                  <path 
+                    d="M4 19.5C4 18.1193 5.11929 17 6.5 17H20" 
+                    stroke="currentColor" 
+                    strokeWidth="1.5" 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round"
                   />
-                ) : null}
-                
-                {/* Icono por defecto cuando no hay portada */}
-                <div style={{
-                  display: book.coverUrl ? 'none' : 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  width: '100%',
-                  height: '100%',
-                  background: 'rgba(208, 255, 113, 0.1)'
-                }}>
-                  <svg 
-                    width="48" 
-                    height="48" 
-                    viewBox="0 0 24 24" 
-                    fill="none" 
-                    xmlns="http://www.w3.org/2000/svg"
-                    style={{ color: '#D0FF71' }}
-                  >
-                    <path 
-                      d="M4 19.5C4 18.1193 5.11929 17 6.5 17H20" 
-                      stroke="currentColor" 
-                      strokeWidth="1.5" 
-                      strokeLinecap="round" 
-                      strokeLinejoin="round"
-                    />
-                    <path 
-                      d="M6.5 2H20V22H6.5C5.11929 22 4 20.8807 4 19.5V4.5C4 3.11929 5.11929 2 6.5 2Z" 
-                      stroke="currentColor" 
-                      strokeWidth="1.5" 
-                      strokeLinecap="round" 
-                      strokeLinejoin="round"
-                    />
-                    <path 
-                      d="M8 7H16M8 11H16M8 15H12" 
-                      stroke="currentColor" 
-                      strokeWidth="1.5" 
-                      strokeLinecap="round" 
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </div>
+                  <path 
+                    d="M6.5 2H20V22H6.5C5.11929 22 4 20.8807 4 19.5V4.5C4 3.11929 5.11929 2 6.5 2Z" 
+                    stroke="currentColor" 
+                    strokeWidth="1.5" 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round"
+                  />
+                  <path 
+                    d="M8 7H16M8 11H16M8 15H12" 
+                    stroke="currentColor" 
+                    strokeWidth="1.5" 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round"
+                  />
+                </svg>
               </div>
+            </div>
 
-              {/* Header con categoría */}
-              <div style={{ 
-                display: 'flex', 
-                justifyContent: 'flex-start', 
-                alignItems: 'flex-start',
+            {/* Contenido del libro */}
+            <div style={{ flex: 1, minWidth: 0 }}>
+              {/* Categoría */}
+              <span style={{
+                background: 'rgba(208, 255, 113, 0.2)',
+                color: '#D0FF71',
+                padding: '4px 8px',
+                borderRadius: '12px',
+                fontSize: '11px',
+                fontWeight: '600',
+                display: 'inline-block',
                 marginBottom: '8px'
               }}>
-                {/* Categoría */}
-                <span style={{
-                  background: 'rgba(208, 255, 113, 0.2)',
-                  color: '#D0FF71',
-                  padding: '4px 8px',
-                  borderRadius: '12px',
-                  fontSize: '11px',
-                  fontWeight: '600'
-                }}>
-                  {book.category || 'General'}
-                </span>
-              </div>
+                {book.category || 'General'}
+              </span>
 
               {/* Título del libro */}
               <h5 
@@ -714,34 +779,163 @@ export default function BooksList() {
                   fontSize: '16px',
                   fontWeight: '600',
                   lineHeight: '1.3',
-                  margin: '0 0 12px 0',
-                  display: '-webkit-box',
-                  WebkitLineClamp: 2,
-                  WebkitBoxOrient: 'vertical',
+                  margin: '0 0 8px 0',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
-                  minHeight: '2.6em'
+                  whiteSpace: 'nowrap'
                 }}
               >
                 {book.title}
               </h5>
 
               {/* Información del libro */}
-              <div style={{ marginBottom: '12px' }}>
-                {book.size && (
-                  <div style={{ 
-                    color: '#a0a0a0', 
-                    fontSize: '12px',
-                    marginBottom: '4px'
-                  }}>
-                    📄 {(book.size / 1024 / 1024).toFixed(1)} MB
-                  </div>
-                )}
-              </div>
-            </a>
-          </div>
+              {book.size && (
+                <div style={{ 
+                  color: '#a0a0a0', 
+                  fontSize: '12px'
+                }}>
+                  📄 {(book.size / 1024 / 1024).toFixed(1)} MB
+                </div>
+              )}
+            </div>
+
+            {/* Flecha indicadora - solo desktop */}
+            <div 
+              className="d-none d-md-flex"
+              style={{ 
+                color: '#D0FF71', 
+                flexShrink: 0,
+                alignItems: 'center'
+              }}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M9 18l6-6-6-6"/>
+              </svg>
+            </div>
+          </a>
         ))}
       </div>
+
+      {/* Paginación */}
+      {totalPages > 1 && (
+        <div 
+          className="pagination-container"
+          style={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            gap: '8px',
+            marginTop: '40px',
+            marginBottom: '20px',
+            flexWrap: 'wrap',
+            padding: '0 16px'
+          }}
+        >
+          {/* Botón anterior */}
+          <button
+            onClick={prevPage}
+            disabled={currentPage === 1}
+            style={{
+              padding: '10px 16px',
+              backgroundColor: currentPage === 1 ? '#2d2e32' : '#D0FF71',
+              color: currentPage === 1 ? '#666' : '#1a1b1e',
+              border: '1px solid #3a3b3f',
+              borderRadius: '8px',
+              cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
+              fontWeight: '600',
+              fontSize: '14px',
+              transition: 'all 0.3s ease',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px'
+            }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M15 18l-6-6 6-6"/>
+            </svg>
+            <span className="d-none d-sm-inline">Anterior</span>
+          </button>
+
+          {/* Números de página */}
+          <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', justifyContent: 'center' }}>
+            {getPageNumbers().map((page, index) => (
+              <button
+                key={index}
+                onClick={() => typeof page === 'number' && goToPage(page)}
+                disabled={page === '...'}
+                style={{
+                  padding: '10px 14px',
+                  backgroundColor: page === currentPage 
+                    ? '#D0FF71' 
+                    : page === '...' 
+                      ? 'transparent' 
+                      : '#2d2e32',
+                  color: page === currentPage 
+                    ? '#1a1b1e' 
+                    : page === '...' 
+                      ? '#666' 
+                      : '#ffffff',
+                  border: page === '...' ? 'none' : '1px solid #3a3b3f',
+                  borderRadius: '8px',
+                  cursor: page === '...' ? 'default' : 'pointer',
+                  fontWeight: page === currentPage ? '700' : '500',
+                  fontSize: '14px',
+                  minWidth: '42px',
+                  transition: 'all 0.3s ease'
+                }}
+                onMouseEnter={(e) => {
+                  if (page !== currentPage && page !== '...') {
+                    e.currentTarget.style.backgroundColor = 'rgba(208, 255, 113, 0.2)';
+                    e.currentTarget.style.borderColor = '#D0FF71';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (page !== currentPage && page !== '...') {
+                    e.currentTarget.style.backgroundColor = '#2d2e32';
+                    e.currentTarget.style.borderColor = '#3a3b3f';
+                  }
+                }}
+              >
+                {page}
+              </button>
+            ))}
+          </div>
+
+          {/* Botón siguiente */}
+          <button
+            onClick={nextPage}
+            disabled={currentPage === totalPages}
+            style={{
+              padding: '10px 16px',
+              backgroundColor: currentPage === totalPages ? '#2d2e32' : '#D0FF71',
+              color: currentPage === totalPages ? '#666' : '#1a1b1e',
+              border: '1px solid #3a3b3f',
+              borderRadius: '8px',
+              cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
+              fontWeight: '600',
+              fontSize: '14px',
+              transition: 'all 0.3s ease',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px'
+            }}
+          >
+            <span className="d-none d-sm-inline">Siguiente</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M9 18l6-6-6-6"/>
+            </svg>
+          </button>
+        </div>
+      )}
+
+      {/* Info de página actual */}
+      {totalPages > 1 && (
+        <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+          <span style={{ color: '#a0a0a0', fontSize: '14px' }}>
+            Página {currentPage} de {totalPages} • Mostrando {startIndex + 1}-{Math.min(endIndex, filteredBooks.length)} de {filteredBooks.length} libros
+          </span>
+        </div>
+      )}
     </>
   );
 }
