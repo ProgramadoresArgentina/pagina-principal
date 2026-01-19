@@ -30,7 +30,7 @@ interface BibliotecaResponse {
   };
 }
 
-const ITEMS_PER_PAGE = 10;
+const ITEMS_PER_PAGE = 12;
 
 export default function BibliotecaList() {
   const [items, setItems] = useState<BibliotecaItem[]>([]);
@@ -336,10 +336,11 @@ export default function BibliotecaList() {
           </div>
 
           {/* Filtro de categoría */}
-          <div style={{ position: 'relative', minWidth: '160px' }}>
+          <div style={{ position: 'relative', minWidth: '160px' }} className="biblioteca-select-wrapper">
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
+              className="no-nice-select"
               style={{
                 padding: '12px 16px',
                 border: '2px solid #3a3b3f',
@@ -698,21 +699,37 @@ export default function BibliotecaList() {
         .biblioteca-item:hover {
           transform: scale(1.02);
         }
-        
+
         .search-input-placeholder-white::placeholder {
           color: rgba(255, 255, 255, 0.5);
         }
-        
+
         @media (max-width: 768px) {
           .biblioteca-list {
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)) !important;
+            grid-template-columns: 1fr !important;
           }
         }
-        
-        @media (max-width: 480px) {
-          .biblioteca-list {
-            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)) !important;
-          }
+      `}</style>
+      <style jsx global>{`
+        /* Ocultar nice-select generado para este select */
+        .biblioteca-select-wrapper + .nice-select,
+        .biblioteca-select-wrapper .nice-select {
+          display: none !important;
+        }
+
+        /* Asegurar que el select nativo se muestre */
+        .biblioteca-select-wrapper select.no-nice-select {
+          display: block !important;
+          opacity: 1 !important;
+          position: relative !important;
+          pointer-events: auto !important;
+        }
+
+        /* Estilos para las opciones del select en mobile */
+        .biblioteca-select-wrapper select option {
+          background-color: #2d2e32;
+          color: #ffffff;
+          padding: 10px;
         }
       `}</style>
     </div>

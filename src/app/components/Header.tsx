@@ -10,6 +10,11 @@ export default function Header(): JSX.Element {
   const { isAuthenticated, isLoading } = useAuth();
   const pathname = usePathname();
   const loginUrl = `/ingresar?redirect=${encodeURIComponent(pathname || '/')}`;
+
+  const handleOpenOffcanvas = () => {
+    document.querySelector('.tp-offcanvas-area')?.classList.add('opened');
+    document.querySelector('.body-overlay')?.classList.add('opened');
+  };
   
   return (
     <div id="header-sticky" className="tp-header-10-area tp-header-11-style tp-header-blur sticky-black-bg header-11-dark-style header-transparent">
@@ -26,7 +31,7 @@ export default function Header(): JSX.Element {
             <div className="col-xl-10 col-lg-8 col-md-6 col-7">
               <div className="tp-header-10-box d-flex align-items-center justify-content-end justify-content-xl-between">
                 <div className="tp-header-menu tp-header-10-menu tp-header-dropdown dropdown-black-bg d-none d-xl-block">
-                  <nav className="tp-mobile-menu-active">
+                  <nav>
                     <ul>
                       <li>
                         <Link href="/">Inicio</Link>
@@ -68,8 +73,8 @@ export default function Header(): JSX.Element {
                   </nav>
                 </div>
                 <div className="tp-header-10-right d-flex align-items-center">
-                  {/* Botón de autenticación para mobile */}
-                  <div className="tp-header-11-btn-box d-block d-md-none ml-20">
+                  {/* Botón de autenticación para mobile (menor a xl) */}
+                  <div className="tp-header-11-btn-box d-block d-xl-none ml-20">
                     {!isLoading && (
                       <>
                         {isAuthenticated ? (
@@ -102,8 +107,8 @@ export default function Header(): JSX.Element {
                     )}
                   </div>
                   
-                  {/* Botón de autenticación para desktop */}
-                  <div className="tp-header-11-btn-box d-none d-md-block ml-20">
+                  {/* Botón de autenticación para desktop (xl+) */}
+                  <div className="tp-header-11-btn-box d-none d-xl-block ml-20">
                     {!isLoading && (
                       <>
                         {isAuthenticated ? (
@@ -136,7 +141,7 @@ export default function Header(): JSX.Element {
                     )}
                   </div>
                   
-                  <div className="tp-header-11-btn-box d-none d-md-block ml-20">
+                  <div className="tp-header-11-btn-box d-none d-xl-block ml-20">
                     <a className="tp-btn-black-radius d-flex align-items-center justify-content-between" href="/club">
                       <span>
                         <span className="text-1">Unirse al Club</span>
@@ -154,9 +159,9 @@ export default function Header(): JSX.Element {
                       </i>
                     </a>
                   </div>
-                  <div className="tp-header-10-offcanvas ml-15 d-block d-md-none">
+                  <div className="tp-header-10-offcanvas ml-15 d-block d-xl-none">
                     <div className="tp-header-bar">
-                      <button className="tp-offcanvas-open-btn">
+                      <button className="tp-offcanvas-open-btn" onClick={handleOpenOffcanvas}>
                         <i></i>
                         <i></i>
                         <i></i>

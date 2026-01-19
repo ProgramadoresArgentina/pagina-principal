@@ -17,6 +17,7 @@ import ArticleShareAndStats from "../../components/ArticleShareAndStats";
 import { getArticleBySlug, getAllArticles } from "@/lib/articles";
 import { getAuthenticatedUser } from "@/lib/auth";
 import PlateRenderer from "../../components/PlateRenderer";
+import DisableScrollTrigger from "../../components/DisableScrollTrigger";
 import "./ArticlePage.css";
 
 // Función para formatear fechas de manera concisa
@@ -214,6 +215,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps): Promi
   if (post.isSubscriberOnly && !isSubscribed) {
     return (
       <>
+        <DisableScrollTrigger />
         <StructuredData type="Article" data={structuredData} />
         <ReadingProgress />
         <Navigation />
@@ -255,6 +257,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps): Promi
   // Artículo público - mostrar contenido completo
   return (
     <>
+      <DisableScrollTrigger />
       <StructuredData type="Article" data={structuredData} />
       <ReadingProgress />
       <Navigation />
