@@ -44,11 +44,16 @@ const placeholderStyles = `
     .quote-option-card > div:first-child { padding-right: 28px !important; }
     .quote-option-label { font-size: 14px !important; }
     .quote-option-desc { font-size: 12px !important; }
-    .quote-option-indicator { 
-      top: 10px !important; 
-      right: 10px !important; 
-      width: 20px !important; 
-      height: 20px !important; 
+    .quote-option-indicator {
+      top: 10px !important;
+      right: 10px !important;
+      width: 20px !important;
+      height: 20px !important;
+      min-width: 20px !important;
+      min-height: 20px !important;
+      max-width: 20px !important;
+      max-height: 20px !important;
+      aspect-ratio: 1 / 1 !important;
     }
     .quote-option-indicator svg { width: 10px !important; height: 10px !important; }
   }
@@ -191,6 +196,11 @@ function QuestionCard({
                   right: '12px',
                   width: '24px',
                   height: '24px',
+                  minWidth: '24px',
+                  minHeight: '24px',
+                  maxWidth: '24px',
+                  maxHeight: '24px',
+                  aspectRatio: '1 / 1',
                   borderRadius: '50%',
                   border: isSelected ? '2px solid #6366f1' : '2px solid rgba(255, 255, 255, 0.5)',
                   background: isSelected ? '#6366f1' : 'transparent',
@@ -198,6 +208,7 @@ function QuestionCard({
                   alignItems: 'center',
                   justifyContent: 'center',
                   flexShrink: 0,
+                  boxSizing: 'border-box',
                 }}
               >
                 {isSelected && (

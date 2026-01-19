@@ -610,12 +610,15 @@ export default function BibliotecaList() {
 
         {/* Paginación */}
         {totalPages > 1 && (
-          <div className="pagination-container mt-5" style={{
+          <div className="pagination-container" style={{
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
             gap: '8px',
-            flexWrap: 'wrap'
+            flexWrap: 'wrap',
+            marginTop: '60px',
+            paddingTop: '40px',
+            borderTop: '1px solid #3a3b3f'
           }}>
             <button
               onClick={prevPage}

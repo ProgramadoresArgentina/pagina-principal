@@ -1,7 +1,14 @@
+'use client';
+
 import { JSX } from "react";
 import Link from "next/link";
 
 export default function MobileHeader(): JSX.Element {
+  const handleCloseOffcanvas = () => {
+    document.querySelector('.tp-offcanvas-area')?.classList.remove('opened');
+    document.querySelector('.body-overlay')?.classList.remove('opened');
+  };
+
   return (
     <>
       {/* Search Area */}
@@ -46,7 +53,7 @@ export default function MobileHeader(): JSX.Element {
               </Link>
             </div>
             <div className="tp-offcanvas-close">
-              <button className="tp-offcanvas-close-btn">
+              <button className="tp-offcanvas-close-btn" onClick={handleCloseOffcanvas}>
                 <svg width="37" height="38" viewBox="0 0 37 38" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M9.19141 9.80762L27.5762 28.1924" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                   <path d="M9.19141 28.1924L27.5762 9.80761" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -56,25 +63,25 @@ export default function MobileHeader(): JSX.Element {
           </div>
           <div className="tp-offcanvas-main">
             <div className="tp-offcanvas-menu d-xl-none">
-              <nav className="tp-mobile-menu-active">
+              <nav>
                 <ul>
                   <li>
-                    <Link href="/">Inicio</Link>
+                    <Link href="/" onClick={handleCloseOffcanvas}>Inicio</Link>
                   </li>
                   <li>
-                    <Link href="/club/libros">Libros y Artículos</Link>
+                    <Link href="/club/libros" onClick={handleCloseOffcanvas}>Libros y Artículos</Link>
                   </li>
                   <li>
-                    <Link href="/cotizador">Cotizar proyecto</Link>
+                    <Link href="/cotizador" onClick={handleCloseOffcanvas}>Cotizar proyecto</Link>
                   </li>
                   <li>
-                    <Link href="/pines">🏅 Conseguir Pines</Link>
+                    <Link href="/pines" onClick={handleCloseOffcanvas}>🏅 Conseguir Pines</Link>
                   </li>
                   <li>
-                    <Link href="/club">Unirse al Club</Link>
+                    <Link href="/club" onClick={handleCloseOffcanvas}>Unirse al Club</Link>
                   </li>
                   <li>
-                    <Link href="/ingresar">Ingresar</Link>
+                    <Link href="/ingresar" onClick={handleCloseOffcanvas}>Ingresar</Link>
                   </li>
                 </ul>
               </nav>
@@ -106,7 +113,7 @@ export default function MobileHeader(): JSX.Element {
           </div>
         </div>
       </div>
-      <div className="body-overlay"></div>
+      <div className="body-overlay" onClick={handleCloseOffcanvas}></div>
     </>
   );
 }

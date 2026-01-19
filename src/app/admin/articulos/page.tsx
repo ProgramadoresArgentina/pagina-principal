@@ -49,6 +49,7 @@ interface Article {
   title: string
   slug: string
   content: TElement[]
+  image: string | null
   isPublic: boolean
   isSubscriberOnly?: boolean
   publishedAt: string | null

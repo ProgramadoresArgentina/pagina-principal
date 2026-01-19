@@ -37,13 +37,13 @@ export default function Header(): JSX.Element {
                         <Link href="/">Inicio</Link>
                       </li>
                       <li>
-                        <Link href="/club/libros">Libros y Artículos</Link>
+                        <Link href="/club/libros">Recursos</Link>
                       </li>
                       <li>
                         <Link href="/cotizador">Cotizar proyecto</Link>
                       </li>
                       <li>
-                        <a href="/pines">🏅 Conseguir Pines</a>
+                        <a href="/pines">Pines de la Comunidad</a>
                       </li>
                       <li className="d-block d-md-none">
                         <a href="/club" className="tp-btn-black btn-transparent-bg">
