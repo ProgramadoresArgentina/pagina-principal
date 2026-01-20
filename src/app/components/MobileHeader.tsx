@@ -69,7 +69,7 @@ export default function MobileHeader(): JSX.Element {
                     <Link href="/" onClick={handleCloseOffcanvas}>Inicio</Link>
                   </li>
                   <li>
-                    <Link href="/club/libros" onClick={handleCloseOffcanvas}>Libros y Artículos</Link>
+                    <Link href="/club/libros" onClick={handleCloseOffcanvas}>Recursos</Link>
                   </li>
                   <li>
                     <Link href="/cotizador" onClick={handleCloseOffcanvas}>Cotizar proyecto</Link>

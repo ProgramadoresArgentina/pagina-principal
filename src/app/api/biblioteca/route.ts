@@ -63,7 +63,7 @@ export async function GET(request: Request) {
       title: article.title,
       description: article.excerpt || article.description || '',
       category: article.category,
-      imageUrl: undefined, // Los artículos no tienen foto
+      imageUrl: article.image || undefined, // Imagen de portada del artículo
       url: `/articulos/${article.slug}`,
       isSubscriberOnly: article.isSubscriberOnly,
       author: article.authorUser?.name || article.author,

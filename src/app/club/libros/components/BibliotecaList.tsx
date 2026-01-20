@@ -30,7 +30,7 @@ interface BibliotecaResponse {
   };
 }
 
-const ITEMS_PER_PAGE = 12;
+const ITEMS_PER_PAGE = 8;
 
 export default function BibliotecaList() {
   const [items, setItems] = useState<BibliotecaItem[]>([]);
@@ -419,7 +419,7 @@ export default function BibliotecaList() {
                   className="biblioteca-item"
                 >
                   {/* Imagen o icono (arriba) */}
-                  {item.type === 'book' && item.imageUrl ? (
+                  {item.imageUrl ? (
                     <div style={{
                       width: '100%',
                       height: '160px',

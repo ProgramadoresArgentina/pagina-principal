@@ -81,12 +81,14 @@ export default function AdminArticulosPage() {
     title: string
     slug: string
     content: TElement[]
+    image: string
     isPublic: boolean
     isSubscriberOnly: boolean
   }>({
     title: '',
     slug: '',
     content: defaultContent,
+    image: '',
     isPublic: true,
     isSubscriberOnly: false,
   })
@@ -219,6 +221,7 @@ export default function AdminArticulosPage() {
         title: formData.title.trim(),
         slug: slug.trim(),
         content: formData.content,
+        image: formData.image.trim() || null,
         isPublic: formData.isPublic,
         isSubscriberOnly: formData.isSubscriberOnly,
         publishedAt: publishedAtValue,
@@ -265,13 +268,6 @@ export default function AdminArticulosPage() {
 
   const handleEdit = (article: Article) => {
     setEditingArticle(article)
-    setFormData({
-      title: article.title,
-      slug: article.slug,
-      content: article.content || defaultContent,
-      isPublic: article.isPublic,
-      isSubscriberOnly: article.isSubscriberOnly || false,
-    })
     
     // Asegurar que el contenido sea un array válido
     let content = defaultContent
@@ -294,6 +290,7 @@ export default function AdminArticulosPage() {
       title: article.title,
       slug: article.slug,
       content: content,
+      image: article.image || '',
       isPublic: article.isPublic,
       isSubscriberOnly: article.isSubscriberOnly || false,
     })
@@ -335,6 +332,7 @@ export default function AdminArticulosPage() {
       title: '',
       slug: '',
       content: defaultContent,
+      image: '',
       isPublic: true,
       isSubscriberOnly: false,
     })
@@ -725,6 +723,51 @@ export default function AdminArticulosPage() {
                     <p style={{ color: '#a0a0a0', fontSize: '12px', marginTop: '4px', margin: 0 }}>
                       Se genera automáticamente desde el título si lo dejas vacío. Solo letras, números y guiones.
                     </p>
+                  </div>
+
+                  {/* Imagen de portada */}
+                  <div style={{ marginBottom: '24px' }}>
+                    <label style={{ color: '#ffffff', fontSize: '14px', fontWeight: '600', marginBottom: '8px', display: 'block' }}>
+                      Imagen de portada (URL)
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.image}
+                      onChange={(e) => setFormData({ ...formData, image: e.target.value })}
+                      placeholder="https://ejemplo.com/imagen.jpg"
+                      style={{
+                        width: '100%',
+                        padding: '12px 16px',
+                        background: '#2d2e32',
+                        border: '2px solid #3a3b3f',
+                        borderRadius: '8px',
+                        color: '#ffffff',
+                        fontSize: '16px',
+                      }}
+                      className="admin-title-input"
+                    />
+                    <p style={{ color: '#a0a0a0', fontSize: '12px', marginTop: '4px', margin: 0 }}>
+                      Esta imagen aparece en la lista de artículos y al compartir en redes sociales. No se muestra dentro del artículo.
+                    </p>
+                    {formData.image && (
+                      <div style={{ marginTop: '12px' }}>
+                        <p style={{ color: '#a0a0a0', fontSize: '12px', marginBottom: '8px' }}>Vista previa:</p>
+                        <img
+                          src={formData.image}
+                          alt="Vista previa"
+                          style={{
+                            maxWidth: '200px',
+                            maxHeight: '120px',
+                            borderRadius: '8px',
+                            border: '1px solid #3a3b3f',
+                            objectFit: 'cover'
+                          }}
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).style.display = 'none'
+                          }}
+                        />
+                      </div>
+                    )}
                   </div>
 
                   {/* Contenido */}
