@@ -374,19 +374,50 @@ function OfertasLaboralesForm({ token }: { token: string | null }) {
       ],
       'Testing': [
         'Jest', 'Cypress', 'Selenium', 'Playwright', 'JUnit', 'PyTest',
-        'Postman', 'k6', 'JMeter'
+        'Postman', 'k6', 'JMeter', 'Vitest', 'Testing Library', 'Appium'
+      ],
+      'Ciberseguridad': [
+        'Pentesting', 'Ethical Hacking', 'OWASP', 'Burp Suite', 'Metasploit',
+        'Nmap', 'Wireshark', 'Kali Linux', 'SIEM', 'SOC', 'Blue Team', 'Red Team',
+        'Forense Digital', 'Criptografía', 'IAM', 'Zero Trust', 'CISSP', 'CEH',
+        'ISO 27001', 'Firewall', 'VPN', 'WAF', 'IDS/IPS', 'Cloud Security',
+        'AppSec', 'DevSecOps', 'Vulnerability Management'
+      ],
+      'Marketing Digital': [
+        'SEO', 'SEM', 'Google Ads', 'Meta Ads', 'Email Marketing',
+        'Content Marketing', 'Social Media', 'Analytics', 'Google Analytics',
+        'CRM', 'HubSpot', 'Salesforce', 'Marketing Automation', 'Growth Hacking',
+        'Performance Marketing', 'Inbound Marketing', 'Copywriting', 'UX Writing'
+      ],
+      'Diseño & UX': [
+        'Figma', 'Adobe XD', 'Sketch', 'Photoshop', 'Illustrator',
+        'UI Design', 'UX Design', 'UX Research', 'Prototyping', 'Wireframing',
+        'Design System', 'Accessibilidad', 'Animación', 'After Effects', 'Blender'
+      ],
+      'Blockchain & Web3': [
+        'Solidity', 'Ethereum', 'Web3.js', 'Ethers.js', 'Hardhat', 'Truffle',
+        'NFT', 'DeFi', 'Smart Contracts', 'IPFS', 'Polygon', 'Solana', 'Rust'
+      ],
+      'ERP & Sistemas': [
+        'SAP', 'SAP ABAP', 'SAP Basis', 'SAP FI', 'SAP MM', 'SAP SD',
+        'Oracle ERP', 'Odoo', 'Tango Gestión', 'Business Central', 'Dynamics 365'
       ],
       'Otros': [
         'GraphQL', 'REST API', 'gRPC', 'WebSockets', 'Kafka', 'RabbitMQ',
-        'Microservicios', 'Git', 'Agile', 'Scrum'
+        'Microservicios', 'Git', 'Agile', 'Scrum', 'Kanban', 'JIRA',
+        'Confluence', 'Notion', 'Slack', 'Linux', 'Bash', 'PowerShell'
       ],
       'Roles': [
-        'Fullstack', 'Frontend', 'Backend', 'DevOps', 'SRE', 'QA', 
-        'QA Manual', 'QA Automation', 'Arquitecto', 'Tech Lead', 
+        'Fullstack', 'Frontend', 'Backend', 'DevOps', 'SRE', 'QA',
+        'QA Manual', 'QA Automation', 'Arquitecto', 'Tech Lead',
         'Engineering Manager', 'Product Manager', 'Scrum Master',
         'UI/UX Designer', 'Data Engineer', 'Data Analyst', 'Data Scientist',
-        'ML Engineer', 'Mobile Developer', 'Security Engineer', 
-        'Service Desk', 'Soporte Técnico', 'Help Desk'
+        'ML Engineer', 'Mobile Developer', 'Security Engineer',
+        'Penetration Tester', 'Security Analyst', 'Marketing Digital',
+        'SEO Specialist', 'Community Manager', 'Growth Manager',
+        'Business Analyst', 'Functional Analyst', 'ERP Consultant',
+        'SAP Consultant', 'Service Desk', 'Soporte Técnico', 'Help Desk',
+        'IT Manager', 'CTO', 'Technical Writer'
       ]
     }),
     []
