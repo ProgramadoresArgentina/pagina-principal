@@ -120,28 +120,36 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
 
   useEffect(() => {
     setMounted(true);
-    
-    // Manejar el preloader
-    const preloader = document.getElementById('preloader');
-    if (preloader) {
-      // Esperar a que la página esté completamente cargada
-      const handleLoad = () => {
-        setTimeout(() => {
-          preloader.style.transition = 'opacity 0.5s ease';
-          preloader.style.opacity = '0';
-          setTimeout(() => {
-            preloader.style.display = 'none';
-          }, 500);
-        }, 500);
-      };
 
-      if (document.readyState === 'complete') {
-        handleLoad();
-      } else {
-        window.addEventListener('load', handleLoad);
-        return () => window.removeEventListener('load', handleLoad);
-      }
+    const preloader = document.getElementById('preloader');
+    if (!preloader) return;
+
+    let done = false;
+    const hidePreloader = () => {
+      if (done) return;
+      done = true;
+      setTimeout(() => {
+        preloader.style.transition = 'opacity 0.5s ease';
+        preloader.style.opacity = '0';
+        setTimeout(() => {
+          preloader.style.display = 'none';
+        }, 500);
+      }, 500);
+    };
+
+    // Safety timeout — always hide within 6s regardless of window.load
+    const safetyTimer = setTimeout(hidePreloader, 6000);
+
+    if (document.readyState === 'complete') {
+      hidePreloader();
+    } else {
+      window.addEventListener('load', hidePreloader);
     }
+
+    return () => {
+      clearTimeout(safetyTimer);
+      window.removeEventListener('load', hidePreloader);
+    };
   }, []);
 
   return (

@@ -22,6 +22,7 @@ export interface AuthUser {
     }[]
   }
   isSubscribed: boolean
+  subscriptionExpiresAt?: Date | null
   createdAt?: string | Date
 }
 
@@ -77,6 +78,18 @@ export async function getAuthenticatedUser(token: string): Promise<AuthUser | nu
 
   if (!user || !user.isActive) return null
 
+  // Auto-revoke expired subscriptions
+  let isSubscribed = user.isSubscribed
+  let subscriptionExpiresAt = (user as any).subscriptionExpiresAt as Date | null ?? null
+  if (isSubscribed && subscriptionExpiresAt && subscriptionExpiresAt < new Date()) {
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { isSubscribed: false, subscriptionExpiresAt: null },
+    })
+    isSubscribed = false
+    subscriptionExpiresAt = null
+  }
+
   return {
     id: user.id,
     email: user.email,
@@ -88,7 +101,8 @@ export async function getAuthenticatedUser(token: string): Promise<AuthUser | nu
       name: user.role.name,
       permissions: user.role.permissions,
     },
-    isSubscribed: user.isSubscribed,
+    isSubscribed,
+    subscriptionExpiresAt,
     createdAt: user.createdAt,
   }
 }

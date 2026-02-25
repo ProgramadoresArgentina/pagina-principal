@@ -19,44 +19,21 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es-AR" className='no-js agntix-dark'>
+      <head>
+        <link rel="stylesheet" href="/assets/css/bootstrap.css" />
+        <link rel="stylesheet" href="/assets/css/slick.css" />
+        <link rel="stylesheet" href="/assets/css/swiper-bundle.css" />
+        <link rel="stylesheet" href="/assets/css/magnific-popup.css" />
+        <link rel="stylesheet" href="/assets/css/font-awesome-pro.css" />
+        <link rel="stylesheet" href="/assets/css/spacing.css" />
+        <link rel="stylesheet" href="/assets/css/atropos.min.css" />
+        <link rel="stylesheet" href="/assets/css/main.css" />
+      </head>
       <body className="tp-magic-cursor">
         {/* Datos estructurados para navegación - ayuda a Google a generar sitelinks */}
-        <StructuredData 
-          type="SiteNavigationElement" 
+        <StructuredData
+          type="SiteNavigationElement"
           data={{}}
-        />
-        {/* Cargar CSS dinámicamente */}
-        <Script
-          id="load-css"
-          strategy="beforeInteractive"
-          dangerouslySetInnerHTML={{
-            __html: `
-              (function() {
-                if (typeof window === 'undefined') return;
-                var links = [
-                  { rel: 'shortcut icon', type: 'image/x-icon', href: '/assets/images/favicon.ico' },
-                  { rel: 'stylesheet', href: '/assets/css/bootstrap.css' },
-                  { rel: 'stylesheet', href: '/assets/css/slick.css' },
-                  { rel: 'stylesheet', href: '/assets/css/swiper-bundle.css' },
-                  { rel: 'stylesheet', href: '/assets/css/magnific-popup.css' },
-                  { rel: 'stylesheet', href: '/assets/css/font-awesome-pro.css' },
-                  { rel: 'stylesheet', href: '/assets/css/spacing.css' },
-                  { rel: 'stylesheet', href: '/assets/css/atropos.min.css' },
-                  { rel: 'stylesheet', href: '/assets/css/main.css' }
-                ];
-                links.forEach(function(linkProps) {
-                  var existingLink = document.querySelector('link[href="' + linkProps.href + '"]');
-                  if (!existingLink) {
-                    var link = document.createElement('link');
-                    Object.keys(linkProps).forEach(function(key) {
-                      link.setAttribute(key, linkProps[key]);
-                    });
-                    document.head.appendChild(link);
-                  }
-                });
-              })();
-            `,
-          }}
         />
         {/* Google Tag Manager */}
         <Script

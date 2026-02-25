@@ -155,7 +155,7 @@ export default function Home(): JSX.Element {
                   <div className="tp_fade_anim" data-delay=".5" data-fade-from="top" data-ease="bounce">
                     <a className="tp-btn-black-radius btn-blue-bg  d-inline-flex align-items-center justify-content-between mr-15" href="/club">
                       <span>
-                        <span className="text-1">Unirse al Club</span>
+                        <span className="text-1">Quiero unirme al Club</span>
                         <span className="text-2">Unirme!</span>
                       </span>
                       <i>

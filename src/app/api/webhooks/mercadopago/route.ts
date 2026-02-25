@@ -1,41 +1,73 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createHmac } from 'crypto'
 import { prisma } from '@/lib/prisma'
+import { sendWelcomeEmail } from '@/lib/email'
+
+// Verificar firma HMAC de MercadoPago
+// Docs: https://www.mercadopago.com.ar/developers/es/docs/your-integrations/notifications/webhooks
+function verifyMPSignature(request: NextRequest, rawBody: string): boolean {
+  const secret = process.env.MERCADOPAGO_WEBHOOK_SECRET
+  if (!secret) return true // sin secret configurado, saltar verificación
+
+  const xSignature = request.headers.get('x-signature')
+  const xRequestId = request.headers.get('x-request-id')
+
+  if (!xSignature) return false
+
+  // x-signature tiene formato: ts=timestamp,v1=hash
+  const parts = Object.fromEntries(xSignature.split(',').map(p => p.split('=')))
+  const ts = parts['ts']
+  const v1 = parts['v1']
+  if (!ts || !v1) return false
+
+  // La cadena a firmar es: id:[data.id];request-id:[x-request-id];ts:[ts];
+  let dataId = ''
+  try {
+    const parsed = JSON.parse(rawBody)
+    dataId = parsed?.data?.id ?? ''
+  } catch { return false }
+
+  const manifest = `id:${dataId};request-id:${xRequestId ?? ''};ts:${ts};`
+  const expected = createHmac('sha256', secret).update(manifest).digest('hex')
+
+  return expected === v1
+}
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
-    
+    const rawBody = await request.text()
+
+    // Verificar firma
+    if (!verifyMPSignature(request, rawBody)) {
+      console.warn('Webhook con firma inválida — rechazado')
+      return NextResponse.json({ error: 'Firma inválida' }, { status: 401 })
+    }
+
+    const body = JSON.parse(rawBody)
     console.log('Webhook MercadoPago recibido:', JSON.stringify(body, null, 2))
 
-    const { type, data } = body
+    // MP envía: { type, action, data: { id } }
+    // type puede ser: "subscription_preapproval" | "payment"
+    // action puede ser: "created" | "updated" | "cancelled" | "paused" | "resumed"
+    const { type, action, data } = body
 
-    // Verificar que sea un evento de suscripción o pago
-    if (!type || !data) {
+    if (!type || !data?.id) {
       console.log('Webhook sin tipo o datos válidos')
       return NextResponse.json({ error: 'Datos inválidos' }, { status: 400 })
     }
 
-    // Manejar diferentes tipos de eventos
-    switch (type) {
-      case 'subscription_created':
-      case 'subscription_updated':
-      case 'subscription_resumed':
-        await handleSubscriptionActive(data.id)
-        break
-
-      case 'subscription_cancelled':
-      case 'subscription_paused':
+    if (type === 'subscription_preapproval') {
+      const inactiveActions = ['cancelled', 'paused']
+      if (inactiveActions.includes(action)) {
         await handleSubscriptionInactive(data.id)
-        break
-
-      case 'payment.created':
-      case 'payment.updated':
-        await handlePaymentEvent(data.id)
-        break
-
-      default:
-        console.log(`Evento no manejado: ${type}`)
-        return NextResponse.json({ message: 'Evento no manejado' }, { status: 200 })
+      } else {
+        // created, updated, resumed → activar
+        await handleSubscriptionActive(data.id)
+      }
+    } else if (type === 'payment') {
+      await handlePaymentEvent(data.id)
+    } else {
+      console.log(`Evento no manejado: ${type} / ${action}`)
     }
 
     return NextResponse.json({ message: 'Webhook procesado correctamente' }, { status: 200 })
@@ -49,43 +81,60 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// Función para manejar suscripciones activas
 async function handleSubscriptionActive(subscriptionId: string) {
   try {
     console.log(`Activando suscripción: ${subscriptionId}`)
-    
-    // Obtener detalles de la suscripción desde MercadoPago
+
     const subscription = await getSubscriptionDetails(subscriptionId)
-    
+
     if (!subscription) {
       console.error(`No se pudo obtener detalles de la suscripción: ${subscriptionId}`)
       return
     }
 
-    // Buscar usuario por email del payer
     const payerEmail = subscription.payer?.email
     if (!payerEmail) {
       console.error(`No se encontró email del payer en la suscripción: ${subscriptionId}`)
       return
     }
 
-    // Actualizar usuario en la base de datos
-    const user = await prisma.user.findUnique({
+    // Fecha de expiración: next_payment_date de MP o fallback +30 días
+    let expiresAt: Date
+    if (subscription.next_payment_date) {
+      expiresAt = new Date(subscription.next_payment_date)
+    } else {
+      expiresAt = new Date()
+      expiresAt.setDate(expiresAt.getDate() + 30)
+    }
+
+    const existingUser = await prisma.user.findUnique({
       where: { email: payerEmail },
-    })
-    
-    const updatedUser = await prisma.user.update({
-      where: { email: payerEmail },
-      data: { 
-        isSubscribed: true,
-        subscribedAt: user?.subscribedAt || new Date(), // Solo establecer si no existe
-        updatedAt: new Date()
-      }
     })
 
-    console.log(`Usuario ${payerEmail} marcado como suscrito`)
-    
-    // Procesar referido si existe
+    const wasAlreadySubscribed = existingUser?.isSubscribed ?? false
+
+    const updatedUser = await prisma.user.update({
+      where: { email: payerEmail },
+      data: {
+        isSubscribed: true,
+        subscribedAt: existingUser?.subscribedAt || new Date(),
+        subscriptionExpiresAt: expiresAt,
+        updatedAt: new Date(),
+      },
+    })
+
+    console.log(`Usuario ${payerEmail} suscrito, expira: ${expiresAt.toISOString()}`)
+
+    // Mail de bienvenida solo en la primera suscripción
+    if (!wasAlreadySubscribed) {
+      try {
+        await sendWelcomeEmail(payerEmail, updatedUser.name || '')
+        console.log(`Mail de bienvenida enviado a ${payerEmail}`)
+      } catch (emailError) {
+        console.error(`Error enviando mail de bienvenida a ${payerEmail}:`, emailError)
+      }
+    }
+
     await processReferido(updatedUser.id)
 
   } catch (error) {
@@ -93,14 +142,12 @@ async function handleSubscriptionActive(subscriptionId: string) {
   }
 }
 
-// Función para manejar suscripciones inactivas
 async function handleSubscriptionInactive(subscriptionId: string) {
   try {
     console.log(`Desactivando suscripción: ${subscriptionId}`)
-    
-    // Obtener detalles de la suscripción
+
     const subscription = await getSubscriptionDetails(subscriptionId)
-    
+
     if (!subscription) {
       console.error(`No se pudo obtener detalles de la suscripción: ${subscriptionId}`)
       return
@@ -112,14 +159,13 @@ async function handleSubscriptionInactive(subscriptionId: string) {
       return
     }
 
-    // Actualizar usuario en la base de datos
-    const updatedUser = await prisma.user.update({
+    await prisma.user.update({
       where: { email: payerEmail },
-      data: { 
+      data: {
         isSubscribed: false,
-        subscribedAt: null, // Limpiar fecha cuando se desactiva
-        updatedAt: new Date()
-      }
+        subscriptionExpiresAt: null,
+        updatedAt: new Date(),
+      },
     })
 
     console.log(`Usuario ${payerEmail} marcado como no suscrito`)
@@ -129,20 +175,17 @@ async function handleSubscriptionInactive(subscriptionId: string) {
   }
 }
 
-// Función para manejar eventos de pago
 async function handlePaymentEvent(paymentId: string) {
   try {
     console.log(`Procesando evento de pago: ${paymentId}`)
-    
-    // Obtener detalles del pago
+
     const payment = await getPaymentDetails(paymentId)
-    
+
     if (!payment) {
       console.error(`No se pudo obtener detalles del pago: ${paymentId}`)
       return
     }
 
-    // Si el pago está aprobado y es de una suscripción
     if (payment.status === 'approved' && payment.subscription_id) {
       await handleSubscriptionActive(payment.subscription_id)
     }
@@ -152,7 +195,6 @@ async function handlePaymentEvent(paymentId: string) {
   }
 }
 
-// Función para obtener detalles de suscripción desde MercadoPago
 async function getSubscriptionDetails(subscriptionId: string) {
   try {
     const accessToken = process.env.MERCADOPAGO_ACCESS_TOKEN
@@ -164,8 +206,8 @@ async function getSubscriptionDetails(subscriptionId: string) {
     const response = await fetch(`https://api.mercadopago.com/preapproval/${subscriptionId}`, {
       headers: {
         'Authorization': `Bearer ${accessToken}`,
-        'Content-Type': 'application/json'
-      }
+        'Content-Type': 'application/json',
+      },
     })
 
     if (!response.ok) {
@@ -180,7 +222,6 @@ async function getSubscriptionDetails(subscriptionId: string) {
   }
 }
 
-// Función para obtener detalles de pago desde MercadoPago
 async function getPaymentDetails(paymentId: string) {
   try {
     const accessToken = process.env.MERCADOPAGO_ACCESS_TOKEN
@@ -192,8 +233,8 @@ async function getPaymentDetails(paymentId: string) {
     const response = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}`, {
       headers: {
         'Authorization': `Bearer ${accessToken}`,
-        'Content-Type': 'application/json'
-      }
+        'Content-Type': 'application/json',
+      },
     })
 
     if (!response.ok) {
@@ -208,15 +249,9 @@ async function getPaymentDetails(paymentId: string) {
   }
 }
 
-// Función para procesar referido
 async function processReferido(userId: string) {
   try {
-    // TODO: Implementar lógica de referidos después de generar Prisma
     console.log(`Procesando referido para usuario ${userId}`)
-    
-    // Por ahora solo logueamos, la funcionalidad completa se implementará
-    // después de ejecutar `npx prisma generate` y `npx prisma db push`
-    
   } catch (error) {
     console.error(`Error procesando referido para usuario ${userId}:`, error)
   }

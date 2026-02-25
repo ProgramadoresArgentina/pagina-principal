@@ -17,8 +17,9 @@ model User {
   bio               String?
   website           String?
   location          String?
-  isSubscribed      Boolean         @default(false)
-  subscribedAt      DateTime?
+  isSubscribed          Boolean         @default(false)
+  subscribedAt          DateTime?
+  subscriptionExpiresAt DateTime?
   isActive          Boolean         @default(true)
   lastLogin         DateTime?
   createdAt         DateTime        @default(now())
