@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useSearchParams } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import LoginForm from '@/app/components/LoginForm'
@@ -16,6 +17,9 @@ export default function ClubSubscribeButton() {
 
   const [showModal, setShowModal] = useState(false)
   const [modalTab, setModalTab] = useState<'login' | 'register'>('login')
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => { setMounted(true) }, [])
 
   // Close modal on Escape
   useEffect(() => {
@@ -51,6 +55,124 @@ export default function ClubSubscribeButton() {
       </div>
     )
   }
+
+  const modal = (
+    <div
+      onClick={(e) => { if (e.target === e.currentTarget) setShowModal(false) }}
+      style={{
+        position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+        zIndex: 999999,
+        background: 'rgba(0,0,0,0.85)',
+        backdropFilter: 'blur(6px)',
+        WebkitBackdropFilter: 'blur(6px)',
+        overflowY: 'auto',
+        overflowX: 'hidden',
+        padding: '0',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      {/* inner scroll wrapper */}
+      <div
+        onClick={(e) => { if (e.target === e.currentTarget) setShowModal(false) }}
+        style={{
+          minHeight: '100%',
+          width: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '24px 16px',
+          boxSizing: 'border-box',
+        }}
+      >
+        <div style={{
+          background: '#111318',
+          border: '1px solid rgba(208,255,113,0.2)',
+          borderRadius: '16px',
+          width: '100%',
+          maxWidth: '460px',
+          boxShadow: '0 24px 80px rgba(0,0,0,0.8)',
+        }}>
+          {/* Modal header */}
+          <div style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            padding: '18px 20px',
+            borderBottom: '1px solid rgba(255,255,255,0.06)',
+          }}>
+            <div>
+              <p style={{ margin: 0, color: '#D0FF71', fontSize: '15px', fontWeight: 700 }}>
+                Accedé al Club
+              </p>
+              <p style={{ margin: '3px 0 0', color: '#888', fontSize: '12px' }}>
+                Iniciá sesión o creá tu cuenta para continuar
+              </p>
+            </div>
+            <button
+              onClick={() => setShowModal(false)}
+              style={{
+                background: 'rgba(255,255,255,0.07)', border: 'none', cursor: 'pointer',
+                color: '#bbb', fontSize: '20px', lineHeight: 1,
+                width: '34px', height: '34px', borderRadius: '8px',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                flexShrink: 0, marginLeft: '12px',
+              }}
+            >
+              ×
+            </button>
+          </div>
+
+          {/* Tabs */}
+          <div style={{
+            display: 'flex',
+            margin: '16px 20px 0',
+            background: 'rgba(255,255,255,0.05)',
+            borderRadius: '10px', padding: '4px', gap: '4px',
+          }}>
+            {(['login', 'register'] as const).map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setModalTab(tab)}
+                style={{
+                  flex: 1, padding: '9px 12px',
+                  borderRadius: '7px', border: 'none',
+                  cursor: 'pointer', fontSize: '13px', fontWeight: 600,
+                  background: modalTab === tab ? '#D0FF71' : 'transparent',
+                  color: modalTab === tab ? '#111' : '#666',
+                  transition: 'all 0.15s',
+                }}
+              >
+                {tab === 'login' ? 'Iniciar sesión' : 'Registrarse'}
+              </button>
+            ))}
+          </div>
+
+          {/* Form */}
+          <div style={{ padding: '20px' }}>
+            {modalTab === 'login' ? (
+              <LoginForm
+                onSuccess={() => {
+                  setShowModal(false)
+                  goToMP()
+                }}
+              />
+            ) : (
+              <RegisterForm
+                onSuccess={() => {
+                  setShowModal(false)
+                  goToMP()
+                }}
+              />
+            )}
+
+            <p style={{ margin: '14px 0 0', fontSize: '11px', color: '#444', textAlign: 'center' }}>
+              Serás redirigido a MercadoPago para completar el pago.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
 
   return (
     <>
@@ -120,106 +242,9 @@ export default function ClubSubscribeButton() {
         </button>
       )}
 
-      {/* ── Auth Modal ── */}
-      {showModal && (
-        <div
-          onClick={(e) => { if (e.target === e.currentTarget) setShowModal(false) }}
-          style={{
-            position: 'fixed', inset: 0, zIndex: 99999,
-            background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(6px)',
-            display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
-            padding: '20px 16px 40px',
-            overflowY: 'auto',
-          }}
-        >
-          <div style={{
-            background: '#111318',
-            border: '1px solid rgba(208,255,113,0.2)',
-            borderRadius: '16px',
-            width: '100%',
-            maxWidth: '460px',
-            boxShadow: '0 24px 80px rgba(0,0,0,0.7)',
-            marginTop: 'auto',
-            marginBottom: 'auto',
-            flexShrink: 0,
-          }}>
-            {/* Modal header */}
-            <div style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              padding: '18px 20px',
-              borderBottom: '1px solid rgba(255,255,255,0.06)',
-            }}>
-              <div>
-                <p style={{ margin: 0, color: '#D0FF71', fontSize: '15px', fontWeight: 700 }}>
-                  Accedé al Club
-                </p>
-                <p style={{ margin: '2px 0 0', color: '#888', fontSize: '12px' }}>
-                  Iniciá sesión o creá tu cuenta para continuar
-                </p>
-              </div>
-              <button
-                onClick={() => setShowModal(false)}
-                style={{
-                  background: 'rgba(255,255,255,0.06)', border: 'none', cursor: 'pointer',
-                  color: '#aaa', fontSize: '18px', lineHeight: 1,
-                  width: '32px', height: '32px', borderRadius: '8px',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  flexShrink: 0,
-                }}
-              >
-                ×
-              </button>
-            </div>
-
-            {/* Tabs */}
-            <div style={{
-              display: 'flex', margin: '16px 20px 0',
-              background: 'rgba(255,255,255,0.04)',
-              borderRadius: '10px', padding: '4px', gap: '4px',
-            }}>
-              {(['login', 'register'] as const).map((tab) => (
-                <button
-                  key={tab}
-                  onClick={() => setModalTab(tab)}
-                  style={{
-                    flex: 1, padding: '9px 12px',
-                    borderRadius: '7px', border: 'none',
-                    cursor: 'pointer', fontSize: '13px', fontWeight: 600,
-                    background: modalTab === tab ? '#D0FF71' : 'transparent',
-                    color: modalTab === tab ? '#111' : '#777',
-                    transition: 'all 0.15s',
-                  }}
-                >
-                  {tab === 'login' ? 'Iniciar sesión' : 'Registrarse'}
-                </button>
-              ))}
-            </div>
-
-            {/* Form */}
-            <div style={{ padding: '20px' }}>
-              {modalTab === 'login' ? (
-                <LoginForm
-                  onSuccess={() => {
-                    setShowModal(false)
-                    goToMP()
-                  }}
-                />
-              ) : (
-                <RegisterForm
-                  onSuccess={() => {
-                    setShowModal(false)
-                    goToMP()
-                  }}
-                />
-              )}
-
-              <p style={{ margin: '14px 0 0', fontSize: '11px', color: '#444', textAlign: 'center' }}>
-                Serás redirigido a MercadoPago para completar el pago.
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* ── Auth Modal — rendered via portal directly in document.body
+           to escape GSAP ScrollSmoother's CSS transform context ── */}
+      {showModal && mounted && createPortal(modal, document.body)}
     </>
   )
 }
